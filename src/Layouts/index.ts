@@ -1,5 +1,0 @@
-export * from './Header'
-export * from './Footer'
-export * from './Window'
-export * from './WindowsArea'
-export * from './Stars'
