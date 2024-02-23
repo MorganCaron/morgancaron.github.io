@@ -1,0 +1,12 @@
+button {
+	cursor: pointer;
+}
+
+.button {
+	display: inline-block;
+	border: none;
+	vertical-align: middle;
+	user-select: none;
+	line-height: 1.5;
+	text-align: center;
+}

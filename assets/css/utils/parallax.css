@@ -1,0 +1,36 @@
+html:has(.parallax) {
+	height: 100%;
+	overflow: hidden;
+}
+
+body:has(.parallax) {
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	perspective: 1px;
+	perspective-origin: center;
+	transform-style: preserve-3d;
+
+	& * {
+		transform-style: inherit;
+	}
+}
+
+.parallax {
+	position: relative;
+
+	&::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100dvw;
+		height: 100dvh;
+		z-index: -100;
+		transform: translateZ(-1px) scale(3);
+		transform-style: inherit;
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+}

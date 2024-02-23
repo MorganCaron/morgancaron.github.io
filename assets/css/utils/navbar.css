@@ -1,0 +1,35 @@
+.navbar {
+	display: grid;
+	grid-template-rows: 1fr;
+	grid-template-columns: 1fr 1fr 1fr;
+	align-items: center;
+	justify-content: center;
+	user-select: none;
+	& > * {
+		display: flex;
+		justify-content: center;
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	& h1, & h2, & h3, & h4, & h5, & h6, & button {
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	& a {
+		color: currentColor;
+	}
+	& span, & a {
+		white-space: nowrap;
+	}
+	& ul {
+		display: flex;
+		padding-left: 0;
+		list-style: none;
+	}
+	& > *:first-child {
+		justify-content: left;
+	}
+	& > *:last-child {
+		justify-content: right;
+	}
+}

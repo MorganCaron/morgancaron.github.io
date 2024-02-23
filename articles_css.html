@@ -1,0 +1,27 @@
+---
+layout: page
+permalink: /articles/css
+logo: css.svg
+background: mountains0.jpg
+---
+
+{% include header.html %}
+
+<div class="blur-background">
+	<div class="container">
+
+		<section class="article-cards">
+		{% for article in site.articles %}
+			{% if article.category == "css" %}
+			<a href="{{ article.url }}" class="card">
+				<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{article.background}}');"{% endif %}>
+					<h2>{{ article.title }}</h2>
+				</header>
+				<span>{{ article.excerpt }}</span>
+			</a>
+			{% endif %}
+		{% endfor %}
+		</section>
+
+	</div>
+</div>

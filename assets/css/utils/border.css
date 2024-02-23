@@ -1,0 +1,14 @@
+.corner-border {
+	border: var(--thickness) solid #0000;
+	background: conic-gradient(from 90deg at top var(--thickness) left var(--thickness), #0000 90deg, var(--color) 0) 0 0 / var(--width) var(--width) border-box no-repeat, conic-gradient(from 180deg at top var(--thickness) right var(--thickness), #0000 90deg, var(--color) 0) 100% 0 / var(--width) var(--width) border-box no-repeat, conic-gradient(from 0deg at bottom var(--thickness) left var(--thickness), #0000 90deg, var(--color) 0) 0 100% / var(--width) var(--width) border-box no-repeat, conic-gradient(from -90deg at bottom var(--thickness) right var(--thickness), #0000 90deg, var(--color) 0) 100% 100% / var(--width) var(--width) border-box no-repeat;
+}
+
+.corner-border-alt1 {
+	border: var(--thickness) solid #0000;
+	background: conic-gradient(from 90deg at top var(--thickness) left var(--thickness), #0000 90deg, var(--color) 0) 0 0 / var(--width) var(--width) border-box no-repeat, conic-gradient(from -90deg at bottom var(--thickness) right var(--thickness), #0000 90deg, var(--color) 0) 100% 100% / var(--width) var(--width) border-box no-repeat;
+}
+
+.corner-border-alt2 {
+	border: var(--thickness) solid #0000;
+	background: conic-gradient(from 180deg at top var(--thickness) right var(--thickness), #0000 90deg, var(--color) 0) 100% 0 / var(--width) var(--width) border-box no-repeat, conic-gradient(from 0deg at bottom var(--thickness) left var(--thickness), #0000 90deg, var(--color) 0) 0 100% / var(--width) var(--width) border-box no-repeat;
+}

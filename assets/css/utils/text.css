@@ -1,0 +1,33 @@
+.text-left {
+	text-align: left;
+}
+.text-center {
+	text-align: center;
+}
+.text-right {
+	text-align: right;
+}
+
+.text-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	& a {
+		user-select: none;
+	}
+}
+
+p {
+	margin: 0 0 1em;
+}
+
+.lead {
+	font-size: 1.2rem;
+}
+
+a.button {
+	user-select: none;
+	text-decoration: none;
+}

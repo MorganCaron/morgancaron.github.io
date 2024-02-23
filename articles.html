@@ -1,0 +1,48 @@
+---
+layout: page
+title: Articles
+permalink: /articles
+order: 2
+background: mountains3.jpg
+---
+
+<header class="parallax text-center">
+	<h2>Articles par catégories</h2>
+</header>
+
+<div class="blur-background">
+	<div class="container">
+
+		<section class="cpp-cards">
+			<a href="/articles/git" class="card">
+				<img src="/assets/images/logos/git.svg" alt="Git" class="logo">
+				<h3 class="text-center">Tutoriels Git</h3>
+			</a>
+
+			<a href="/articles/c++" class="card">
+				<img src="/assets/images/logos/c++.svg" alt="C++" class="logo">
+				<h3 class="text-center">Tutoriels C++</h3>
+			</a>
+
+			<a href="/articles/css" class="card">
+				<img src="/assets/images/logos/css.svg" alt="Web" class="logo">
+				<h3 class="text-center">Tutoriels CSS</h3>
+			</a>
+		</section>
+
+		<h2 class="text-center">Tous les articles</h2>
+
+		<section class="article-cards">
+			{% for article in site.articles %}
+				<a href="{{ article.url }}" class="card">
+					<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{article.background}}');"{% endif %}>
+						<h2>{{ article.title }}</h2>
+						<img src="/assets/images/logos/{{article.logo}}">
+					</header>
+					<span>{{ article.excerpt }}</span>
+				</a>
+			{% endfor %}
+		</section>
+
+	</div>
+</div>

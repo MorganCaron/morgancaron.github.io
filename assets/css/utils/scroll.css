@@ -1,0 +1,34 @@
+::-webkit-scrollbar {
+	width: var(--scrollbar-width);
+	height: var(--scrollbar-width);
+}
+::-webkit-scrollbar-thumb {
+	background-color: var(--scrollbar-color);
+	opacity: 0.8;
+	&:hover {
+		opacity: 1;
+	}
+}
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
+	background-color: var(--scrollbar-background-color);
+}
+
+.scroll-snap-mandatory {
+	scroll-snap-type: y mandatory;
+}
+
+.scroll-snap-proximity {
+	scroll-snap-type: y proximity;
+}
+
+.scroll-snap-start {
+	scroll-snap-align: start;
+}
+
+.scroll-snap-end {
+	scroll-snap-align: end;
+}
+
+.scroll-snap-center {
+	scroll-snap-align: center;
+}
