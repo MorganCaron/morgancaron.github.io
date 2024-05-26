@@ -17,7 +17,7 @@ background: mountains0.jpg
 				<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{article.background}}');"{% endif %}>
 					<h2>{{ article.title }}</h2>
 				</header>
-				<span>{{ article.excerpt }}</span>
+				<div>{{ article.excerpt }}</div>
 			</a>
 			{% endif %}
 		{% endfor %}

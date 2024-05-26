@@ -1,7 +1,5 @@
 @import "https://fonts.googleapis.com/css2?family=Rajdhani:wght@100;200;300;400;500;600;700&display=swap";
 
-@import "home.css";
-
 :root {
 	--background-color: rgb(1, 4, 9);
 	--alpha-background-color: rgba(1, 4, 9, .8);
@@ -10,6 +8,10 @@
 	--scrollbar-width: .5rem;
 	--scrollbar-color: grey;
 	--scrollbar-background-color: var(--background-color);
+	--sm-width: 576px;
+	--md-width: 768px;
+	--lg-width: 992px;
+	--xl-width: 1200px;
 }
 
 @keyframes glitch {
@@ -283,7 +285,14 @@ blockquote {
 	width: 100%;
 	margin: 0 0 1em;
 	padding: 0 2rem;
-	background: linear-gradient(90deg, rgba(85, 204, 255, 0.25), transparent);
+
+	&:not([class*="block"]) {
+		background: linear-gradient(90deg, rgba(85, 204, 255, 0.25), transparent);
+	}
+
+	&.block-warning {
+		background: linear-gradient(90deg, rgba(255, 165, 36, 0.25), transparent);
+	}
 
 	&::before {
 		content: "";
@@ -314,8 +323,12 @@ blockquote {
 section.cpp-cards {
 	display: grid;
 	grid-template-rows: 1fr;
-	grid-template-columns: 1fr 1fr 1fr 1fr;
+	grid-template-columns: 1fr 1fr;
 	gap: 1rem 1rem;
+
+	@media (min-width: 992px) {
+		grid-template-columns: 1fr 1fr 1fr 1fr;
+	}
 
 	& .card {
 		display: grid;
@@ -344,14 +357,17 @@ section.cpp-cards {
 
 section.article-cards {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr;
 	gap: 1.5rem 1.5rem;
+
+	@media (min-width: 992px) {
+		grid-template-columns: 1fr 1fr;
+	}
 
 	& .card {
 		display: grid;
 		grid-template-rows: 1fr;
 		grid-template-columns: 1fr;
-		gap: 1rem 1rem;
 		background-color: var(--background-color);
 		color: var(--color);
 		box-shadow: 0 1rem 1.5rem -.5rem rgba(0, 0, 0, 0.75);
@@ -403,9 +419,11 @@ section.article-cards {
 			}
 		}
 
-		& p {
-			padding-left: .5rem;
-			padding-right: .5rem;
+		& div {
+			height: 3em;
+			margin: 1rem 0;
+			padding: 0 .5rem;
+			overflow: hidden;
 		}
 	}
 }
@@ -480,6 +498,14 @@ figure.highlight {
 	box-shadow: 0px 1px 5px black;
 	tab-size: 4;
 
+	.lineno {
+		margin-right: 5px;
+		padding-right: .5rem;
+		border-right: 1px solid grey;
+		color: grey;
+		user-select: none;
+	}
+
 	& .language-cpp {
 
 		/* preprocessor, include */
@@ -500,14 +526,16 @@ figure.highlight {
 			color: steelblue;
 		}
 
-		/* names, functions name */
+		/* names, functions name, struct/class name */
 		& .n,
-		& .nf {
+		& .nf,
+		& .nc {
 			color: lightseagreen;
 		}
 
 		/* string */
-		& .s {
+		& .s,
+		& .se {
 			color: lightgreen;
 		}
 
@@ -524,6 +552,50 @@ figure.highlight {
 		/* comment */
 		& .c1 {
 			color: lime;
+		}
+	}
+
+	& .language-py {
+
+		/* operator, parenthesis semicolon */
+		& .o,
+		& .p {
+			color: chocolate;
+		}
+
+		/* reserved tokens, types */
+		& .k,
+		& .kt,
+		& .nb {
+			color: steelblue;
+		}
+
+		/* names, functions name */
+		& .n,
+		& .nf {
+			color: lightseagreen;
+		}
+	}
+
+	& .language-ts {
+
+		/* operator, parenthesis semicolon */
+		& .o,
+		& .p {
+			color: chocolate;
+		}
+
+		/* reserved tokens */
+		& .k,
+		& .kd,
+		& .kr {
+			color: steelblue;
+		}
+
+		/* names, functions name */
+		& .nf,
+		& .nx {
+			color: lightseagreen;
 		}
 	}
 }
@@ -550,4 +622,16 @@ canvas#particles {
 
 .logo {
 	user-select: none;
+}
+
+.work-in-progress {
+	border-style: solid;
+	border-width: .5rem 0;
+	border-image: repeating-linear-gradient(45deg, #222, #222 10px, transparent 10px, transparent 25px) 10;
+	background-image: linear-gradient(90deg, transparent, #ff0 10%, #ff0 90%, transparent);
+	background-size: auto, auto 132px, auto;
+	color: #222;
+	font-size: 1rem;
+	font-weight: bold;
+	text-align: center;
 }
