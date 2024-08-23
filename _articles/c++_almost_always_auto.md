@@ -14,7 +14,7 @@ Découverte du mot clef ``auto``, de ses avantages et de ses différents comport
 
 Le mot clef ``auto`` a eu plusieurs sens au cours de l'histoire du langage.
 
-En langage C, ``auto`` (pour "**Automatic Storage Duration**") était utilisé avant le type d'une variable pour lui donner une **portée locale** à son scope.
+En langage C, ``auto`` (pour "**Automatic Storage Duration**") était utilisé avant le type d'une variable pour lui donner une **portée locale** à son bloc de code (**scope**).
 
 C'est à dire, faire que la variable soit **supprimée à la sortie du scope**, contrairement aux variables globales.
 
@@ -80,7 +80,7 @@ auto c_string0 = std::data(string); // c_string0 est de type char*
 auto* c_string1 = std::data(string); // c_string1 est de type char*
 {% endhighlight %}
 
-> A noter que l'écriture ``auto string = std::string{"Hello World"};`` est appelé "**auto to track**".<br>
+> A noter que l'écriture ``auto string = std::string{"Hello World"};`` est appelée "**auto to track**".<br>
 > Elle consiste à forcer la variable ``string`` à adopter le type à droite du signe égal (``std::string``).<br><br>
 > L'écriture ``auto c_string0 = std::data(string);`` est quant à elle nommée "**auto to stick**".<br>
 > Elle consiste à déduire le type de la variable ``c_string0`` en fonction du type retourné par la fonction ``std::data``.
@@ -155,7 +155,7 @@ auto sum(Lhs lhs, Rhs rhs) -> decltype(lhs + rhs)
 > Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/c++/templates).
 > Et pour ``decltype(expression)``, c'est [ici](/articles/c++/value_categories#decltype).
 
-Ceci n'est pas possible avec l'ancienne écriture des fonctions:
+Cela n'est pas possible avec l'ancienne écriture des fonctions:
 
 {% highlight cpp %}
 template<class Lhs, class Rhs>
@@ -196,7 +196,7 @@ auto sum(Lhs lhs, Rhs rhs)
 };
 {% endhighlight %}
 
-Mais ce n'est pas une écriture que vous verrez couramment car elle comporte des risques et qu'elle ne peut pas toujours s'appliquer.
+Cependant, ce n'est pas une écriture que vous verrez couramment car elle comporte des risques et qu'elle ne peut pas toujours s'appliquer.
 
 Déjà, retourner ``auto`` est suffisant dans les définitions, mais pas dans les déclarations car elles n'ont pas accès au corps de la fonction pour déduire son type de retour.
 
@@ -404,7 +404,7 @@ for (const auto& [key, value] : map)
 
 > Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/c++/templates).
 
-Vous avez surement remarqué que certaines templates prennent des valeurs, au lieu de prendre des types.
+Vous avez surement remarqué que certains templates prennent des valeurs, au lieu de prendre des types.
 
 Par exemple:
 {% highlight cpp %}
@@ -465,7 +465,7 @@ auto sum(Lhs lhs, Rhs rhs) -> auto
 };
 {% endhighlight %}
 
-Depuis C++20, il est possible d'utiliser ``auto`` comme syntaxe alternative des templates, améliorant grandement leur lisibilité:
+Depuis C++20, il est possible d'utiliser ``auto`` comme syntaxe alternative aux templates, améliorant grandement leur lisibilité:
 
 {% highlight cpp %}
 auto sum(auto lhs, auto rhs) -> auto
