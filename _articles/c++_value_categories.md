@@ -5,7 +5,7 @@ permalink: articles/c++/value_categories
 category: c++
 logo: c++.svg
 background: mountains4.webp
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}
