@@ -5,7 +5,7 @@ permalink: articles/css/flexbox
 category: css
 logo: css.svg
 background: mountains0.jpg
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}

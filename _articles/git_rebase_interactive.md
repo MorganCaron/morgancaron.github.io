@@ -5,7 +5,7 @@ permalink: articles/git/rebase_interactive
 category: git
 logo: git.svg
 background: mountains0.jpg
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}

@@ -14,5 +14,6 @@
 	</head>
 	<body{% if page.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{page.background}}');"{% endif %}>
 		{{ content }}
+		<script src="{{ '/assets/js/main.js' | relative_url }}"></script>
 	</body>
 </html>

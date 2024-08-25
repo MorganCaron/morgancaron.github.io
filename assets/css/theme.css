@@ -209,6 +209,12 @@ body > nav.sticky-top {
 
 header.home {
 	height: 100dvh;
+	transform-style: preserve-3d;
+	perspective-origin: center;
+	perspective: 50vw;
+	* {
+		transform-style: inherit;
+	}
 
 	h1, h2 {
 		display: inline-block;
@@ -301,6 +307,7 @@ header.home {
 
 		& > a {
 			margin: .25rem;
+			transform: translateZ(30px);
 		}
 	}
 	nav + nav {
@@ -617,6 +624,12 @@ button.nier,
 	transition: background-size .3s, color .3s;
 	color: white;
 
+	&.bullet::before {
+		border-top: .35em solid transparent;
+		border-bottom: .35em solid transparent;
+		border-left: .55em solid currentColor;
+	}
+
 	&::after {
 		content: '';
 		display: block;
@@ -635,6 +648,12 @@ button.nier,
 		background-size: 100% 100%;
 		color: var(--background-color);
 		color: black;
+
+		&.bullet::before {
+			width: .5em;
+			height: .5em;
+			background-color: currentColor;
+		}
 
 		&::after {
 			border-color: white;
