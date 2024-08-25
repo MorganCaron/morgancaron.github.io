@@ -5,7 +5,7 @@ permalink: articles/c++/templates
 category: c++
 logo: c++.svg
 background: factory0.webp
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}

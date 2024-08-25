@@ -2,26 +2,24 @@
 layout: page
 permalink: /articles/c++/
 logo: c++.svg
-background: mountains0.jpg
+background: mountains1.jpg
 ---
 
 {% include header.html %}
 
-<div class="blur-background">
-	<div class="container">
+<div class="container">
 
-		<section class="article-cards">
-		{% for article in site.articles %}
-			{% if article.category == "c++" %}
-			<a href="{{ article.url }}" class="card">
-				<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{article.background}}');"{% endif %}>
-					<h2>{{ article.title }}</h2>
-				</header>
-				<div>{{ article.excerpt }}</div>
-			</a>
-			{% endif %}
-		{% endfor %}
-		</section>
+	<section class="article-cards">
+	{% for article in site.articles %}
+		{% if article.category == "c++" %}
+		<a href="{{ article.url }}" class="card">
+			<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{article.background}}');"{% endif %}>
+				<h2>{{ article.title }}</h2>
+			</header>
+			<div>{{ article.excerpt }}</div>
+		</a>
+		{% endif %}
+	{% endfor %}
+	</section>
 
-	</div>
 </div>

@@ -5,7 +5,7 @@ permalink: articles/c++/uniform_initialization
 category: c++
 logo: c++.svg
 background: mountains2.jpg
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}

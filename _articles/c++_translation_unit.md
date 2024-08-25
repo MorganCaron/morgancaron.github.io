@@ -5,7 +5,7 @@ permalink: articles/c++/translation_unit
 category: c++
 logo: c++.svg
 background: abyss0.webp
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}

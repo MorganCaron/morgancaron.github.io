@@ -5,7 +5,7 @@ permalink: articles/c++/xmake
 category: c++
 logo: c++.svg
 background: cavern0.webp
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}

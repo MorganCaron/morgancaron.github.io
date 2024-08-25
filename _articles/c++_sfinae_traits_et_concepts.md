@@ -5,7 +5,7 @@ permalink: articles/c++/sfinae_traits_et_concepts
 category: c++
 logo: c++.svg
 background: factory0.webp
-published: true
+published: false
 ---
 
 {:refdef: class="work-in-progress"}

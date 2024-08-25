@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Morgan Caron's Devblog</title>
+		<title>{% if page.title %}{{ page.title }}{% else %}Morgan Caron's Devblog{% endif %}</title>
 		<meta name="darkreader-lock">
 		<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />

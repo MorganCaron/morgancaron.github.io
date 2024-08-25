@@ -8,7 +8,7 @@ background: corridor0.webp
 published: true
 ---
 
-Découverte du mot clef ``auto``, de ses avantages et de ses différents comportements selon le contexte.
+Le mot clef ``auto``, ses avantages et ses différents comportements selon le contexte.
 
 ## Automatic storage duration specifier (avant C++11) (obsolète)
 
@@ -507,9 +507,10 @@ void sum(Lhs lhs, Rhs rhs);
 
 ---
 
-## Explicit cast to a prvalue copy (depuis C++23)
+## auto cast (depuis C++23)
 
 Une manière générique d'obtenir la copie d'un objet en C++ est ``auto variable = x;``, mais une telle copie est une [lvalue](/articles/c++/value_categories#lvalue).
+
 ``auto(a)`` (ou ``auto{x}``) permet d'en obtenir une copie sous forme de [prvalue](/articles/c++/value_categories#prvalue), ce qui peut être utile pour transmettre cet objet en paramètre à une fonction.
 
 {% highlight cpp %}
@@ -552,7 +553,14 @@ Ici aussi, on peut décider de ne pas utiliser ``auto`` pour éviter ce surcoût
 Dans certains cas, l'écriture avec ``auto`` est même impossible. Lorsqu'un type est non-copyable ET non-movable:
 {% highlight cpp %}
 auto m = std::mutex{}; // Ne compile pas en C++14
+{% endhighlight %}
+{% highlight cpp %}
+std::mutex m{};
 auto lock = std::lock_guard<std::mutex>{m}; // Ne compile pas en C++14
+{% endhighlight %}
+{% highlight cpp %}
+std::mutex m{};
+std::lock_guard<std::mutex> lock{m}; // Compile
 {% endhighlight %}
 
 Ceci explique le ``Almost`` dans ``Almost Always Auto``. On est passé à ça 🤏 d'avoir une règle d'écriture uniforme.
@@ -572,8 +580,11 @@ Mais c'est alors que...
 
 En C++17, le langage garanti la [copy elision](https://en.cppreference.com/w/cpp/language/copy_elision), faisant disparaitre les surcoûts que vous venons de voir, et rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
 
-Suite à ce changement dans le langage, Herb Sutter soutient le passage de AAA à AA.<br>
-A votre tour de prendre le pas et d'adopter ``auto``
+La [copy elision](https://en.cppreference.com/w/cpp/language/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/c++/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
+
+Suite à ce changement dans le langage, Herb Sutter soutient le passage de AAA à AA.
+
+A votre tour de prendre le pas et d'adopter ``auto`` dans vos projets.
 
 {:refdef: class="text-center"}
 ![Fusco](/assets/images/articles/c++/almost_always_auto/person-of-interest-fusco.gif){: width="500" }

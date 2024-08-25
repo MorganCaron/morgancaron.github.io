@@ -1,16 +1,18 @@
-<nav class="navbar sticky-top">
-	<h1><a href="/" class="button">Devblog de Morgan Caron</a></h1>
-	{% assign pages_path = site.pages | sort: "order" | map: "path" %}
-	<ul class="no-bullet">
-		{% for page_path in pages_path %}
-			{% assign my_page = site.pages | where: "path", page_path | first %}
-			{% if my_page.title %}
-				<li><a href="{{ my_page.url | relative_url }}" class="button">{{ my_page.title | escape }}</a></li>
-			{% endif %}
-		{% endfor %}
-	</ul>
-	<ul class="no-bullet">
-		<li><a href="https://discord.gg/mxZvun4" class="button"><i class="lab la-discord"></i> Discord</a></li>
-		<li><a href="https://github.com/MorganCaron" class="button"><i class="lab la-github"></i> Github</a></li>
-	</ul>
+<nav class="sticky-top">
+	<div class="navbar">
+		<h1><a href="/" class="button">Devblog de Morgan Caron</a></h1>
+		{% assign pages_path = site.pages | sort: "order" | map: "path" %}
+		<ul class="no-bullet">
+			{% for page_path in pages_path %}
+				{% assign my_page = site.pages | where: "path", page_path | first %}
+				{% if my_page.title %}
+					<li><a href="{{ my_page.url | relative_url }}" class="button">{{ my_page.title | escape }}</a></li>
+				{% endif %}
+			{% endfor %}
+		</ul>
+		<ul class="no-bullet">
+			<li><a href="https://discord.gg/mxZvun4" class="button"><i class="lab la-discord"></i> Discord</a></li>
+			<li><a href="https://github.com/MorganCaron" class="button"><i class="lab la-github"></i> Github</a></li>
+		</ul>
+	</div>
 </nav>
