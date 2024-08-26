@@ -707,7 +707,8 @@ figure.highlight {
 		}
 
 		/* number */
-		& .mi {
+		& .mi,
+		& .nb {
 			color: aquamarine;
 		}
 
