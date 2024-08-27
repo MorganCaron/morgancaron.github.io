@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 	initMouse();
+	initTopButtons();
 	requestAnimationFrame(update);
 }, false);
 
@@ -14,6 +15,15 @@ const initMouse = () => {
 		document.addEventListener('mousemove', onMouseMove);
 		document.body.addEventListener('mouseleave', onMouseLeave);
 	}
+};
+
+const initTopButtons = () => {
+	document.querySelectorAll(".top-button").forEach(button => {
+		button.onclick = () => {
+			document.body.scrollTop = 0;
+			document.documentElement.scrollTop = 0;
+		}
+	});
 };
 
 const onMouseMove = (event) => {

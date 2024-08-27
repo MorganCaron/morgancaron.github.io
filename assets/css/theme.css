@@ -16,6 +16,10 @@
 	--xl-width: 1200px;
 }
 
+:target {
+	scroll-margin-top: 1rem;
+}
+
 @keyframes blinker {
 	50% {
 		opacity: 0
@@ -175,9 +179,11 @@ body > nav.sticky-top {
 	display: grid;
 	grid-template-rows: 1fr;
 	grid-template-columns: 1fr 4fr 1fr;
+	pointer-events: none;
 	& .navbar {
 		grid-column-start: 2;
 		grid-column-end: 3;
+		pointer-events: auto;
 		height: 3.5rem;
 		border-radius: 1.5rem;
 		margin: .5rem 0;
@@ -357,10 +363,16 @@ body:not(:hover) .mouse-oriented {
 	min-height: calc(100vh - 45px - 40rem - 144px - 46px);
 	grid-template-rows: 1fr;
 	grid-template-columns: 1fr 4fr 1fr;
+	padding-top: -28rem;
 
-	&>section {
-		grid-column-start: 2;
-		grid-column-end: 3;
+	& > div {
+		margin: -30rem .5rem .5rem;
+		& > .rounded-card {
+			top: .5rem;
+		}
+	}
+
+	& > section {
 		margin-top: -28rem;
 		padding: 0 1rem;
 		background-color: var(--alpha-background-color);
@@ -379,7 +391,7 @@ body:not(:hover) .mouse-oriented {
 		}
 	}
 
-	&>aside {
+	& > aside {
 		position: sticky;
 		top: 4rem;
 	}
@@ -612,6 +624,14 @@ section.article-cards {
 
 .anchorjs-link {
 	color: var(--link-color);
+}
+
+.rounded-card {
+	border-radius: 1.5rem;
+	margin: .5rem 0;
+	padding: 1rem 1rem;
+	background: linear-gradient(0.275turn, var(--alpha-black), var(--alpha-white), var(--alpha-black));
+	backdrop-filter: blur(3px);
 }
 
 button.nier,
