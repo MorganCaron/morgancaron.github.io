@@ -362,8 +362,7 @@ body:not(:hover) .mouse-oriented {
 	display: grid;
 	min-height: calc(100vh - 45px - 40rem - 144px - 46px);
 	grid-template-rows: 1fr;
-	grid-template-columns: 1fr 4fr 1fr;
-	padding-top: -28rem;
+	grid-template-columns: 1fr minmax(0, 4fr) 1fr;
 
 	& > div {
 		margin: -30rem .5rem .5rem;
@@ -684,6 +683,7 @@ figure.highlight {
 	background-color: #222;
 	box-shadow: 0px 1px 5px black;
 	tab-size: 4;
+	overflow-x: auto;
 
 	.lineno {
 		margin-right: 5px;
