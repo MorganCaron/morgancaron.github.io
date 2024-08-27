@@ -29,6 +29,10 @@ const onMouseLeave = () => {
 }
 
 const updateMouse = () => {
+	const mouseOrientedElement = document.querySelector('.mouse-oriented');
+	if (mouseOrientedElement === null)
+		return;
+
 	const mouseX = parseInt(document.body.style.getPropertyValue('--mouse-x')) | 0;
 	const mouseY = parseInt(document.body.style.getPropertyValue('--mouse-y')) | 0;
 
@@ -39,5 +43,5 @@ const updateMouse = () => {
 	const angleX = (-y * factor) * 90;
 	const angleY = (x * factor) * 90;
 
-	document.querySelector('.mouse-oriented').style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+	mouseOrientedElement.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg)`;
 };

@@ -6,14 +6,18 @@
 		<meta name="darkreader-lock">
 		<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<script src="//cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js"></script>
-		<script>
-			anchors.options.placement = 'right';
-			anchors.add('.page > section h2, .page > section h3, .page > section h4, .page > section h5, .page > section h6');
-		</script>
 	</head>
 	<body{% if page.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{page.background}}');"{% endif %}>
 		{{ content }}
 		<script src="{{ '/assets/js/main.js' | relative_url }}"></script>
+		<script src="https://cdn.jsdelivr.net/npm/anchor-js/anchor.min.js"></script>
+		<script>
+			anchors.options = {
+				visible: 'always',
+				placement: 'right',
+				icon: '¶'
+			};
+			anchors.add('.page > section h2, .page > section h3, .page > section h4, .page > section h5, .page > section h6');
+		</script>
 	</body>
 </html>
