@@ -35,8 +35,6 @@ A partir de cette version, le mot clef ``auto`` se voit attribuer une autre sign
 ![Stare](/assets/images/articles/c++/almost_always_auto/person-of-interest-stare.gif){: width="500" }
 {: refdef}
 
----
-
 ## Placeholder type specifiers (depuis C++11)
 
 Dès C++11, le mot clef ``auto`` permet de faire de l'**inférence de types**.<br>
@@ -103,8 +101,6 @@ auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
 - Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
 
 Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
-
----
 
 ## Trailing return type (depuis C++11)
 
@@ -181,8 +177,6 @@ auto sum = (int lhs, int rhs) -> int {
 
 > A noter qu'ici, ``auto`` n'est pas le type de la valeur de retour de la lambda, mais le type de la lambda elle-même.<br>
 > On en a parlé dans le [précédent point](#placeholder-type-specifiers-depuis-c11).
-
----
 
 ## ``auto`` as a return type (depuis C++14)
 
@@ -262,8 +256,6 @@ Seul celui à droite désigne le type de retour de la fonction.
 > Ici, il n'y a aucun intérêt autre que l'uniformisation d'écrire ``-> auto``.<br>
 > Ecrire simplement ``auto sum(Lhs lhs, Rhs rhs)`` revient au même.
 
----
-
 ## ``decltype(auto)`` (depuis C++14)
 
 Spécifier le type de retour d'une fonction avec ``decltype(auto)`` permet de préserver les propriétés cvref (``const``/``volatile``/``reference``) de la valeur retournée.
@@ -298,8 +290,6 @@ auto i = 10; // int
 decltype(auto) j = i; // int
 decltype(auto) k = (i); // int&
 {% endhighlight %}
-
----
 
 ## Structured binding declaration (depuis C++17)
 
@@ -398,8 +388,6 @@ for (const auto& [key, value] : map)
 	std::print("{} {}", key, value);
 {% endhighlight %}
 
----
-
 ## ``auto`` in template parameters (depuis C++17)
 
 > Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/c++/templates).
@@ -451,8 +439,6 @@ struct HeterogenousValueList {};
 using MyList = HeterogenousValueList<42, 'X', 13u>;
 {% endhighlight %}
 
----
-
 ## Abbreviated function template (depuis C++20)
 
 Les templates ont toujours été très verbeuses.
@@ -498,14 +484,14 @@ Lorsque templates et paramètres ``auto`` sont combinés, cela équivaut à avoi
 {% highlight cpp %}
 template<class Lhs>
 void sum(Lhs lhs, auto rhs);
-
-/* Equivaut à:
-template<class Lhs, class Rhs>
-void sum(Lhs lhs, Rhs rhs);
-*/
 {% endhighlight %}
 
----
+Equivaut à:
+
+{% highlight cpp %}
+template<class Lhs, class Rhs>
+void sum(Lhs lhs, Rhs rhs);
+{% endhighlight %}
 
 ## auto cast (depuis C++23)
 
