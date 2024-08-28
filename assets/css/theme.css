@@ -247,11 +247,18 @@ header.home {
 	h1, h2 {
 		display: inline-block;
 		margin: .5rem 0 0;
+		&::before {
+			content: attr(data-text);
+			position: absolute;
+			color: #222;
+			transform: translateZ(-30px);
+			filter: blur(1px);
+		}
 	}
 	h1, h2, h2::after {
 		position: relative;
 		z-index: 1;
-		text-shadow: black 1px 0 5px;
+		text-shadow: 2px 2px 2px #111;
 	}
 	h2::after {
 		content: '_';
@@ -347,7 +354,7 @@ header.home {
 }
 
 body:not(:hover) .mouse-oriented {
-	transition: transform 1s ease 1s
+	transition: transform 1s ease 1s;
 }
 
 .blur-background {
