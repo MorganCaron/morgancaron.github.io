@@ -104,11 +104,11 @@ body {
 	font-size: 1.2rem;
 	font-weight: 400;
 
-	&>.parallax {
-		&>header {
+	& > .parallax {
+		& > header {
 			padding: 1rem;
 
-			&>.button {
+			& > .button {
 				position: absolute;
 				top: 1rem;
 				left: 1rem;
@@ -131,7 +131,7 @@ body {
 		}
 	}
 
-	&>footer {
+	& > footer {
 		position: sticky;
 		top: calc(100vh - 100%);
 		padding: 4rem 2rem 1rem;
@@ -173,6 +173,25 @@ h4,
 h5,
 h6 {
 	font-weight: 300;
+}
+
+p, li {
+	& a:not(.anchorjs-link) {
+		text-decoration: none;
+		background: linear-gradient(to top, currentColor 0%, currentColor 10%, transparent 10.01%) no-repeat;
+		background-size: 0 100%;
+		transition: background-size .3s, color .3s;
+		color: var(--link-color);
+
+		&.underlined,
+		&:hover {
+			background-size: 100% 100%;
+		}
+
+		&.underlined:hover {
+			animation: underline-animation 1s both;
+		}
+	}
 }
 
 body > nav.sticky-top {
@@ -368,7 +387,6 @@ body:not(:hover) .mouse-oriented {
 		margin: -30rem .5rem .5rem;
 		& > .rounded-card {
 			top: .5rem;
-			padding: 1rem;
 		}
 	}
 
@@ -413,30 +431,13 @@ article {
 		font-size: 2rem;
 	}
 
-	&>h2,
-	&>h3,
-	&>h4,
-	&>h5,
-	&>h6 {
+	& > h2,
+	& > h3,
+	& > h4,
+	& > h5,
+	& > h6 {
 		position: relative;
 		border-bottom: 2px solid currentColor;
-	}
-
-	& a:not(.anchorjs-link) {
-		text-decoration: none;
-		background: linear-gradient(to top, currentColor 0%, currentColor 10%, transparent 10.01%) no-repeat;
-		background-size: 0 100%;
-		transition: background-size .3s, color .3s;
-		color: var(--link-color);
-
-		&.underlined,
-		&:hover {
-			background-size: 100% 100%;
-		}
-
-		&.underlined:hover {
-			animation: underline-animation 1s both;
-		}
 	}
 
 	img {
@@ -623,9 +624,10 @@ section.article-cards {
 }
 
 .rounded-card {
+	display: inline-block;
 	border-radius: 1.5rem;
 	margin: .5rem 0;
-	padding: .5rem 1rem;
+	padding: .4rem 1rem;
 	background: linear-gradient(.3turn, var(--alpha-black), var(--alpha-white), var(--alpha-black));
 	backdrop-filter: blur(3px);
 }

@@ -19,6 +19,14 @@ body {
 	}
 }
 
+.row {
+	display: flex;
+	justify-content: space-evenly;
+	& > * {
+		flex: 1;
+	}
+}
+
 .gutters {
 	padding-left: 1rem;
 	padding-right: 1rem;
