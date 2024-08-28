@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 	initMouse();
 	initTopButtons();
+	autoScrollToHash();
 	requestAnimationFrame(update);
 }, false);
 
@@ -26,6 +27,16 @@ const initTopButtons = () => {
 	});
 };
 
+const autoScrollToHash = () => {
+	const hash = window.location.hash;
+	if (hash)
+		document.querySelector(hash)?.scrollIntoView({
+			behavior: 'smooth',
+			block: 'start',
+			inline: 'start'
+		});
+};
+
 const onMouseMove = (event) => {
 	document.body.style.setProperty('--mouse-x', `${event.pageX}`);
 	document.body.style.setProperty('--mouse-y', `${event.pageY}`);
@@ -40,7 +51,7 @@ const onMouseLeave = () => {
 
 const updateMouse = () => {
 	const mouseOrientedElement = document.querySelector('.mouse-oriented');
-	if (mouseOrientedElement === null)
+	if (!mouseOrientedElement)
 		return;
 
 	const mouseX = parseInt(document.body.style.getPropertyValue('--mouse-x')) | 0;
