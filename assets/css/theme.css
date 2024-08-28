@@ -179,7 +179,7 @@ h6 {
 }
 
 p, li {
-	& a:not(.anchorjs-link) {
+	& a:not(.anchorjs-link):not(:has(img)) {
 		text-decoration: none;
 		background: linear-gradient(to top, currentColor 0%, currentColor 10%, transparent 10.01%) no-repeat;
 		background-size: 0 100%;
@@ -686,6 +686,37 @@ figure.highlight {
 	box-shadow: 0px 1px 5px black;
 	tab-size: 4;
 	overflow: hidden;
+
+	&::after {
+		content: "C++";
+		position: absolute;
+		top: 0;
+		right: 0;
+		border-bottom-left-radius: 5px;
+		padding: .1rem .5rem 0;
+		background-color: #181818;
+		box-shadow: inset 1px -1px 5px black;
+	}
+	&:hover {
+		&::after {
+			display: none;
+		}
+	}
+	&:has(.language-cpp)::after {
+		content: "C++";
+	}
+	&:has(.language-console)::after {
+		content: "Output terminal";
+	}
+	&:has(.language-html)::after {
+		content: "HTML";
+	}
+	&:has(.language-css)::after {
+		content: "CSS";
+	}
+	&:has(.language-javascript)::after {
+		content: "JS";
+	}
 
 	pre {
 		overflow-x: auto;
