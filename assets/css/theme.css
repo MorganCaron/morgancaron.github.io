@@ -441,13 +441,25 @@ article {
 		font-size: 2rem;
 	}
 
-	& > h2,
+	& > h2 {
+		border-bottom: 2px solid currentColor;
+	}
+
 	& > h3,
 	& > h4,
 	& > h5,
 	& > h6 {
-		position: relative;
-		border-bottom: 2px solid currentColor;
+		&::after {
+			content: "";
+			display: block;
+			width: 100px;
+			height: 2px;
+			margin-right: 100%;
+			border-right: 50px solid lightslategrey;
+			border-top: 0;
+			border-bottom: 0;
+			border-left: 50px solid currentColor;
+		}
 	}
 
 	img {

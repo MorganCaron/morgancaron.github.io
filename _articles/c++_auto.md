@@ -1,7 +1,7 @@
 ---
 layout: article
-title: Almost Always Auto
-permalink: articles/c++/almost_always_auto
+title: Évolution du mot clef auto
+permalink: articles/c++/auto
 category: c++
 logo: c++.svg
 background: corridor0.webp
@@ -46,9 +46,10 @@ auto b = 2u; // unsigned int
 auto c = "foo"; // const char*
 auto d = std::string{"bar"}; // std::string
 auto e = std::size(d); // std::size_t
-auto f = { 1, 2, 3 }; // std::initializer_list<int>
-auto g = std::array{ 1, 2, 3 }; // std::array<int, 3>
-auto h = nullptr; // std::nullptr_t
+auto f = 3uz; // std::size_t
+auto g = { 1, 2, 3 }; // std::initializer_list<int>
+auto h = std::array{ 1, 2, 3 }; // std::array<int, 3>
+auto i = nullptr; // std::nullptr_t
 {% endhighlight %}
 
 > Les [literals](/articles/c++/literals) facilitent le typage lors de l'initialisation de variables.
@@ -78,10 +79,54 @@ auto c_string0 = std::data(string); // c_string0 est de type char*
 auto* c_string1 = std::data(string); // c_string1 est de type char*
 {% endhighlight %}
 
+L'usage explicite de ``auto*`` permet de signaler de manière claire que vous travaillez avec des pointeurs, ce qui peut améliorer la lisibilité du code.
+
 > A noter que l'écriture ``auto string = std::string{"Hello World"};`` est appelée "**auto to track**".<br>
 > Elle consiste à forcer la variable ``string`` à adopter le type à droite du signe égal (``std::string``).<br><br>
 > L'écriture ``auto c_string0 = std::data(string);`` est quant à elle nommée "**auto to stick**".<br>
 > Elle consiste à déduire le type de la variable ``c_string0`` en fonction du type retourné par la fonction ``std::data``.
+
+### Common type deduction
+
+Lorsqu'un type dépend de plusieurs expressions, l'utilisation de ``auto`` permet au compilateur de déduire le [type commun](/articles/c++/type_traits#type_commun) entre les différentes expressions possibles.
+
+Par exemple, dans le cas d'une ternaire où ``c`` peut se voir attribuer la valeur de ``a`` ou de ``b`` selon une condition:
+{% highlight cpp %}
+auto c = (a < b) ? a : b;
+{% endhighlight %}
+
+Si ``a`` et ``b`` sont de types différents, le mot clef ``auto`` permet de déduire automatiquement le [type commun](/articles/c++/type_traits#type_commun) de ces deux expressions.
+
+{% highlight cpp %}
+auto a = 10; // int
+auto b = 3.14; // double
+
+auto c = (a < b) ? a : b; // Type commun entre int et double (double)
+{% endhighlight %}
+
+Équivaut à:
+{% highlight cpp %}
+auto a = 10; // int
+auto b = 3.14; // double
+
+std::common_type_t<int, double> c = (a < b) ? a : b; // double
+{% endhighlight %}
+
+Ici, le type commun de ``int`` et ``double`` est le type ``double``, car un ``double`` peut être construit à partir d'un ``int`` mais l'inverse n'est pas possible directement.
+
+{% raw %}<div class="row">{% endraw %}
+{% highlight cpp %}
+double a = 10; // int vers double: Ok
+int b = 3.14; // double vers int: Erreur
+{% endhighlight %}
+
+{% highlight console %}
+<source>:9:27: error: implicit conversion from 'double' to 'int' changes value from 3.14 to 3 [-Werror,-Wliteral-conversion]
+    9 |         int b = 3.14;
+{% endhighlight %}
+{% raw %}</div>{% endraw %}
+
+### Lambda
 
 ``auto`` permet également de typer une lambda.<br>
 En effet, en C++ **chaque lambda a un type unique qui lui est propre**, et ce, même si plusieurs lambdas ont la même signature.<br>
@@ -91,6 +136,8 @@ L'utilisation du mot clef ``auto`` **est le seul moyen de typer une variable con
 {% highlight cpp %}
 auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
 {% endhighlight %}
+
+### Récapitulatif
 
 **Avantages** à utiliser ``auto`` :
 
@@ -209,7 +256,9 @@ auto sum(Lhs lhs, Rhs rhs)
 };
 {% endhighlight %}
 
-Ensuite, il arrive que la fonction contienne plusieurs ``return``, dont les types varient légèrement. Laissant le compilateur dans une situation d'ambiguïté entre plusieurs types.
+Il arrive que la fonction contienne plusieurs ``return``.
+
+Contrairement aux ternaires, sur lesquelles [``auto`` déduit automatiquement le type commun](#common-type-deduction), ``auto`` comme type de retour **exige que toutes les valeurs retournées partagent exactement le même type**.
 
 {% highlight cpp %}
 auto getText(int value)
@@ -220,6 +269,8 @@ auto getText(int value)
 		return std::string_view{"La valeur est négative"}; // std::string_view
 };
 {% endhighlight %}
+
+Ceci provoque une erreur de compilation, bien qu'un [type commun](/articles/c++/type_traits#type_commun) existe (``std::string_view``)
 
 > \<source\>:9:29: **error**: inconsistent deduction for auto return type: 'const char*' and then 'std::basic_string_view<char>'
 
@@ -235,7 +286,7 @@ auto getText(int value) -> std::string_view
 };
 {% endhighlight %}
 
-Le compilateur tente maintenant de construire ``std::string_view`` à partir du ``const char*`` retourné. Ce qui est fait via un appel implicite à un constructeur de ``std::string_view``.
+Le compilateur tente maintenant de construire un ``std::string_view`` à partir du ``const char*`` retourné. Ce qui est fait via un appel implicite à un constructeur de ``std::string_view``.
 
 > Attention, les **conversions implicites** sont à éviter (mauvaise pratique). Le code précédemment n'est là qu'a des fins de démonstration pour montrer les problèmes que l'on peut rencontrer avec le *auto as a return type*
 {: .block-warning }
@@ -258,7 +309,9 @@ Seul celui à droite désigne le type de retour de la fonction.
 
 ## ``decltype(auto)`` (depuis C++14)
 
-Spécifier le type de retour d'une fonction avec ``decltype(auto)`` permet de préserver les propriétés cvref (``const``/``volatile``/``reference``) de la valeur retournée.
+Contrairement à ``auto``, ``decltype(auto)`` permet de préserver les propriétés cvref (``const``/``volatile``/``reference``) d'une expression.
+
+``decltype(auto)`` est particulièrement utile lorsqu'il est nécessaire de préserver la nature exacte de l'expression retournée, que ce soit une référence ou un type const:
 
 {% highlight cpp %}
 int foo();
@@ -329,6 +382,16 @@ auto main() -> int
 {% endhighlight %}
 
 > Notez que cette écriture c-like des tableaux est à éviter en C++. Préférez l'utilisation de ``std::array``.
+
+{% highlight cpp linenos mark_lines="6" %}
+auto main() -> int
+{
+	auto position = std::array<int>{10, 15};
+	auto [x, y] = position;
+	
+	std::print("{} {}\n", x, y);
+}
+{% endhighlight %}
 
 Les *structured binding declarations* supportent les propriétés *cvref*, permettant de modifier les données contenues dans le conteneur, ou d'éviter des copies:
 
