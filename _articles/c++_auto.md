@@ -137,16 +137,6 @@ L'utilisation du mot clef ``auto`` **est le seul moyen de typer une variable con
 auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
 {% endhighlight %}
 
-### Récapitulatif
-
-**Avantages** à utiliser ``auto`` :
-
-- **Force l'initialisation des variables**, évitant au développeur un oubli d'initialisation (``int i;``), évitant ainsi des erreurs
-- Évite les **conversions implicites** lors de l'initialisation des variables (``float f = 1;``: conversion implicite de int vers float)
-- Plus **agréable à écrire** pour les types longs (Par exemple les itérateurs)
-- **Uniformisation** des initialisations. **left-to-right declaration** (comme using: ``using MyType = int;``)
-- Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
-
 Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
 
 ## Trailing return type (depuis C++11)
@@ -569,14 +559,19 @@ function(auto{expr});
 
 ## AAA (Almost Always Auto) (avant C++17)
 
-On y arrive enfin, le titre de cet article "Almost Always Auto".
-
 Le principe **AAA (Almost Always Auto)** a vu le jour dès le C++11 pour encourager l'utilisation d'``auto`` par défaut.
 
-En tant que *[placeholder type specifiers](#placeholder-type-specifiers-depuis-c11)*, ``auto`` réduit les risques d'erreurs en déduisant automatiquement les types, évitant des casts implicites.
-Il évite également les oublis d'initialisation de variables.
+Comme nous venons de le voir, ``auto`` apporte de nombreux avantages, aussi bien pour la lisibilité et l'apport de nouvelles fonctionnalités.
 
-Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization) qui réduit la charge mentale causée par les multiples façons d'écrire la même chose, le C++ devient un langage beaucoup plus lisible et abordable.
+Quelques avantages notables à utiliser ``auto`` :
+
+- **Force l'initialisation des variables**, évitant au développeur un oubli d'initialisation (``int i;``), évitant ainsi des erreurs
+- Évite les **conversions implicites** lors de l'initialisation des variables (``float f = 1;``: conversion implicite de int vers float)
+- Plus **agréable à écrire** pour les types longs (Par exemple les itérateurs)
+- Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization) (**left-to-right declaration** (comme using: ``using MyType = int;``)), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
+- Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
+- Les **templates** deviennent beaucoup **plus lisibles**
+- ``auto`` est le seul moyen de **typer une lambda**
 
 Mais il reste un problème:<br>
 Dans l'écriture suivante, le compilateur n'est pas tenu de considérer la ligne comme étant une **simple initialisation de variable**:
