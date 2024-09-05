@@ -8,15 +8,13 @@ background: corridor0.webp
 published: true
 ---
 
-Le mot clef ``auto``, ses avantages et ses différents comportements selon le contexte.
+Le mot clef ``auto``, ses avantages et ses différents comportements selon la version et le contexte.
 
 ## Automatic storage duration specifier (avant C++11) (obsolète)
 
-Le mot clef ``auto`` a eu plusieurs sens au cours de l'histoire du langage.
+En langage C, ``auto`` (pour "**Automatic Storage Duration**") sert à spécifier qu'une variable a une **portée locale** à son bloc de code (**scope**).
 
-En langage C, ``auto`` (pour "**Automatic Storage Duration**") était utilisé avant le type d'une variable pour lui donner une **portée locale** à son bloc de code (**scope**).
-
-C'est à dire, faire que la variable soit **supprimée à la sortie du scope**, contrairement aux variables globales.
+C'est à dire, faire que la variable soit **supprimée à la sortie du scope**, contrairement aux variables globales ou statiques.
 
 {% highlight cpp %}
 void print42()
@@ -24,9 +22,12 @@ void print42()
 	auto int number = 42;
 	printf("%d\n", number);
 }
+// La variable number n'existe pas en dehors de la fonction print42()
 {% endhighlight %}
 
-Aujourd'hui ce comportement est **devenu implicite**, rendant le mot clef ``auto`` **inutile**, bien qu'il soit toujours présent dans le langage C.
+Dans les premières versions du langage C (Le ["C K&R"](/articles/c++/history_and_philosophy#c-kr)), il était obligatoire de déclarer explicitement les variables locales avec ``auto``.
+
+Dès l'arrivée du [C ANSI](/articles/c++/history_and_philosophy#c-ansi) en 1989, le comité de standardisation créé pour l'occasion décide de rendre les variables locales ``auto`` par défaut, rendant le mot clef ``auto`` **inutile**, bien qu'il soit toujours présent dans le langage C.
 
 En C++, ``auto`` avait la même signification jusqu'au C++11.<br>
 A partir de cette version, le mot clef ``auto`` se voit attribuer une autre signification pour faire de l'**inférence de types**.
@@ -126,7 +127,7 @@ int b = 3.14; // double vers int: Erreur
 {% endhighlight %}
 {% raw %}</div>{% endraw %}
 
-### Lambda
+### Typer une lambda
 
 ``auto`` permet également de typer une lambda.<br>
 En effet, en C++ **chaque lambda a un type unique qui lui est propre**, et ce, même si plusieurs lambdas ont la même signature.<br>
@@ -568,7 +569,7 @@ Quelques avantages notables à utiliser ``auto`` :
 - **Force l'initialisation des variables**, évitant au développeur un oubli d'initialisation (``int i;``), évitant ainsi des erreurs
 - Évite les **conversions implicites** lors de l'initialisation des variables (``float f = 1;``: conversion implicite de int vers float)
 - Plus **agréable à écrire** pour les types longs (Par exemple les itérateurs)
-- Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization) (**left-to-right declaration** (comme using: ``using MyType = int;``)), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
+- Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
 - Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
 - Les **templates** deviennent beaucoup **plus lisibles**
 - ``auto`` est le seul moyen de **typer une lambda**
