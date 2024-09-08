@@ -1,6 +1,6 @@
 ---
 layout: article
-title: Uniform Initialization
+title: Initialisation Uniforme
 permalink: articles/c++/uniform_initialization
 category: c++
 logo: c++.svg

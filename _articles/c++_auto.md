@@ -16,7 +16,7 @@ En langage C, ``auto`` (pour "**Automatic Storage Duration**") sert à spécifie
 
 C'est à dire, faire que la variable soit **supprimée à la sortie du scope**, contrairement aux variables globales ou statiques.
 
-{% highlight cpp %}
+{% highlight c %}
 void print42()
 {
 	auto int number = 42;
@@ -27,7 +27,8 @@ void print42()
 
 Dans les premières versions du langage C (Le ["C K&R"](/articles/c++/history_and_philosophy#c-kr)), il était obligatoire de déclarer explicitement les variables locales avec ``auto``.
 
-Dès l'arrivée du [C ANSI](/articles/c++/history_and_philosophy#c-ansi) en 1989, le comité de standardisation créé pour l'occasion décide de rendre les variables locales ``auto`` par défaut, rendant le mot clef ``auto`` **inutile**, bien qu'il soit toujours présent dans le langage C.
+Dès l'arrivée du [C ANSI (C89)](/articles/c++/history_and_philosophy#c-ansi-c89) en 1989, le comité de standardisation créé pour l'occasion décide de rendre les variables locales ``auto`` par défaut et le mot clef ``auto`` **optionnel**, le rendant par conséquent **redondant** et **inutile** à renseigner explicitement.<br>
+Il reste cependant supporté dans les versions suivantes du C pour des raisons de rétrocompatibilité.
 
 En C++, ``auto`` avait la même signification jusqu'au C++11.<br>
 A partir de cette version, le mot clef ``auto`` se voit attribuer une autre signification pour faire de l'**inférence de types**.
@@ -204,7 +205,7 @@ decltype(lhs + rhs) sum(Lhs lhs, Rhs rhs)
 
 Le compilateur comprend les déclarations dans l'ordre dans lequel il les lit. Et comme il lit les fichiers de haut en bas et de gauche à droite, il ne connait pas encore ``lhs`` et ``rhs`` à l'instant où on les utilise dans ``decltype(lhs + rhs)``.
 
-Cette nouvelle syntaxe apporte aussi une uniformisation entre la syntaxe des fonctions et celle des lambdas.
+Cette nouvelle syntaxe apporte aussi une **uniformisation entre la syntaxe des fonctions et celle des lambdas**.
 
 Les lambdas (C++11) s'écrivent de la façon suivante, avec le type de retour à droite:
 {% highlight cpp %}
@@ -213,8 +214,11 @@ auto sum = (int lhs, int rhs) -> int {
 };
 {% endhighlight %}
 
-> A noter qu'ici, ``auto`` n'est pas le type de la valeur de retour de la lambda, mais le type de la lambda elle-même.<br>
-> On en a parlé dans le [précédent point](#placeholder-type-specifiers-depuis-c11).
+A noter qu'ici, ``auto`` n'est pas le type de la valeur de retour de la lambda, mais le type de la lambda elle-même.<br>
+On en a parlé dans le [précédent point](#placeholder-type-specifiers-depuis-c11).
+
+> En résumé, utiliser ``auto`` avec le trailing return type permet d'**uniformiser** la manière dont les types de retour sont déclarés et assure une meilleure lisibilité, surtout dans les fonctions dont le type de retour dépend des paramètres.<br>
+> Cette pratique est **recommandée en C++ moderne**.
 
 ## ``auto`` as a return type (depuis C++14)
 
@@ -639,4 +643,5 @@ A votre tour de prendre le pas et d'adopter ``auto`` dans vos projets.
 
 Aller plus loin:
 - [Initialisation uniforme](/articles/c++/uniform_initialization)
-- [Concepts](/articles/c++/concepts)
+- [Literals](/articles/c++/literals)
+- [Templates](/articles/c++/templates)
