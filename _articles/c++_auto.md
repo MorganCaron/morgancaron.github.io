@@ -8,7 +8,7 @@ background: corridor0.webp
 published: true
 ---
 
-Le mot clef ``auto``, ses avantages et ses différents comportements selon la version et le contexte.
+Le mot clef ``auto``, ses **avantages** et ses différents comportements **selon la version** et le contexte.
 
 ## Automatic storage duration specifier (avant C++11) (obsolète)
 
@@ -33,9 +33,7 @@ Il reste cependant supporté dans les versions suivantes du C pour des raisons d
 En C++, ``auto`` avait la même signification jusqu'au C++11.<br>
 A partir de cette version, le mot clef ``auto`` se voit attribuer une autre signification pour faire de l'**inférence de types**.
 
-{:refdef: class="text-center"}
-![Stare](/assets/images/articles/c++/almost_always_auto/person-of-interest-stare.gif){: width="500" }
-{: refdef}
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-stare.gif %}
 
 ## Placeholder type specifiers (depuis C++11)
 
@@ -59,9 +57,7 @@ auto i = nullptr; // std::nullptr_t
 Cette déduction de type est faite à la compilation (typage statique) et ne permet pas de faire du typage dynamique.<br>
 Contrairement à ``var``/``let`` en JavaScript, le mot clef ``auto`` **ne permet pas à une variable de changer de type** en cours de route. Son type reste fixe.
 
-{:refdef: class="text-center"}
-![Deduction](/assets/images/articles/c++/almost_always_auto/person-of-interest-deduction.gif){: width="500" }
-{: refdef}
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-deduction.gif %}
 
 Par défaut, ``auto`` ne récupère pas les propriétés **cvref** (``const``/``volatile``/``reference``) de la valeur qui lui est assignée.
 Il faut penser à bien les renseigner pour **éviter les copies inutiles**.
@@ -116,7 +112,7 @@ std::common_type_t<int, double> c = (a < b) ? a : b; // double
 
 Ici, le type commun de ``int`` et ``double`` est le type ``double``, car un ``double`` peut être construit à partir d'un ``int`` mais l'inverse n'est pas possible directement.
 
-{% raw %}<div class="row">{% endraw %}
+{% row %}
 {% highlight cpp %}
 double a = 10; // int vers double: Ok
 int b = 3.14; // double vers int: Erreur
@@ -126,7 +122,7 @@ int b = 3.14; // double vers int: Erreur
 <source>:9:27: error: implicit conversion from 'double' to 'int' changes value from 3.14 to 3 [-Werror,-Wliteral-conversion]
     9 |         int b = 3.14;
 {% endhighlight %}
-{% raw %}</div>{% endraw %}
+{% endrow %}
 
 ### Typer une lambda
 
@@ -595,9 +591,7 @@ auto array = std::array{1, 2, 3, 4, 5};
 ``std::array`` étant un [type trivial](/articles/c++/move_semantic#type-trivial), **son déplacement fait une copie**, représentant là aussi un surcoût.<br>
 Ici aussi, on peut décider de ne pas utiliser ``auto`` pour éviter ce surcoût.
 
-{:refdef: class="text-center"}
-![Please stop](/assets/images/articles/c++/almost_always_auto/person-of-interest-please-stop.gif){: width="500" }
-{: refdef}
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-please-stop.gif %}
 
 Dans certains cas, l'écriture avec ``auto`` est même impossible. Lorsqu'un type est non-copyable ET non-movable:
 {% highlight cpp %}
@@ -614,9 +608,7 @@ std::lock_guard<std::mutex> lock{m}; // Compile
 
 Ceci explique le ``Almost`` dans ``Almost Always Auto``. On est passé à ça 🤏 d'avoir une règle d'écriture uniforme.
 
-{:refdef: class="text-center"}
-![I believed in you](/assets/images/articles/c++/almost_always_auto/person-of-interest-i-believed-in-you.gif){: width="500" }
-{: refdef}
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-i-believed-in-you.gif %}
 
 Certains développeurs préfèrent utiliser ``auto`` avec parcimonie, en remplacement de types particulièrement verbeux (notamment les iterateurs).
 D'autres prônent son utilisation quasi systématique, comme Scott Meyers et [Herb Sutter](https://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/).
@@ -627,21 +619,19 @@ Mais c'est alors que...
 
 ## AA (Always Auto) (depuis C++17)
 
-En C++17, le langage garanti la [copy elision](https://en.cppreference.com/w/cpp/language/copy_elision), faisant disparaitre les surcoûts que vous venons de voir, et rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
+En C++17, le langage garanti la [copy elision](/articles/c++/copy_elision), faisant disparaitre les surcoûts que vous venons de voir, et rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
 
-La [copy elision](https://en.cppreference.com/w/cpp/language/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/c++/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
+La [copy elision](/articles/c++/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/c++/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
 
 Suite à ce changement dans le langage, Herb Sutter soutient le passage de AAA à AA.
 
 A votre tour de prendre le pas et d'adopter ``auto`` dans vos projets.
 
-{:refdef: class="text-center"}
-![Fusco](/assets/images/articles/c++/almost_always_auto/person-of-interest-fusco.gif){: width="500" }
-{: refdef}
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-fusco.gif %}
 
 ---
 
 Aller plus loin:
-- [Initialisation uniforme](/articles/c++/uniform_initialization)
 - [Literals](/articles/c++/literals)
+- [Initialisation uniforme](/articles/c++/uniform_initialization)
 - [Templates](/articles/c++/templates)
