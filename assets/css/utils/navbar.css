@@ -1,35 +1,48 @@
 .navbar {
 	display: grid;
-	grid-template-rows: 1fr;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-rows: 1fr 1fr 1fr;
+	grid-template-columns: 1fr;
 	align-items: center;
 	justify-content: center;
+	white-space: nowrap;
 	user-select: none;
-	& > * {
+
+	> * {
 		display: flex;
 		justify-content: center;
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	& h1, & h2, & h3, & h4, & h5, & h6, & button {
+
+	h1, h2, h3, h4, h5, h6, button {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	& a {
+
+	a {
 		color: currentColor;
 	}
-	& span, & a {
+
+	span, a {
 		white-space: nowrap;
 	}
-	& ul {
+
+	ul {
 		display: flex;
 		padding-left: 0;
 		list-style: none;
 	}
-	& > *:first-child {
-		justify-content: left;
-	}
-	& > *:last-child {
-		justify-content: right;
+
+	@media (min-width: 992px) {
+		grid-template-rows: 1fr;
+		grid-template-columns: 1fr 1fr 1fr;
+
+		> *:first-child {
+			justify-content: left;
+		}
+	
+		> *:last-child {
+			justify-content: right;
+		}
 	}
 }

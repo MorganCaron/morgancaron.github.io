@@ -6,6 +6,7 @@ button {
 	display: inline-block;
 	border: none;
 	vertical-align: middle;
+	white-space: nowrap;
 	user-select: none;
 	line-height: 1.5;
 	text-align: center;
