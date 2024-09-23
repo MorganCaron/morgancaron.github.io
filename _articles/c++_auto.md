@@ -4,7 +4,7 @@ title: Évolution du mot clef auto
 permalink: articles/c++/auto
 category: c++
 logo: c++.svg
-background: corridor0.webp
+background: corridor4.webp
 published: true
 ---
 
