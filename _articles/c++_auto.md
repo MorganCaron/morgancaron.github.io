@@ -279,7 +279,7 @@ auto getText(int value) -> std::string_view
 
 Le compilateur tente maintenant de construire un ``std::string_view`` à partir du ``const char*`` retourné. Ce qui est fait via un appel implicite à un constructeur de ``std::string_view``.
 
-> Attention, les **conversions implicites** sont à éviter (mauvaise pratique). Le code précédemment n'est là qu'a des fins de démonstration pour montrer les problèmes que l'on peut rencontrer avec le *auto as a return type*
+> Attention toutefois: **Evitez les conversions implicites** autant que possible, c'est une mauvaise pratique. Le code précédemment n'est là qu'a des fins de démonstration pour montrer les problèmes que l'on peut rencontrer avec le *auto as a return type*
 {: .block-warning }
 
 Notez qu'il est possible de retourner ``auto`` en suivant le *trailing return type* pour respecter l'uniformisation:
@@ -292,8 +292,9 @@ auto sum(Lhs lhs, Rhs rhs) -> auto
 };
 {% endhighlight %}
 
-Ici, il n'y a pas de redondance du mot clef ``auto``.
-Seul celui à droite désigne le type de retour de la fonction.
+Ici, il n'y a pas de redondance du mot clef ``auto``.<br>
+**Seul celui à droite désigne le type de retour** de la fonction.<br>
+Celui de gauche est simplement nécessaire pour l'écriture du *trailing return type*.
 
 > Ici, il n'y a aucun intérêt autre que l'uniformisation d'écrire ``-> auto``.<br>
 > Ecrire simplement ``auto sum(Lhs lhs, Rhs rhs)`` revient au même.
@@ -337,9 +338,32 @@ decltype(auto) k = (i); // int&
 
 ## Structured binding declaration (depuis C++17)
 
-Les *structured binding declaration* permettent de décomposer les valeurs d'une structure/classe ou d'un tableau.
+Les *structured binding declaration* permettent de décomposer les valeurs stockées dans un conteneur.<br>
+Un certain nombre de conteneurs sont supportés (dont des conteneurs standards), dont les structures et classes que vous créez.
 
-Structure ou classe:
+### Structure ou classe
+
+Les variables membre publiques sont accessibles depuis l'extérieur d'une ``struct``/``class`` grace aux *structured binding declaration*:
+
+{% highlight cpp linenos mark_lines="10" %}
+struct Position2d
+{
+	int x;
+	int y;
+};
+
+auto main() -> int
+{
+	auto position = Position2d{10, 15}; // Construction d'un Position2d avec x vallant 10 et y vallant 15
+	auto [x, y] = position; // Extraction des variables membre de Position2d
+	
+	std::print("{} {}\n", x, y); // Affiche: "10 15\n"
+}
+{% endhighlight %}
+
+> La destructuration doit **respecter l'ordre des paramètres**.<br>
+> **Leur nom n'a pas d'importance**, il peut être changé. Par exemple: ``auto [foo, bar] = position;``
+
 {% highlight cpp linenos mark_lines="10" %}
 struct Position2d
 {
@@ -350,37 +374,28 @@ struct Position2d
 auto main() -> int
 {
 	auto position = Position2d{10, 15};
-	auto [x, y] = position;
+	auto [a, b] = position;
 	
-	std::print("{} {}\n", x, y);
+	std::print("{} {}\n", a, b); // Affiche: "10 15\n" malgré l'utilisation de noms de variables différents
 }
 {% endhighlight %}
 
-> La destructuration doit **respecter l'ordre des paramètres**.<br>
-> Leur nom n'a pas d'importance, il peut être changé. Par exemple: ``auto [foo, bar] = position;``
+Ce n'est pas parce qu'il y a écrit qu'une seule fois ``auto`` devant une *structured binding declaration* que les variables doivent partager le même type.<br>
+**Chaque variable peut avoir un type différent**.
 
-Tableau:
-{% highlight cpp linenos mark_lines="6" %}
+{% highlight cpp linenos mark_lines="10" %}
+struct Person
+{
+	std::string name;
+	unsigned int birthYear;
+};
+
 auto main() -> int
 {
-	int position[2];
-	position[0] = 10;
-	position[1] = 15;
-	auto [x, y] = position;
+	auto person = Person{"Bjarne Stroustrup", 1950};
+	auto [name, birthYear] = person;
 	
-	std::print("{} {}\n", x, y);
-}
-{% endhighlight %}
-
-> Notez que cette écriture c-like des tableaux est à éviter en C++. Préférez l'utilisation de ``std::array``.
-
-{% highlight cpp linenos mark_lines="6" %}
-auto main() -> int
-{
-	auto position = std::array<int>{10, 15};
-	auto [x, y] = position;
-	
-	std::print("{} {}\n", x, y);
+	std::print("{} est né en {}\n", name, birthYear);
 }
 {% endhighlight %}
 
@@ -399,36 +414,45 @@ auto main() -> int
 		.firstName = "Bjarne",
 		.lastName = "Stroustrup"
 	};
-	const auto& [firstName, lastName] = person;
+	const auto& [firstName, lastName] = person; // firstName et lastName sont récupérés par références constantes
 	
 	std::print("{} {}\n", firstName, lastName);
 }
 {% endhighlight %}
 
-Certains conteneurs de la STL supportent les *structured binding declarations*:
+### Tableau
 
-``std::pair``:
+{% highlight cpp linenos mark_lines="6" %}
+auto main() -> int
+{
+	int position[2];
+	position[0] = 10;
+	position[1] = 15;
+	auto [x, y] = position;
+	
+	std::print("{} {}\n", x, y);
+}
+{% endhighlight %}
+
+> Notez que cette écriture c-like des tableaux est à éviter en C++. Préférez l'utilisation de ``std::array``.
+
+### ``std::array``
+
+{% highlight cpp linenos mark_lines="6" %}
+auto main() -> int
+{
+	auto position = std::array<int>{10, 15};
+	auto [x, y] = position;
+	
+	std::print("{} {}\n", x, y);
+}
+{% endhighlight %}
+
+### ``std::pair``
 {% highlight cpp mark_lines="2" %}
 auto pair = std::pair{1, 2};
-auto [number1, number2] = pair;
-std::print("{} {}", number1, number2);
-{% endhighlight %}
-
-``std::tuple``:
-{% highlight cpp mark_lines="3" %}
-using namespace std::literals;
-auto pair = std::tuple{1, 2.2, "text"sv};
-auto [integer, decimal, string] = pair;
-std::print("{} {} {}", integer, decimal, string);
-{% endhighlight %}
-
-> Dans une *structured binding declaration*, chaque variable peut avoir un type différent.
-
-``std::array``:
-{% highlight cpp mark_lines="2" %}
-auto pair = std::array{1, 2};
-auto [number1, number2] = pair;
-std::print("{} {}", number1, number2);
+auto [x, y] = pair;
+std::print("{} {}", x, y);
 {% endhighlight %}
 
 Grace à ``std::pair`` il est possible d'obtenir les clefs et valeurs dans une *range-based for loop* sur une ``std::map``/``std::unordered_map``.
@@ -440,6 +464,14 @@ auto map = std::unordered_map{
 };
 for (const auto& [key, value] : map)
 	std::print("{} {}", key, value);
+{% endhighlight %}
+
+### ``std::tuple``
+{% highlight cpp mark_lines="3" %}
+using namespace std::literals;
+auto pair = std::tuple{1, 2.2, "text"sv};
+auto [integer, decimal, string] = pair;
+std::print("{} {} {}", integer, decimal, string);
 {% endhighlight %}
 
 ## ``auto`` in template parameters (depuis C++17)
