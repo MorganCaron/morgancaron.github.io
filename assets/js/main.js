@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 	initMouse();
 	initTopButtons();
-	autoScrollToHash();
+	initParallax();
 	requestAnimationFrame(update);
 }, false);
 
@@ -27,14 +27,9 @@ const initTopButtons = () => {
 	});
 };
 
-const autoScrollToHash = () => {
-	const hash = window.location.hash;
-	if (hash)
-		document.querySelector(hash)?.scrollIntoView({
-			behavior: 'smooth',
-			block: 'start',
-			inline: 'start'
-		});
+const initParallax = () => {
+	window.addEventListener('scroll', updateParallax);
+	updateParallax();
 };
 
 const onMouseMove = (event) => {
@@ -65,4 +60,20 @@ const updateMouse = () => {
 	const angleY = (x * factor) * 90;
 
 	mouseOrientedElement.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+};
+
+const updateParallax = () => {
+	const scrollX = window.scrollX || document.documentElement.scrollLeft;
+	const scrollY = window.scrollY || document.documentElement.scrollTop;
+
+	document.querySelectorAll('.parallax').forEach(parallax => {
+		const rectangle = parallax.getBoundingClientRect();
+		const offsetLeft = -rectangle.left;
+		const offsetTop = -rectangle.top;
+		const relativeScrollX = offsetLeft - scrollX + scrollX/2;
+		const relativeScrollY = offsetTop  - scrollY + scrollY/2;
+
+		parallax.style.setProperty('--scroll-x', `${relativeScrollX}px`);
+		parallax.style.setProperty('--scroll-y', `${relativeScrollY}px`);
+	});
 };

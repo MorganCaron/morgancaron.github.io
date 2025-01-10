@@ -1,48 +1,6 @@
-html:has(.parallax) {
-	height: 100%;
-	overflow: hidden;
-}
-
-body:has(.parallax) {
-	height: 100%;
-	overflow-x: hidden;
-	overflow-y: scroll;
-	perspective: 1px;
-	transform-style: preserve-3d;
-
-	& * {
-		transform-style: inherit;
-	}
-}
-
 .parallax {
-	position: relative;
-	perspective-origin: center;
-	/*overflow: hidden;*/
-
-	&::before {
-		content: "";
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 100dvw;
-		height: 100dvh;
-		z-index: -100;
-		transform: translateX(-50%) translateY(-50%) translateZ(-1px) scale(2);
-		background-size: cover;
-		background-position: center;
-		background-repeat: no-repeat;
-		pointer-events: none;
-	}
-
-	&::after {
-		content: "";
-		position: absolute;
-		top: 100%;
-		left: 0;
-		width: 100dvw;
-		height: 100dvh;
-		z-index: -99;
-		pointer-events: none;
-	}
+	background-image: var(--background-image);
+	background-size: cover;
+	background-position: var(--scroll-x) var(--scroll-y);
+	background-repeat: no-repeat;
 }
