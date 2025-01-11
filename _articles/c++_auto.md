@@ -173,7 +173,7 @@ auto sum(int lhs, int rhs) -> int
 }
 {% endhighlight %}
 
-Cette écriture permet entre autre de définir un type de retour qui dépend des arguments de la fonction.
+Cette écriture permet entre autre de définir un type de retour qui dépend des paramètres de la fonction.
 
 {% highlight cpp %}
 template<class Lhs, class Rhs>
@@ -215,6 +215,65 @@ On en a parlé dans le [précédent point](#placeholder-type-specifiers-depuis-c
 
 > En résumé, utiliser ``auto`` avec le trailing return type permet d'**uniformiser** la manière dont les types de retour sont déclarés et assure une meilleure lisibilité, surtout dans les fonctions dont le type de retour dépend des paramètres.<br>
 > Cette pratique est **recommandée en C++ moderne**.
+
+## AAA (Almost Always Auto) (depuis C++11)
+
+Le principe **AAA (Almost Always Auto)** a vu le jour dès le C++11 pour encourager l'utilisation d'``auto`` par défaut.
+
+Comme nous venons de le voir, ``auto`` apporte de nombreux avantages, aussi bien pour la lisibilité et l'apport de nouvelles fonctionnalités.
+
+Quelques avantages notables à utiliser ``auto`` :
+
+- **Force l'initialisation des variables**, évitant au développeur un oubli d'initialisation (``int i;``), évitant ainsi des erreurs
+- Évite les **conversions implicites** lors de l'initialisation des variables (``float f = 1;``: conversion implicite de int vers float)
+- Plus **agréable à écrire** pour les types longs (Par exemple les itérateurs)
+- Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
+- Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
+- Les **templates** deviennent beaucoup **plus lisibles**
+- ``auto`` est le seul moyen de **typer une lambda**
+
+Mais il reste un problème:<br>
+Dans l'écriture suivante, le compilateur n'est pas tenu de considérer la ligne comme étant une **simple initialisation de variable**:
+{% highlight cpp %}
+auto string = std::string{"Hello World"};
+{% endhighlight %}
+Le compilateur peut considérer cette instruction comme étant la **création d'une valeur**, **puis son déplacement** dans la variable ``string``. Engendrant un léger surcoût.
+
+> Il ne faut cependant pas négliger les capacités d'optimisation des compilateurs, qui la plupart du temps parviennent à supprimer le coût de ces déplacements.
+
+Ce surcoût est généralement considéré comme négligeable, sauf dans certains cas où l'opération est coûteuse:
+{% highlight cpp %}
+auto array = std::array{1, 2, 3, 4, 5};
+{% endhighlight %}
+
+``std::array`` étant un [type trivial](/articles/c++/move_semantic#type-trivial), **son déplacement fait une copie**, représentant là aussi un surcoût.<br>
+Ici aussi, on peut décider de ne pas utiliser ``auto`` pour éviter ce surcoût.
+
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-please-stop.gif %}
+
+Dans certains cas, l'écriture avec ``auto`` est même impossible. Lorsqu'un type est non-copyable ET non-movable:
+{% highlight cpp %}
+auto m = std::mutex{}; // Ne compile pas en C++14
+{% endhighlight %}
+{% highlight cpp %}
+std::mutex m{};
+auto lock = std::lock_guard<std::mutex>{m}; // Ne compile pas en C++14
+{% endhighlight %}
+{% highlight cpp %}
+std::mutex m{};
+std::lock_guard<std::mutex> lock{m}; // Compile
+{% endhighlight %}
+
+Ceci explique le "**Almost**" dans "Almost Always Auto". On est passé à ça 🤏 d'avoir une règle d'écriture uniforme.
+
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-i-believed-in-you.gif %}
+
+Certains développeurs préfèrent utiliser ``auto`` avec parcimonie, en remplacement de types particulièrement verbeux (notamment les iterateurs).
+D'autres prônent son utilisation quasi systématique, comme Scott Meyers et [Herb Sutter](https://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/).
+
+Certains seraient même tentés de ne jamais utiliser ``auto`` pour éviter ce genre de problème, et passer à côté de tous les autres avantages qu'il apporte.
+
+Mais ne vous arrêtez pas au "**Almost** Always Auto", nous allons revenir sur ce point [par la suite](#aa-always-auto-depuis-c17).
 
 ## ``auto`` as a return type (depuis C++14)
 
@@ -466,12 +525,57 @@ for (const auto& [key, value] : map)
 	std::print("{} {}", key, value);
 {% endhighlight %}
 
+> Cette utilisation au sein d'un *range-based for loop*, pour séparer clef et valeur, est l'un des principaux cas d'utilisation des *structured binding declaration*.
+
 ### ``std::tuple``
 {% highlight cpp mark_lines="3" %}
 using namespace std::literals;
 auto pair = std::tuple{1, 2.2, "text"sv};
 auto [integer, decimal, string] = pair;
 std::print("{} {} {}", integer, decimal, string);
+{% endhighlight %}
+
+### Non constexpr
+
+Les *structured binding declaration* ne peuvent pas être constexpr:
+{% highlight cpp %}
+constexpr int i = 0; // Ok
+constexpr auto [x, y] = std::pair{1, 2}; // error: structured binding declaration cannot be 'constexpr'
+{% endhighlight %}
+
+> Attention, cela ne signifie pas que les *structured binding declaration* ne sont pas utilisables dans des contextes constexpr. En savoir plus sur constexpr [ici](/articles/c++/compile-time_execution).
+{: .block-warning }
+
+### Attributs individuels (depuis C++26)
+
+Les *structured binding declaration* ne supportent pas les attributs individuels avant C++26:
+{% highlight cpp %}
+int i = 0, j [[maybe_unused]] = 0; // Ok, individual attributes
+auto [k, l [[maybe_unused]] ] = std::pair{1, 2}; // warning: an attribute specifier sequence attached to a structured binding declaration is a C++2c extension [-Wc++26-extensions]
+[[maybe_unused]] auto [x, y] = std::pair{1, 2}; // Ok
+{% endhighlight %}
+
+A noter que le compilateur se plaint d'une variable non utilisée seulement lorsque toutes les variables d'un *structured binding declaration* sont inutilisées.
+{% highlight cpp %}
+auto [x, y] = std::pair{1, 2}; // warning: unused variable '[x, y]' [-Wunused-variable]
+{% endhighlight %}
+Si on utilise au moins une des variables, la *structured binding declaration* devient pertinente pour extraire la ou les valeurs utiles, donc cet avertissement disparait.
+{% highlight cpp %}
+auto [x, y] = std::pair{1, 2}; // Ok
+auto n = x; // warning: unused variable 'n' [-Wunused-variable]
+{% endhighlight %}
+
+### Non autorisé dans les conditions
+
+Les *structured binding declaration* ne sont pas autorisées dans les conditions:
+{% highlight cpp %}
+if (auto [x, y] = std::pair{1, 2}) {} // warning: ISO C++17 does not permit structured binding declaration in a condition [-Wbinding-in-condition]
+{% endhighlight %}
+Ce qui est assez normal étant donné qu'on ne sait pas trop ce qui serait vérifié par cette condition.
+
+Mais elles autorisées dans la partie initialisation ([init-statement (C++17)](https://en.cppreference.com/w/cpp/language/if)) des conditions:
+{% highlight cpp %}
+if (auto [x, y] = std::pair{1, 2}; x == y) {}  // Ok
 {% endhighlight %}
 
 ## ``auto`` in template parameters (depuis C++17)
@@ -525,6 +629,18 @@ struct HeterogenousValueList {};
 using MyList = HeterogenousValueList<42, 'X', 13u>;
 {% endhighlight %}
 
+## AA (Always Auto) (depuis C++17)
+
+En C++17, le langage garanti la [copy elision](/articles/c++/copy_elision), faisant disparaitre les surcoûts que nous avons vu [à la fin de la partie sur "Amost Always Auto"](#aaa-almost-always-auto-avant-c17), rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
+
+La [copy elision](/articles/c++/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/c++/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
+
+Suite à ce changement dans le langage, Herb Sutter soutient le passage de AAA à AA.
+
+A votre tour de prendre le pas et d'adopter ``auto`` dans vos projets.
+
+{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-fusco.gif %}
+
 ## Abbreviated function template (depuis C++20)
 
 Les templates ont toujours été très verbeuses.
@@ -550,7 +666,7 @@ auto sum(auto lhs, auto rhs) -> auto
 > Une template n'est **pas toujours souhaitable**. Dans cette situation il faut n'utiliser ``auto`` que si une template est souhaitée.
 {: .block-warning }
 
-> Notez aussi que les deux arguments de ``auto sum(auto lhs, auto rhs) -> auto`` auront chacun leur propre type template.<br>
+> Notez aussi que les deux paramètres de ``auto sum(auto lhs, auto rhs) -> auto`` auront chacun leur propre type template.<br>
 > Ils ne partageront pas un type template commun.<br>
 > Ca équivaut à ``template<class T1, class T2> auto sum(T1 lhs, T2 rhs) -> auto``<br>
 > Pas à: ``template<class T> auto sum(T lhs, T rhs) -> auto``
@@ -589,77 +705,6 @@ Une manière générique d'obtenir la copie d'un objet en C++ est ``auto variabl
 function(auto(expr));
 function(auto{expr});
 {% endhighlight %}
-
-## AAA (Almost Always Auto) (avant C++17)
-
-Le principe **AAA (Almost Always Auto)** a vu le jour dès le C++11 pour encourager l'utilisation d'``auto`` par défaut.
-
-Comme nous venons de le voir, ``auto`` apporte de nombreux avantages, aussi bien pour la lisibilité et l'apport de nouvelles fonctionnalités.
-
-Quelques avantages notables à utiliser ``auto`` :
-
-- **Force l'initialisation des variables**, évitant au développeur un oubli d'initialisation (``int i;``), évitant ainsi des erreurs
-- Évite les **conversions implicites** lors de l'initialisation des variables (``float f = 1;``: conversion implicite de int vers float)
-- Plus **agréable à écrire** pour les types longs (Par exemple les itérateurs)
-- Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
-- Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
-- Les **templates** deviennent beaucoup **plus lisibles**
-- ``auto`` est le seul moyen de **typer une lambda**
-
-Mais il reste un problème:<br>
-Dans l'écriture suivante, le compilateur n'est pas tenu de considérer la ligne comme étant une **simple initialisation de variable**:
-{% highlight cpp %}
-auto string = std::string{"Hello World"};
-{% endhighlight %}
-Le compilateur peut considérer cette instruction comme étant la **création d'une valeur**, **puis son déplacement** dans la variable ``string``. Engendrant un léger surcoût.
-
-> Il ne faut cependant pas négliger les capacités d'optimisation des compilateurs, qui la plupart du temps parviennent à supprimer le coût de ces déplacements.
-
-Ce surcoût est généralement considéré comme négligeable, sauf dans certains cas où l'opération est coûteuse:
-{% highlight cpp %}
-auto array = std::array{1, 2, 3, 4, 5};
-{% endhighlight %}
-
-``std::array`` étant un [type trivial](/articles/c++/move_semantic#type-trivial), **son déplacement fait une copie**, représentant là aussi un surcoût.<br>
-Ici aussi, on peut décider de ne pas utiliser ``auto`` pour éviter ce surcoût.
-
-{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-please-stop.gif %}
-
-Dans certains cas, l'écriture avec ``auto`` est même impossible. Lorsqu'un type est non-copyable ET non-movable:
-{% highlight cpp %}
-auto m = std::mutex{}; // Ne compile pas en C++14
-{% endhighlight %}
-{% highlight cpp %}
-std::mutex m{};
-auto lock = std::lock_guard<std::mutex>{m}; // Ne compile pas en C++14
-{% endhighlight %}
-{% highlight cpp %}
-std::mutex m{};
-std::lock_guard<std::mutex> lock{m}; // Compile
-{% endhighlight %}
-
-Ceci explique le ``Almost`` dans ``Almost Always Auto``. On est passé à ça 🤏 d'avoir une règle d'écriture uniforme.
-
-{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-i-believed-in-you.gif %}
-
-Certains développeurs préfèrent utiliser ``auto`` avec parcimonie, en remplacement de types particulièrement verbeux (notamment les iterateurs).
-D'autres prônent son utilisation quasi systématique, comme Scott Meyers et [Herb Sutter](https://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/).
-
-Certains seraient même tentés de ne jamais utiliser ``auto`` pour éviter ce genre de problème, et passer à côté de tous les autres avantages qu'il apporte.
-
-Mais c'est alors que...
-
-## AA (Always Auto) (depuis C++17)
-
-En C++17, le langage garanti la [copy elision](/articles/c++/copy_elision), faisant disparaitre les surcoûts que vous venons de voir, et rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
-
-La [copy elision](/articles/c++/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/c++/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
-
-Suite à ce changement dans le langage, Herb Sutter soutient le passage de AAA à AA.
-
-A votre tour de prendre le pas et d'adopter ``auto`` dans vos projets.
-
-{% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-fusco.gif %}
 
 ---
 

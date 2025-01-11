@@ -129,8 +129,6 @@ body {
 
 	&:has(article) {
 		> .parallax {
-			margin-top: -5.5rem;
-			padding-top: 5rem;
 			height: 100dvh;
 		}
 
@@ -247,6 +245,11 @@ body > nav.sticky-top {
 			}
 		}
 	}
+}
+
+nav.sticky-top + .parallax {
+	margin-top: -5.5rem;
+	padding-top: 5rem;
 }
 
 header.home {
