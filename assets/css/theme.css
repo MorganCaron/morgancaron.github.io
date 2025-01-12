@@ -817,10 +817,11 @@ figure.highlight {
 			color: steelblue;
 		}
 
-		/* names, functions name, struct/class name */
+		/* names, functions name, struct/class name, access specifiers name */
 		& .n,
 		& .nf,
-		& .nc {
+		& .nc,
+		& .nl {
 			color: lightseagreen;
 		}
 

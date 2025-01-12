@@ -446,7 +446,7 @@ Ce n'est pas parce qu'il y a écrit ``auto`` devant une *structured binding decl
 struct Person
 {
 	std::string name;
-	unsigned int birthYear;
+	int birthYear;
 };
 
 auto main() -> int
@@ -527,11 +527,88 @@ const int& x = std::get<0UL>(__p);
 const int& y = std::get<1UL>(__p);
 {% endhighlight %}
 
+> Vous pouvez faire vos propres analyses de transpilation de codes C++ sur l'outil en ligne [CppInsights](https://cppinsights.io/).
+
 ``std::get`` est une fonction très puissante qui supporte énormément de types en C++. Ici nous voyons l'utilisation des *structured binding declaration* sur des structures, mais nous allons voir [par la suite](#tableau) son utilisation sur les autres types supportés par ``std::get``.
 
 ### Variables membres privées
 
-{% wip %}
+Si une classe/structure contient des variables membre privées, il n'est pas possible de les ignorer dans une *structured binding declaration*.
+{% highlight cpp linenos mark_lines="6" %}
+struct Person
+{
+	Person(std::string firstName, std::string lastName, int birthYear):
+		firstName{std::move(firstName)},
+		lastName{std::move(lastName)},
+		birthYear{birthYear}
+	{}
+
+    std::string firstName;
+	std::string lastName;
+private:
+    std::size_t age = 3;
+};
+
+auto main() -> int
+{
+    auto person = Person{};
+    auto [firstName, lastName] = person; // error: type 'Person' decomposes into 3 elements, but only 2 names were provided
+	auto [firstName, lastName, age] = person; // error: cannot decompose private member 'age' of 'Person'
+}
+{% endhighlight %}
+
+Deux contraintes:
+- Une *structured binding declaration* sur une classe/structure doit avoir **autant de variables** que la classe/structure
+- Les variables membre privée ne sont pas accessibles depuis une *structured binding declaration*
+
+Il existe un moyen de pallier à ces deux contraintes en spécialisant notre classe/structure pour la rendre consultable par la *structured binding declaration* comme si c'était un ``std::tuple``.<br>
+Pour cela il faut **ajouter quelques définitions** à notre code:
+{% highlight cpp linenos %}
+struct Person
+{
+	Person(std::string firstName, std::string lastName, int birthYear):
+		firstName{std::move(firstName)},
+		lastName{std::move(lastName)},
+		birthYear{birthYear}
+	{}
+
+	// Fonction membre pour accéder aux variables membres en utilisant std::get sur la structure
+	template<std::size_t I, class T>
+	constexpr auto&& get(this T&& self) noexcept
+	{
+		if constexpr (I == 0)
+			return std::forward<T>(self).firstName;
+		else if constexpr (I == 1)
+			return std::forward<T>(self).lastName;
+		else if constexpr (I == 2)
+			return std::forward<T>(self).birthYear;
+	}
+
+    std::string firstName;
+	std::string lastName;
+private:
+	int birthYear;
+};
+
+// Spécialisation de std::tuple_size pour le type Person. Pour préciser qu'il contient 3 éléments.
+template <>
+struct std::tuple_size<Person>: std::integral_constant<std::size_t, 3> {};
+
+// Spécialisation de std::tuple_element pour le type Person. Pour accéder aux éléments.
+template <std::size_t I>
+struct std::tuple_element<I, Person> {
+    using type = std::remove_cvref_t<decltype(std::declval<Person>().get<I>())>;
+};
+
+auto main() -> int
+{
+	auto person = Person{"Bjarne", "Stroustrup", 1950};
+	const auto& [firstName, lastName, birthYear] = person;
+	std::print("{} {} est né en {}\n", firstName, lastName, birthYear);
+}
+{% endhighlight %}
+
+Si la classe/structure contenait d'autres variables publiques ou privées, elles ne seraient pas récupérables avec la *structured binding declaration* tant qu'elles ne sont pas supportées par ces éléments que nous venons d'ajouter.
 
 ### Tableau
 
