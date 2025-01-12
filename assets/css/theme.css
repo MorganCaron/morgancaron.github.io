@@ -449,15 +449,6 @@ body:not(:hover) .mouse-oriented {
 	}
 }
 
-ul#toc {
-	margin: 1rem 0;
-
-	&,
-	& ul {
-		list-style-type: disclosure-closed;
-	}
-}
-
 article {
 
 	> h1 {
@@ -491,7 +482,7 @@ article {
 		max-width: 100%;
 	}
 
-	table {
+	> table {
 		margin-bottom: 1rem;
 		tr {
 			border-top: 1px solid currentColor;
@@ -502,6 +493,15 @@ article {
 		}
 	}
 
+	ul#toc {
+		max-width: max-content;
+		margin: 0 auto 1rem;
+	
+		&,
+		& ul {
+			list-style-type: disclosure-closed;
+		}
+	}
 }
 
 blockquote {

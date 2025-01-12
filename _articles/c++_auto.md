@@ -364,7 +364,7 @@ Contrairement à ``auto``, ``decltype(auto)`` permet de préserver les propriét
 
 ``decltype(auto)`` est particulièrement utile lorsqu'il est nécessaire de préserver la nature exacte de l'expression retournée, que ce soit une référence ou un type const:
 
-{% highlight cpp %}
+{% highlight cpp linenos %}
 int foo();
 int& bar();
 
@@ -397,7 +397,7 @@ decltype(auto) k = (i); // int&
 
 ## Structured binding declaration (depuis C++17)
 
-Les *structured binding declaration* permettent de décomposer les valeurs stockées dans un conteneur.<br>
+Les *[structured binding declaration](https://en.cppreference.com/w/cpp/language/structured_binding)* permettent de décomposer les valeurs stockées dans un conteneur.<br>
 Un certain nombre de conteneurs sont supportés (dont des conteneurs standards), dont les structures et classes que vous créez.
 
 ### Structure ou classe
@@ -420,26 +420,26 @@ auto main() -> int
 }
 {% endhighlight %}
 
-> La destructuration doit **respecter l'ordre des paramètres**.<br>
-> **Leur nom n'a pas d'importance**, il peut être changé. Par exemple: ``auto [foo, bar] = position;``
+La destructuration doit **respecter l'ordre des paramètres**.<br>
+**Leur nom n'a pas d'importance**, il peut être changé. Par exemple: ``auto [foo, bar] = position;``
 
-{% highlight cpp linenos mark_lines="10" %}
-struct Position2d
-{
-	int x;
-	int y;
-};
-
-auto main() -> int
-{
-	auto position = Position2d{10, 15};
-	auto [a, b] = position;
-	
-	std::print("{} {}\n", a, b); // Affiche: "10 15\n" malgré l'utilisation de noms de variables différents
-}
+{% highlight cpp %}
+auto position = Position2d{10, 15};
+auto [a, b] = position;
+std::print("{} {}\n", a, b); // Affiche: "10 15\n" malgré l'utilisation de noms de variables différents
 {% endhighlight %}
 
-Ce n'est pas parce qu'il y a écrit qu'une seule fois ``auto`` devant une *structured binding declaration* que les variables doivent partager le même type.<br>
+**Le nombre de variables** issues de la décomposition doit être **strictement égal** au **nombre de valeurs décomposables**. Et ce, quelque soit le type du conteneur.<br>
+Ceci est également valable pour [chaque type cité ci-dessous](#tableau)
+
+{% highlight cpp %}
+auto position = Position2d{10, 15};
+auto [x] = position; // error: type 'Position2d' decomposes into 2 elements, but only 1 name was provided
+auto [x, y] = position; // Ok
+auto [x, y, z] = position; // error: type 'Position2d' decomposes into 2 elements, but 3 names were provided
+{% endhighlight %}
+
+Ce n'est pas parce qu'il y a écrit ``auto`` devant une *structured binding declaration* que les variables partagent le même type.<br>
 **Chaque variable peut avoir un type différent**.
 
 {% highlight cpp linenos mark_lines="10" %}
@@ -478,6 +478,60 @@ auto main() -> int
 	std::print("{} {}\n", firstName, lastName);
 }
 {% endhighlight %}
+
+Pour mieux comprendre ces mécanismes, regardons comment ça fonctionne sous le capot.
+
+### Sous le capot
+
+En C++, ``auto`` fait partie des éléments du langage qui ne sont que du sucre syntaxique, c'est à dire une manière simple et concise d'écrire quelque chose de compliqué.<br>
+C'est à la compilation que le compilateur va "remplacer" les ``auto`` par un code plus verbeux.
+
+Pour les cas d'usage simples, ``auto`` est simplement remplacé par le type déduit:
+{% row %}
+{% highlight cpp %}
+auto i = 42;
+{% endhighlight %}
+{% highlight cpp  %}
+int i = 42; // Résolution du type auto à la compilation
+{% endhighlight %}
+{% endrow %}
+
+Pour les cas un peu plus complexes comme les *structured binding declaration*, ``auto`` est remplacé par un code légèrement plus complexe:
+{% highlight cpp %}
+auto p = std::pair{1, 2};
+auto [x, y] = p;
+{% endhighlight %}
+
+Equivalent produit par le compilateur:
+{% highlight cpp %}
+std::pair<int, int> p = std::pair<int, int>{1, 2};
+std::pair<int, int> __p = std::pair<int, int>(p);
+int&& x = std::get<0UL>(static_cast<std::pair<int, int>&&>(__p));
+int&& y = std::get<1UL>(static_cast<std::pair<int, int>&&>(__p));
+{% endhighlight %}
+
+Ici, ``__p`` est une variable créée par le compilateur à des fins de décomposition. Les noms commençant par ``__`` sont strictement réservés aux besoins internes du compilateur, pour ce genre de cas.<br>
+C'est le type de cette variable qu'on a défini en écrivant ``auto`` devant la *structured binding declaration*.
+
+Autre exemple avec ``const auto&``:
+{% highlight cpp %}
+auto p = std::pair{1, 2};
+const auto& [x, y] = p;
+{% endhighlight %}
+
+Equivalent produit par le compilateur:
+{% highlight cpp %}
+std::pair<int, int> p = std::pair<int, int>{1, 2};
+const std::pair<int, int>& __p = p;
+const int& x = std::get<0UL>(__p);
+const int& y = std::get<1UL>(__p);
+{% endhighlight %}
+
+``std::get`` est une fonction très puissante qui supporte énormément de types en C++. Ici nous voyons l'utilisation des *structured binding declaration* sur des structures, mais nous allons voir [par la suite](#tableau) son utilisation sur les autres types supportés par ``std::get``.
+
+### Variables membres privées
+
+{% wip %}
 
 ### Tableau
 
@@ -705,6 +759,10 @@ Une manière générique d'obtenir la copie d'un objet en C++ est ``auto variabl
 function(auto(expr));
 function(auto{expr});
 {% endhighlight %}
+
+## Structured binding pack (depuis C++26)
+
+{% wip %}
 
 ---
 
