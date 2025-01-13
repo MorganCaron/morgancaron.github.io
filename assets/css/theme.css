@@ -409,10 +409,10 @@ body:not(:hover) .mouse-oriented {
 	grid-template-rows: 1fr;
 	grid-template-columns: 10px minmax(0, 4fr) 10px;
 
-	> div {
-		z-index: 1;
+	> aside {
 		margin: calc(-100dvh + 5.5rem + 12rem) .5rem .5rem;
 		> .rounded-card {
+			display: none;
 			top: .5rem;
 			min-width: 7rem;
 		}
@@ -438,14 +438,12 @@ body:not(:hover) .mouse-oriented {
 		}
 	}
 
-	> aside {
-		position: sticky;
-		top: 4rem;
-	}
-
 	@media (min-width: 992px) {
 		grid-template-rows: 1fr;
 		grid-template-columns: 1fr minmax(0, 4fr) 1fr;
+		> aside > .rounded-card {
+			display: inline-block;
+		}
 	}
 }
 
