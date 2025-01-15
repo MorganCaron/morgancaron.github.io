@@ -31,7 +31,9 @@ Dès l'arrivée du [C ANSI (C89)](/articles/c++/history_and_philosophy#c-ansi-c8
 Il reste cependant supporté dans les versions suivantes du C pour des raisons de rétrocompatibilité.
 
 En C++, ``auto`` avait la même signification jusqu'au C++11.<br>
-A partir de cette version, le mot clef ``auto`` se voit attribuer une autre signification pour faire de l'**inférence de types**.
+Mais cette utilisation du mot clef ``auto`` **était déjà largement obsolète bien avant l'introduction du C++11**.
+
+A partir de C++11, le mot clef ``auto`` se voit attribuer une autre signification pour faire de l'**inférence de types**.
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-stare.gif %}
 
@@ -205,13 +207,13 @@ Cette nouvelle syntaxe apporte aussi une **uniformisation entre la syntaxe des f
 
 Les lambdas (C++11) s'écrivent de la façon suivante, avec le type de retour à droite:
 {% highlight cpp %}
-auto sum = (int lhs, int rhs) -> int {
+auto sum = [](int lhs, int rhs) -> int {
 	return lhs + rhs;
 };
 {% endhighlight %}
 
 A noter qu'ici, ``auto`` n'est pas le type de la valeur de retour de la lambda, mais le type de la lambda elle-même.<br>
-On en a parlé dans le [précédent point](#placeholder-type-specifiers-depuis-c11).
+Ca a été abordée dans la [section précédente](#placeholder-type-specifiers-depuis-c11).
 
 > En résumé, utiliser ``auto`` avec le trailing return type permet d'**uniformiser** la manière dont les types de retour sont déclarés et assure une meilleure lisibilité, surtout dans les fonctions dont le type de retour dépend des paramètres.<br>
 > Cette pratique est **recommandée en C++ moderne**.
@@ -395,6 +397,9 @@ decltype(auto) j = i; // int
 decltype(auto) k = (i); // int&
 {% endhighlight %}
 
+L'utilisation de parenthèses autour de ``i`` force la déduction en référence.<br>
+Sans les parenthèses, le résultat est une copie.
+
 ## Structured binding declaration (depuis C++17)
 
 Les *[structured binding declaration](https://en.cppreference.com/w/cpp/language/structured_binding)* ([proposal](https://isocpp.org/files/papers/P1061R10.html)) permettent de décomposer des objets en plusieurs variables individuelles.
@@ -559,6 +564,42 @@ int i = 42; // Résolution du type auto à la compilation
 
 Pour les cas un peu plus complexes comme les *structured binding declaration*, ``auto`` est remplacé par un code légèrement plus complexe:
 {% highlight cpp %}
+int array[2] = {1, 2};
+auto [x, y] = array;
+{% endhighlight %}
+
+Equivalent produit par le compilateur:
+{% highlight cpp %}
+int array[2] = {1, 2};
+int __array7[2] = {array[0], array[1]};
+int & x = __array7[0];
+int & y = __array7[1];
+{% endhighlight %}
+
+Ici, ``__array7`` est une variable créée par le compilateur à des fins de décomposition, elle aurait pu avoir n'importe quel nom tant qu'elle commence par ``__``.<br>
+Les noms commençant par ``__`` sont strictement réservés aux besoins internes du compilateur, pour ce genre de cas.<br>
+
+C'est le type de cette variable ``__array7`` qu'on a défini en écrivant ``auto`` devant la *structured binding declaration*.
+
+Autre exemple avec ``const auto&``:
+{% highlight cpp %}
+int array[2] = {1, 2};
+const auto& [x, y] = array;
+{% endhighlight %}
+
+Equivalent produit par le compilateur:
+{% highlight cpp %}
+int array[2] = {1, 2};
+const int (&__array7)[2] = array;
+const int & x = __array7[0];
+const int & y = __array7[1];
+{% endhighlight %}
+
+Les propriétés cvref sont appliquées à ``__array7`` et répercutées sur ``x`` et ``y``.
+
+Testons maintenant avec un *[tuple-like](/articles/c++/std_tuple#tuple-like)*:
+
+{% highlight cpp %}
 auto p = std::pair{1, 2};
 auto [x, y] = p;
 {% endhighlight %}
@@ -566,29 +607,14 @@ auto [x, y] = p;
 Equivalent produit par le compilateur:
 {% highlight cpp %}
 std::pair<int, int> p = std::pair<int, int>{1, 2};
-std::pair<int, int> __p = std::pair<int, int>(p);
-int&& x = std::get<0UL>(static_cast<std::pair<int, int>&&>(__p));
-int&& y = std::get<1UL>(static_cast<std::pair<int, int>&&>(__p));
+std::pair<int, int> __p7 = std::pair<int, int>(p);
+int && x = std::get<0UL>(static_cast<std::pair<int, int> &&>(__p7));
+int && y = std::get<1UL>(static_cast<std::pair<int, int> &&>(__p7));
 {% endhighlight %}
 
-On remarque que la fonction [``std::get``](https://en.cppreference.com/w/cpp/utility/tuple/get) est appelée pour décomposer les [tuple-like](/articles/c++/std_tuple#tuple-like).
+On remarque que lorsqu'on utilise une déstructuration sur un [tuple-like](/articles/c++/std_tuple#tuple-like), le compilateur transforme implicitement le code en appels à [``std::get``](https://en.cppreference.com/w/cpp/utility/tuple/get).
 
-Ici, ``__p`` est une variable créée par le compilateur à des fins de décomposition. Les noms commençant par ``__`` sont strictement réservés aux besoins internes du compilateur, pour ce genre de cas.<br>
-C'est le type de cette variable qu'on a défini en écrivant ``auto`` devant la *structured binding declaration*.
-
-Autre exemple avec ``const auto&``:
-{% highlight cpp %}
-auto p = std::pair{1, 2};
-const auto& [x, y] = p;
-{% endhighlight %}
-
-Equivalent produit par le compilateur:
-{% highlight cpp %}
-std::pair<int, int> p = std::pair<int, int>{1, 2};
-const std::pair<int, int>& __p = p;
-const int& x = std::get<0UL>(__p);
-const int& y = std::get<1UL>(__p);
-{% endhighlight %}
+Pour les classes/structures n'ayant que des variables membres publiques, la déstructuration n'appelle pas ``std::get``. Le compilateur génère un accès direct aux membres dans l'ordre de leur déclaration.
 
 > Vous pouvez faire vos propres analyses de transpilation de codes C++ sur l'outil en ligne [CppInsights](https://cppinsights.io/).
 
@@ -628,7 +654,11 @@ Cette structure ``Person`` **ne répond plus aux exigences pour être déstructu
 Mais il est possible de **transformer cette structure** pour qu'elle puisse **satisfaire les critères d'un [tuple-like](/articles/c++/std_tuple#tuple-like)**.<br>
 Elle en deviendrait déstructurable.
 
-Pour cela il faut **ajouter quelques définitions** à notre code:
+Pour cela il faut la rendre compatible avec [``std::get``](https://en.cppreference.com/w/cpp/utility/tuple/get).
+Ce qui implique d'ajouter:
+- Une spécialisation de ``std::tuple_size``
+- Une spécialisation de ``std::tuple_element``
+
 {% highlight cpp linenos %}
 struct Person
 {
