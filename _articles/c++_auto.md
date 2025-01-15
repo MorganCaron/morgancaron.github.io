@@ -397,12 +397,76 @@ decltype(auto) k = (i); // int&
 
 ## Structured binding declaration (depuis C++17)
 
-Les *[structured binding declaration](https://en.cppreference.com/w/cpp/language/structured_binding)* permettent de décomposer les valeurs stockées dans un conteneur.<br>
-Un certain nombre de conteneurs sont supportés (dont des conteneurs standards), dont les structures et classes que vous créez.
+Les *[structured binding declaration](https://en.cppreference.com/w/cpp/language/structured_binding)* ([proposal](https://isocpp.org/files/papers/P1061R10.html)) permettent de décomposer des objets en plusieurs variables individuelles.
 
-### Structure ou classe
+Cette fonctionnalité est compatible avec:
+- Les *C-like array* (tableaux de taille fixe)
+- Les [tuple-like](/articles/c++/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
+- Les classes/structures ayant toutes leurs variables membres publiques
 
-Les variables membre publiques sont accessibles depuis l'extérieur d'une ``struct``/``class`` grace aux *structured binding declaration*:
+### C-like array
+
+{% highlight cpp linenos mark_lines="6" %}
+auto main() -> int
+{
+	int position[2];
+	position[0] = 10;
+	position[1] = 15;
+	auto [x, y] = position;
+	
+	std::print("{} {}\n", x, y); // Affiche "10 15"
+}
+{% endhighlight %}
+
+> Notez que **les C-like array** sont **à éviter en C++**. Préférez l'utilisation de [``std::array``](#stdarray).
+
+### ``std::array``
+
+{% highlight cpp linenos mark_lines="6" %}
+auto main() -> int
+{
+	auto position = std::array<int>{10, 15};
+	auto [x, y] = position;
+	
+	std::print("{} {}\n", x, y); // Affiche "10 15"
+}
+{% endhighlight %}
+
+### ``std::tuple``
+
+{% highlight cpp mark_lines="3" %}
+using namespace std::literals;
+auto pair = std::tuple{1, 2.2, "text"sv};
+auto [integer, decimal, string] = pair;
+std::print("{} {} {}", integer, decimal, string);
+{% endhighlight %}
+
+> Ce n'est pas parce qu'il y a écrit ``auto`` devant une *structured binding declaration* que les variables partagent le même type. **Chaque variable peut avoir un type différent**.<br>
+> Ici, **``auto`` [ne désigne pas le type des variables déstructurées](#sous-le-capot)**.
+
+### ``std::pair``
+{% highlight cpp mark_lines="2" %}
+auto pair = std::pair{1, 2};
+auto [x, y] = pair;
+std::print("{} {}", x, y); // Affiche "1 2"
+{% endhighlight %}
+
+Grace à ``std::pair`` il est possible d'obtenir les clefs et valeurs dans une *range-based for loop* sur une ``std::map``/``std::unordered_map``.
+
+{% highlight cpp mark_lines="5" %}
+using namespace std::literals;
+auto map = std::unordered_map{
+	std::pair{ "key1"sv, "value1"sv }
+};
+for (const auto& [key, value] : map)
+	std::print("{} {}", key, value); // Affiche "key1 value1"
+{% endhighlight %}
+
+> Cette utilisation au sein d'un **range-based for loop**, pour séparer clef et valeur, est **l'un des principaux cas d'utilisation** des *structured binding declaration*.
+
+### Classes/Structures
+
+Les classes/structures ayant **toutes leurs variables membres publiques** sont déstructurables avec une *structured binding declaration*:
 
 {% highlight cpp linenos mark_lines="10" %}
 struct Position2d
@@ -415,22 +479,30 @@ auto main() -> int
 {
 	auto position = Position2d{10, 15}; // Construction d'un Position2d avec x vallant 10 et y vallant 15
 	auto [x, y] = position; // Extraction des variables membre de Position2d
-	
-	std::print("{} {}\n", x, y); // Affiche: "10 15\n"
+	std::print("{} {}\n", x, y); // Affiche: "10 15"
 }
 {% endhighlight %}
 
-La destructuration doit **respecter l'ordre des paramètres**.<br>
+La déstructuration doit **respecter l'ordre des paramètres**.<br>
 **Leur nom n'a pas d'importance**, il peut être changé. Par exemple: ``auto [foo, bar] = position;``
 
-{% highlight cpp %}
-auto position = Position2d{10, 15};
-auto [a, b] = position;
-std::print("{} {}\n", a, b); // Affiche: "10 15\n" malgré l'utilisation de noms de variables différents
+{% highlight cpp linenos %}
+struct Position2d
+{
+	int x;
+	int y;
+};
+
+auto main() -> int
+{
+	auto position = Position2d{10, 15};
+	auto [a, b] = position;
+	std::print("{} {}\n", a, b); // Affiche: "10 15" malgré l'utilisation de noms de variables différents
+}
 {% endhighlight %}
 
-**Le nombre de variables** issues de la décomposition doit être **strictement égal** au **nombre de valeurs décomposables**. Et ce, quelque soit le type du conteneur.<br>
-Ceci est également valable pour [chaque type cité ci-dessous](#tableau)
+**Le nombre de variables** issues de la décomposition doit être **strictement égal** au **nombre de valeurs déstructurables**. Et ce, quelque soit le type du conteneur.<br>
+Ceci est également valable pour [chaque type cité ci-dessous](#c-like-array)
 
 {% highlight cpp %}
 auto position = Position2d{10, 15};
@@ -439,43 +511,30 @@ auto [x, y] = position; // Ok
 auto [x, y, z] = position; // error: type 'Position2d' decomposes into 2 elements, but 3 names were provided
 {% endhighlight %}
 
-Ce n'est pas parce qu'il y a écrit ``auto`` devant une *structured binding declaration* que les variables partagent le même type.<br>
-**Chaque variable peut avoir un type différent**.
+### Propriétés cvref
 
-{% highlight cpp linenos mark_lines="10" %}
-struct Person
-{
-	std::string name;
-	int birthYear;
-};
-
-auto main() -> int
-{
-	auto person = Person{"Bjarne Stroustrup", 1950};
-	auto [name, birthYear] = person;
-	
-	std::print("{} est né en {}\n", name, birthYear);
-}
-{% endhighlight %}
-
-Les *structured binding declarations* supportent les propriétés *cvref*, permettant de modifier les données contenues dans le conteneur, ou d'éviter des copies:
+Les *structured binding declarations* supportent les propriétés *cvref*, permettant d'éviter des copies inutiles ou de modifier les données contenues dans le conteneur:
 
 {% highlight cpp linenos mark_lines="13" %}
 struct Person
 {
-	std::string firstName;
-	std::string lastName;
+	std::string name;
+	unsigned int age;
 };
 
 auto main() -> int
 {
-	auto person = Person{
-		.firstName = "Bjarne",
-		.lastName = "Stroustrup"
-	};
-	const auto& [firstName, lastName] = person; // firstName et lastName sont récupérés par références constantes
+	auto person = Person{"John Smith", 42};
+
+	{
+		auto& [name, age] = person; // name et age sont récupérés par références non-constantes
+		++age;
+	}
 	
-	std::print("{} {}\n", firstName, lastName);
+	{
+		const auto& [name, age] = person; // name et age sont récupérés par références constantes
+		std::print("{} a {} ans\n", name, age); // Affiche "John Smith a 43 ans"
+	}
 }
 {% endhighlight %}
 
@@ -483,10 +542,10 @@ Pour mieux comprendre ces mécanismes, regardons comment ça fonctionne sous le 
 
 ### Sous le capot
 
-En C++, ``auto`` fait partie des éléments du langage qui ne sont que du sucre syntaxique, c'est à dire une manière simple et concise d'écrire quelque chose de compliqué.<br>
+En C++, ``auto`` fait partie des éléments du langage qui ne sont que du **sucre syntaxique**, c'est à dire une écriture concise qui se déploie en un code plus complexe et verbeux.<br>
 C'est à la compilation que le compilateur va "remplacer" les ``auto`` par un code plus verbeux.
 
-Pour les cas d'usage simples, ``auto`` est simplement remplacé par le type déduit:
+Pour les cas d'usage simples, ``auto`` est simplement "remplacé" par le type déduit:
 {% row %}
 {% highlight cpp %}
 auto i = 42;
@@ -495,6 +554,8 @@ auto i = 42;
 int i = 42; // Résolution du type auto à la compilation
 {% endhighlight %}
 {% endrow %}
+
+> En réalité, dans cet exemple simple on dit que [**le type est inféré**](https://fr.wikipedia.org/wiki/Inférence_de_types). Ici il ne s'agit pas réellement d'un remplacement de code, mais ça abouti au même résultat.
 
 Pour les cas un peu plus complexes comme les *structured binding declaration*, ``auto`` est remplacé par un code légèrement plus complexe:
 {% highlight cpp %}
@@ -509,6 +570,8 @@ std::pair<int, int> __p = std::pair<int, int>(p);
 int&& x = std::get<0UL>(static_cast<std::pair<int, int>&&>(__p));
 int&& y = std::get<1UL>(static_cast<std::pair<int, int>&&>(__p));
 {% endhighlight %}
+
+On remarque que la fonction [``std::get``](https://en.cppreference.com/w/cpp/utility/tuple/get) est appelée pour décomposer les [tuple-like](/articles/c++/std_tuple#tuple-like).
 
 Ici, ``__p`` est une variable créée par le compilateur à des fins de décomposition. Les noms commençant par ``__`` sont strictement réservés aux besoins internes du compilateur, pour ce genre de cas.<br>
 C'est le type de cette variable qu'on a défini en écrivant ``auto`` devant la *structured binding declaration*.
@@ -529,11 +592,15 @@ const int& y = std::get<1UL>(__p);
 
 > Vous pouvez faire vos propres analyses de transpilation de codes C++ sur l'outil en ligne [CppInsights](https://cppinsights.io/).
 
-``std::get`` est une fonction très puissante qui supporte énormément de types en C++. Ici nous voyons l'utilisation des *structured binding declaration* sur des structures, mais nous allons voir [par la suite](#tableau) son utilisation sur les autres types supportés par ``std::get``.
-
 ### Variables membres privées
 
+[Pour rappel](#structured-binding-declaration-depuis-c17), les types compatibles avec les *structured binding declaration* sont:
+- Les *C-like array* (tableaux de taille fixe)
+- Les [tuple-like](/articles/c++/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
+- Les classes/structures ayant toutes leurs variables membres publiques
+
 Si une classe/structure contient des variables membre privées, il n'est pas possible de les ignorer dans une *structured binding declaration*.
+
 {% highlight cpp linenos mark_lines="6" %}
 struct Person
 {
@@ -557,11 +624,10 @@ auto main() -> int
 }
 {% endhighlight %}
 
-Deux contraintes:
-- Une *structured binding declaration* sur une classe/structure doit avoir **autant de variables** que la classe/structure
-- Les variables membre privée ne sont pas accessibles depuis une *structured binding declaration*
+Cette structure ``Person`` **ne répond plus aux exigences pour être déstructurable** (qui est "**avoir toutes ses variables membres publiques**").<br>
+Mais il est possible de **transformer cette structure** pour qu'elle puisse **satisfaire les critères d'un [tuple-like](/articles/c++/std_tuple#tuple-like)**.<br>
+Elle en deviendrait déstructurable.
 
-Il existe un moyen de pallier à ces deux contraintes en spécialisant notre classe/structure pour la rendre consultable par la *structured binding declaration* comme si c'était un ``std::tuple``.<br>
 Pour cela il faut **ajouter quelques définitions** à notre code:
 {% highlight cpp linenos %}
 struct Person
@@ -592,11 +658,13 @@ private:
 
 // Spécialisation de std::tuple_size pour le type Person. Pour préciser qu'il contient 3 éléments.
 template <>
-struct std::tuple_size<Person>: std::integral_constant<std::size_t, 3> {};
+struct std::tuple_size<Person>: std::integral_constant<std::size_t, 3>
+{};
 
 // Spécialisation de std::tuple_element pour le type Person. Pour accéder aux éléments.
 template <std::size_t I>
-struct std::tuple_element<I, Person> {
+struct std::tuple_element<I, Person>
+{
     using type = std::remove_cvref_t<decltype(std::declval<Person>().get<I>())>;
 };
 
@@ -609,62 +677,6 @@ auto main() -> int
 {% endhighlight %}
 
 Si la classe/structure contenait d'autres variables publiques ou privées, elles ne seraient pas récupérables avec la *structured binding declaration* tant qu'elles ne sont pas supportées par ces éléments que nous venons d'ajouter.
-
-### Tableau
-
-{% highlight cpp linenos mark_lines="6" %}
-auto main() -> int
-{
-	int position[2];
-	position[0] = 10;
-	position[1] = 15;
-	auto [x, y] = position;
-	
-	std::print("{} {}\n", x, y);
-}
-{% endhighlight %}
-
-> Notez que cette écriture c-like des tableaux est à éviter en C++. Préférez l'utilisation de ``std::array``.
-
-### ``std::array``
-
-{% highlight cpp linenos mark_lines="6" %}
-auto main() -> int
-{
-	auto position = std::array<int>{10, 15};
-	auto [x, y] = position;
-	
-	std::print("{} {}\n", x, y);
-}
-{% endhighlight %}
-
-### ``std::pair``
-{% highlight cpp mark_lines="2" %}
-auto pair = std::pair{1, 2};
-auto [x, y] = pair;
-std::print("{} {}", x, y);
-{% endhighlight %}
-
-Grace à ``std::pair`` il est possible d'obtenir les clefs et valeurs dans une *range-based for loop* sur une ``std::map``/``std::unordered_map``.
-
-{% highlight cpp mark_lines="5" %}
-using namespace std::literals;
-auto map = std::unordered_map{
-	std::pair{ "key1"sv, "value1"sv }
-};
-for (const auto& [key, value] : map)
-	std::print("{} {}", key, value);
-{% endhighlight %}
-
-> Cette utilisation au sein d'un *range-based for loop*, pour séparer clef et valeur, est l'un des principaux cas d'utilisation des *structured binding declaration*.
-
-### ``std::tuple``
-{% highlight cpp mark_lines="3" %}
-using namespace std::literals;
-auto pair = std::tuple{1, 2.2, "text"sv};
-auto [integer, decimal, string] = pair;
-std::print("{} {} {}", integer, decimal, string);
-{% endhighlight %}
 
 ### Non constexpr
 
