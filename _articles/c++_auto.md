@@ -727,10 +727,8 @@ Avant C++26, les *structured binding declaration* ne peuvent pas être constexpr
 constexpr auto [x, y] = std::pair{1, 2}; // error: structured binding declaration cannot be 'constexpr'
 {% endhighlight %}
 
-Depuis C++26 ([proposal](https://wg21.link/p2686r4), [approval](https://wg21.link/P2686r4/status)), ce même code compile.
-{% highlight cpp %}
-constexpr auto [x, y] = std::pair{1, 2}; // Ok
-{% endhighlight %}
+Depuis C++26 ([proposal](https://wg21.link/p2686r5), [approval](https://wg21.link/P2686r5/status)), les *structured binding declaration* supportent constexpr.<br>
+Ce n'est cependant [pas encore supporté par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
 
 ### Attributs individuels (depuis C++26)
 
