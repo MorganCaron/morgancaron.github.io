@@ -279,7 +279,7 @@ Mais ne vous arrêtez pas au "**Almost** Always Auto", nous allons revenir sur c
 
 ## ``auto`` as a return type (depuis C++14)
 
-A partir de C++14, on peut laisser le compilateur déduire le type de retour à partir du ``return`` de la fonction, en le ne renseignant plus explicitement:
+A partir de C++14, on peut **laisser le compilateur déduire le type de retour** d'une fonction à partir des ``return`` qui la composent:
 
 {% highlight cpp %}
 template<class Lhs, class Rhs>
@@ -289,9 +289,13 @@ auto sum(Lhs lhs, Rhs rhs)
 };
 {% endhighlight %}
 
-Cependant, ce n'est pas une écriture que vous verrez couramment car elle comporte des risques et qu'elle ne peut pas toujours s'appliquer.
+Cependant, ce n'est pas une écriture que vous verrez souvent car elle **comporte des risques** et qu'elle **ne couvre pas toutes les situations**.
 
-Déjà, retourner ``auto`` est suffisant dans les définitions, mais pas dans les déclarations car elles n'ont pas accès au corps de la fonction pour déduire son type de retour.
+Retourner ``auto`` peut être suffisant **dans les définitions** car le compilateur a accès aux ``return`` pour déduire le type à retourner.<br>
+Mais **pas dans les déclarations** car le compilateur n'a **pas accès au corps de la fonction** pour déduire le type de retour (par exemple lorsqu'on importe les headers d'une bibliothèque sans en avoir les sources).
+
+Dans  l'exemple suivant, un **``auto`` as a return type** est utilisé dans ``Sum.cpp``, mais pas dans ``Sum.h``.<br>
+Dans ``Sum.h`` on utilise un [**Trailing return type**](#trailing-return-type-depuis-c11) pour **renseigner explicitement le type de retour**.
 
 Sum.h
 {% highlight cpp %}
@@ -362,9 +366,9 @@ Celui de gauche est simplement nécessaire pour l'écriture du *trailing return 
 
 ## ``decltype(auto)`` (depuis C++14)
 
-Contrairement à ``auto``, ``decltype(auto)`` permet de préserver les propriétés cvref (``const``/``volatile``/``reference``) d'une expression.
+Contrairement à ``auto``, ``decltype(auto)`` permet de **préserver les propriétés cvref** (``const``/``volatile``/``reference``) d'une expression.
 
-``decltype(auto)`` est particulièrement utile lorsqu'il est nécessaire de préserver la nature exacte de l'expression retournée, que ce soit une référence ou un type const:
+``decltype(auto)`` est particulièrement utile lorsqu'il est nécessaire de préserver la nature exacte de l'expression retournée, que ce soit une référence ou un type constant:
 
 {% highlight cpp linenos %}
 int foo();
@@ -397,12 +401,12 @@ decltype(auto) j = i; // int
 decltype(auto) k = (i); // int&
 {% endhighlight %}
 
-L'utilisation de parenthèses autour de ``i`` force la déduction en référence.<br>
+L'utilisation de **parenthèses** autour de ``i`` **force la déduction en référence**.<br>
 Sans les parenthèses, le résultat est une copie.
 
 ## Structured binding declaration (depuis C++17)
 
-Les *[structured binding declaration](https://en.cppreference.com/w/cpp/language/structured_binding)* ([proposal](https://isocpp.org/files/papers/P1061R10.html)) permettent de décomposer des objets en plusieurs variables individuelles.
+Les *[structured binding declaration](https://en.cppreference.com/w/cpp/language/structured_binding)* ([proposal](https://wg21.link/P1061R10)) permettent de décomposer des objets en plusieurs variables individuelles.
 
 Cette fonctionnalité est compatible avec:
 - Les *C-like array* (tableaux de taille fixe)
@@ -581,6 +585,14 @@ Les noms commençant par ``__`` sont strictement réservés aux besoins internes
 
 C'est le type de cette variable ``__array7`` qu'on a défini en écrivant ``auto`` devant la *structured binding declaration*.
 
+{% highlight cpp %}
+int i = 1;
+int j = 2;
+auto& [x, y] = std::make_tuple<int&, int&>(i, j); // error: non-const lvalue reference to type 'tuple<...>' cannot bind to a temporary of type 'tuple<...>'
+{% endhighlight %}
+
+``std::make_tuple`` retourne un objet temporaire, qui ne peut pas être affecté à une *lvalue reference* non constante.
+
 Autre exemple avec ``const auto&``:
 {% highlight cpp %}
 int array[2] = {1, 2};
@@ -668,7 +680,7 @@ struct Person
 		birthYear{birthYear}
 	{}
 
-	// Fonction membre pour accéder aux variables membres en utilisant std::get sur la structure
+	// Fonction membre pour accéder aux variables membres depuis la spécialisation de std::tuple_element<I, Person>
 	template<std::size_t I, class T>
 	constexpr auto&& get(this T&& self) noexcept
 	{
@@ -708,20 +720,21 @@ auto main() -> int
 
 Si la classe/structure contenait d'autres variables publiques ou privées, elles ne seraient pas récupérables avec la *structured binding declaration* tant qu'elles ne sont pas supportées par ces éléments que nous venons d'ajouter.
 
-### Non constexpr
+### constexpr Structured Binding (depuis C++26)
 
-Les *structured binding declaration* ne peuvent pas être constexpr:
+Avant C++26, les *structured binding declaration* ne peuvent pas être constexpr:
 {% highlight cpp %}
-constexpr int i = 0; // Ok
 constexpr auto [x, y] = std::pair{1, 2}; // error: structured binding declaration cannot be 'constexpr'
 {% endhighlight %}
 
-> Attention, cela ne signifie pas que les *structured binding declaration* ne sont pas utilisables dans des contextes constexpr. En savoir plus sur constexpr [ici](/articles/c++/compile-time_execution).
-{: .block-warning }
+Depuis C++26 ([proposal](https://wg21.link/p2686r4), [approval](https://wg21.link/P2686r4/status)), ce même code compile.
+{% highlight cpp %}
+constexpr auto [x, y] = std::pair{1, 2}; // Ok
+{% endhighlight %}
 
 ### Attributs individuels (depuis C++26)
 
-Les *structured binding declaration* ne supportent pas les attributs individuels avant C++26:
+Les *structured binding declaration* ne supportent pas les [attributs](/articles/c++/attributes) individuels avant C++26:
 {% highlight cpp %}
 int i = 0, j [[maybe_unused]] = 0; // Ok, individual attributes
 auto [k, l [[maybe_unused]] ] = std::pair{1, 2}; // warning: an attribute specifier sequence attached to a structured binding declaration is a C++2c extension [-Wc++26-extensions]
