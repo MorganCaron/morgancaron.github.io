@@ -281,7 +281,7 @@ Mais ne vous arrêtez pas au "**Almost** Always Auto", nous allons revenir sur c
 
 A partir de C++14, on peut **laisser le compilateur déduire le type de retour** d'une fonction à partir des ``return`` qui la composent:
 
-{% highlight cpp %}
+{% highlight cpp highlight_lines="2" %}
 template<class Lhs, class Rhs>
 auto sum(Lhs lhs, Rhs rhs)
 {
@@ -298,7 +298,7 @@ Dans  l'exemple suivant, un **``auto`` as a return type** est utilisé dans ``Su
 Dans ``Sum.h`` on utilise un [**Trailing return type**](#trailing-return-type-depuis-c11) pour **renseigner explicitement le type de retour**.
 
 Sum.h
-{% highlight cpp %}
+{% highlight cpp highlight_lines="2" %}
 template<class Lhs, class Rhs>
 auto sum(Lhs lhs, Rhs rhs) -> decltype(lhs + rhs);
 {% endhighlight %}
@@ -370,7 +370,7 @@ Contrairement à ``auto``, ``decltype(auto)`` permet de **préserver les propri�
 
 ``decltype(auto)`` est particulièrement utile lorsqu'il est nécessaire de préserver la nature exacte de l'expression retournée, que ce soit une référence ou un type constant:
 
-{% highlight cpp linenos %}
+{% highlight cpp linenos highlight_lines="5" %}
 int foo();
 int& bar();
 
@@ -385,7 +385,7 @@ auto call(Function function) -> decltype(auto)
 {% endhighlight %}
 
 ``decltype(auto)`` est aussi utilisable pour initialiser une variable en conservant les propriétés cvref de la valeur assignée:
-{% highlight cpp %}
+{% highlight cpp linenos highlight_lines="3" %}
 auto main() -> int
 {
 	decltype(auto) result = call(bar);
@@ -438,7 +438,7 @@ auto main() -> int
 
 ### ``std::array``
 
-{% highlight cpp linenos highlight_lines="6" %}
+{% highlight cpp linenos highlight_lines="4" %}
 auto main() -> int
 {
 	auto position = std::array<int>{10, 15};
@@ -502,7 +502,7 @@ auto main() -> int
 La déstructuration doit **respecter l'ordre des paramètres**.<br>
 **Leur nom n'a pas d'importance**, il peut être changé. Par exemple: ``auto [foo, bar] = position;``
 
-{% highlight cpp linenos %}
+{% highlight cpp linenos highlight_lines="10" %}
 struct Position2d
 {
 	int x;
@@ -646,7 +646,7 @@ Pour les classes/structures n'ayant que des variables membres publiques, la dés
 
 Si une classe/structure contient des variables membre privées, il n'est pas possible de les ignorer dans une *structured binding declaration*.
 
-{% highlight cpp linenos highlight_lines="6" %}
+{% highlight cpp linenos %}
 struct Person
 {
 	Person(std::string firstName, std::string lastName, int birthYear):
@@ -678,7 +678,7 @@ Ce qui implique d'ajouter:
 - Une spécialisation de ``std::tuple_size``
 - Une spécialisation de ``std::tuple_element``
 
-{% highlight cpp linenos %}
+{% highlight cpp linenos highlight_lines="42" %}
 struct Person
 {
 	Person(std::string firstName, std::string lastName, int birthYear):
@@ -787,7 +787,7 @@ Dans une *range-based for loop*, **la condition n'évalue pas les variables issu
 La *structured binding declaration* dans une condition fait une vérification un peu similaire sur l'objet.
 La condition **caste l'objet en bool** pour vérifier la validité de la condition, **puis décompose ses éléments**.
 
-{% highlight cpp linenos %}
+{% highlight cpp linenos highlight_lines="6 15" %}
 struct Stock
 {
     unsigned int available;
@@ -836,7 +836,7 @@ Cette structure a la particularité d'avoir un [``operator bool()``](https://en.
 Cet opérateur vérifie que sa variable membre publique ``ec`` (error code) ne contient aucun code d'erreur (``std::errc{}``).
 
 Avant C++26, on utilise l'écriture:
-{% highlight cpp linenos %}
+{% highlight cpp linenos highlight_lines="3 4" %}
 auto string = std::string{};
 string.resize(20);
 if (auto [pointer, errorCode] = std::to_chars(std::data(string), std::data(string) + std::size(string), 3.14);
@@ -852,7 +852,7 @@ else
 > Dans le code précédent, remarquez l'utilisation de l'[*init-statement*](/articles/c++/control_flow#init-statement-depuis-c17) dans la condition pour restreindre la portée des variables ``pointer`` et ``errorCode`` au scope de cette condition.
 
 Depuis C++26, on peut écrire:
-{% highlight cpp linenos %}
+{% highlight cpp linenos highlight_lines="3" %}
 auto string = std::string{};
 string.resize(20);
 if (auto [pointer, errorCode] = std::to_chars(std::data(string), std::data(string) + std::size(string), 3.14))

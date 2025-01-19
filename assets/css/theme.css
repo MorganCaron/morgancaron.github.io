@@ -799,7 +799,7 @@ figure.highlight {
 	/* highlighting line */
 	.hll {
 		border-radius: 5px;
-		padding: 2px 0 2px;
+		padding: 2px 2px 2px 0;
 		background-color: rgba(0, 0, 0, 0.5);
 	}
 
