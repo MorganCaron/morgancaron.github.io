@@ -8,54 +8,22 @@ background: mountains2.jpg
 
 <div class="container">
 
-	{% for post in site.posts %}
-		<h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
-		<p>{{ post.excerpt }}</p>
-	{% endfor %}
+	<h2 class="text-center"><span class="rounded-card">Notes</span></h2>
 
-	<hr>
+	{% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
 
-	{% if site.paginate %}
-		{% assign posts = paginator.posts %}
-	{% else %}
-		{% assign posts = site.posts %}
-	{% endif %}
-
-	{% if posts.size > 0 %}
-
-		{% if page.list_title %}
-			<h2>{{ page.list_title }}</h2>
-		{% endif %}
-		<ul>
-			{% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
-			{% for post in posts %}
-				<li>
+	<section class="article-cards">
+		{% for post in site.posts %}
+			<a href="{{ post.url | relative_url }}" class="card">
+				<header{% if post.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{ post.background }}');"{% endif %}>
+					<h2>{{ post.title }}</h2>
+				</header>
+				<div>
+					{{ post.excerpt }}
 					{{ post.date | date: date_format }}
-					<h3>
-						<a href="{{ post.url | relative_url }}" class="underline-hover underlined">{{ post.title | escape }}</a>
-					</h3>
-					{% if site.show_excerpts %}
-						{{ post.excerpt }}
-					{% endif %}
-				</li>
-			{% endfor %}
-		</ul>
+				</div>
+			</a>
+		{% endfor %}
+	</section>
 
-		{% if site.paginate %}
-			<ul class="pagination">
-				{% if paginator.previous_page %}
-					<li><a href="{{ paginator.previous_page_path | relative_url }}">{{ paginator.previous_page }}</a></li>
-				{% else %}
-					<li>•</li>
-				{% endif %}
-					<li>{{ paginator.page }}</li>
-				{% if paginator.next_page %}
-					<li><a href="{{ paginator.next_page_path | relative_url }}">{{ paginator.next_page }}</a></li>
-				{% else %}
-					<li>•</li>
-				{% endif %}
-			</ul>
-		{% endif %}
-
-	{% endif %}
 </div>
