@@ -1,6 +1,7 @@
 ---
 layout: article
 title: "Welcome to my Devblog!"
+permalink: blog/welcome-to-my-devblog
 date: 2025-01-19 01:12:44 +0200
 categories: blog
 background: campfire1.webp
