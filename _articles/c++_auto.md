@@ -139,6 +139,50 @@ auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
 
 Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
 
+#### Oublier une conversion explicite
+
+Par négligence ou par méconnaissance de la bibliothèque standard, on peut penser que les deux codes suivants sont identiques:
+
+{% row %}
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] auto bit = bits[0];
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "true"
+{% endhighlight %}
+
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] bool bit = bits[0];
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "false"
+{% endhighlight %}
+{% endrow %}
+
+Ici on est face à une particularité de la bibliothèque standard.<br>
+Le type ``std::vector<T>`` est spécialisé pour le type ``bool`` pour avoir un **comportement différent** de celui de base.<br>
+``std::vector<bool>::operator[]`` **ne retourne pas un ``bool``**, mais un **proxy** permettant de modifier le bit stocké dans le conteneur. Et ce, malgré l'utilisation de ``auto`` sans référence.
+
+> Si ces problématiques autour de **``std::vector<bool>``** vous intéresse, [**un autre article**](/articles/c++/std_vector_bool#spécialisation-du-type-stdvectorbool) développe ses particularités et vous propose une bien **meilleure alternative** ([``std::bitset``](/articles/c++/std_vector_bool#stdbitsetn)).
+
+Un moyen d'éviter ce problèmes consiste à rendre explicite la conversion:
+
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] bool bit = bits[0]; // Conversion implicite de proxy vers bool
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "false"
+{% endhighlight %}
+
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] auto bit = static_cast<bool>(bits[0]); // Conversion explicite
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "false"
+{% endhighlight %}
+
+> **L'absence de conversions implicites avec ``auto`` force à les expliciter.** Ce qui est une **bonne pratique** pour **éviter les comportements cachés**, **inattendus** et **indésirables**.
+
 ## Trailing return type (depuis C++11)
 
 En C++, le type de retour des fonctions est écrit au début de leur définition/déclaration:
@@ -270,12 +314,17 @@ Ceci explique le "**Almost**" dans "Almost Always Auto". On est passé à ça �
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-i-believed-in-you.gif %}
 
-Certains développeurs préfèrent utiliser ``auto`` avec parcimonie, en remplacement de types particulièrement verbeux (notamment les iterateurs).
-D'autres prônent son utilisation quasi systématique, comme Scott Meyers ([Effective Modern C++](https://www.amazon.fr/Effective-Modern-C-Scott-Meyers/dp/1491903996)) et [Herb Sutter](https://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/).
+Mais ne vous arrêtez pas au "**Almost** Always Auto", nous allons revenir sur ce point par la suite avec l'[**Always Auto**](#aa-always-auto-depuis-c17).
 
-Certains seraient même tentés de ne jamais utiliser ``auto`` pour éviter ce genre de problème, et passer à côté de tous les autres avantages qu'il apporte.
+Certains développeurs préfèrent utiliser ``auto`` **avec parcimonie**, en **remplacement de types particulièrement verbeux** (notamment les **iterateurs**).
 
-Mais ne vous arrêtez pas au "**Almost** Always Auto", nous allons revenir sur ce point [par la suite](#aa-always-auto-depuis-c17).
+Parfois en évitant de l'utiliser à cause des noms de fonctions et variables **pas assez explicites** sur le type qu'elles contiennent ou retournent (c'est l'argument principal que j'entend).<br>
+Ceci est très courant, notamment dans un cadre professionnel où plusieurs développeurs collaborent sur le même projet.<br>
+Aux personnes qui sont dans cette situation, je recommanderais d'utiliser un IDE qui montre les **types des variables** et les **signatures des fonctions** au **survol de la souris**.
+
+D'autres seraient même tentés de ne jamais utiliser ``auto``, et passer à côté de tous les autres avantages qu'il apporte.
+
+Et d'autres personnes prônent l'utilisation **quasi systématique** de ``auto``, comme Scott Meyers ([Effective Modern C++](https://www.amazon.fr/Effective-Modern-C-Scott-Meyers/dp/1491903996)) et [Herb Sutter](https://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/).
 
 ## ``auto`` as a return type (depuis C++14)
 
@@ -429,7 +478,6 @@ auto main() -> int
 	position[0] = 10;
 	position[1] = 15;
 	auto [x, y] = position;
-	
 	std::print("{} {}\n", x, y); // Affiche "10 15"
 }
 {% endhighlight %}
@@ -443,7 +491,6 @@ auto main() -> int
 {
 	auto position = std::array<int>{10, 15};
 	auto [x, y] = position;
-	
 	std::print("{} {}\n", x, y); // Affiche "10 15"
 }
 {% endhighlight %}
@@ -980,6 +1027,23 @@ Equivaut à:
 {% highlight cpp %}
 template<class Lhs, class Rhs>
 void sum(Lhs lhs, Rhs rhs);
+{% endhighlight %}
+
+### try-catch ne supporte pas ``auto``
+
+Bien que la syntaxe d'un ``catch`` puisse le laisser penser, un try-catch block **n'est pas une fonction**.<br>
+Il n'est pas possible de templater le paramètre d'un ``catch``.<br>
+De la même manière, il n'est pas possible d'utiliser ``auto`` pour typer ce paramètre.
+
+{% highlight cpp linenos highlight_lines="5" %}
+try
+{
+	// ...
+}
+catch (const auto& exception) // error: 'auto' not allowed in exception declaration
+{
+	std::cout << exception.what();
+}
 {% endhighlight %}
 
 ## auto cast (depuis C++23)
