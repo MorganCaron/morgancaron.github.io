@@ -8,6 +8,4 @@ background: mountains0.jpg
 published: false
 ---
 
-{:refdef: class="work-in-progress"}
-Work in progress
-{: refdef}
+{% wip %}

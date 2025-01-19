@@ -796,6 +796,13 @@ figure.highlight {
 		user-select: none;
 	}
 
+	/* highlighting line */
+	.hll {
+		border-radius: 5px;
+		padding: 2px 0 2px;
+		background-color: rgba(0, 0, 0, 0.5);
+	}
+
 	.language-c, .language-cpp {
 
 		/* preprocessor, include */

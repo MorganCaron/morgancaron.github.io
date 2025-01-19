@@ -271,7 +271,7 @@ Ceci explique le "**Almost**" dans "Almost Always Auto". On est passé à ça �
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-i-believed-in-you.gif %}
 
 Certains développeurs préfèrent utiliser ``auto`` avec parcimonie, en remplacement de types particulièrement verbeux (notamment les iterateurs).
-D'autres prônent son utilisation quasi systématique, comme Scott Meyers et [Herb Sutter](https://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/).
+D'autres prônent son utilisation quasi systématique, comme Scott Meyers ([Effective Modern C++](https://www.amazon.fr/Effective-Modern-C-Scott-Meyers/dp/1491903996)) et [Herb Sutter](https://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/).
 
 Certains seraient même tentés de ne jamais utiliser ``auto`` pour éviter ce genre de problème, et passer à côté de tous les autres avantages qu'il apporte.
 
@@ -422,7 +422,7 @@ auto [x, y, z] = container;
 
 ### C-like array
 
-{% highlight cpp linenos mark_lines="6" %}
+{% highlight cpp linenos highlight_lines="6" %}
 auto main() -> int
 {
 	int position[2];
@@ -438,7 +438,7 @@ auto main() -> int
 
 ### ``std::array``
 
-{% highlight cpp linenos mark_lines="6" %}
+{% highlight cpp linenos highlight_lines="6" %}
 auto main() -> int
 {
 	auto position = std::array<int>{10, 15};
@@ -450,7 +450,7 @@ auto main() -> int
 
 ### ``std::tuple``
 
-{% highlight cpp mark_lines="3" %}
+{% highlight cpp highlight_lines="3" %}
 using namespace std::literals;
 auto pair = std::tuple{1, 2.2, "text"sv};
 auto [integer, decimal, string] = pair;
@@ -461,7 +461,7 @@ std::print("{} {} {}", integer, decimal, string);
 > Ici, **``auto`` [ne désigne pas le type des variables déstructurées](#sous-le-capot)**.
 
 ### ``std::pair``
-{% highlight cpp mark_lines="2" %}
+{% highlight cpp highlight_lines="2" %}
 auto pair = std::pair{1, 2};
 auto [x, y] = pair;
 std::print("{} {}", x, y); // Affiche "1 2"
@@ -469,7 +469,7 @@ std::print("{} {}", x, y); // Affiche "1 2"
 
 Grace à ``std::pair`` il est possible d'obtenir les clefs et valeurs dans une *range-based for loop* sur une ``std::map``/``std::unordered_map``.
 
-{% highlight cpp mark_lines="5" %}
+{% highlight cpp highlight_lines="5" %}
 using namespace std::literals;
 auto map = std::unordered_map{
 	std::pair{ "key1"sv, "value1"sv }
@@ -484,7 +484,7 @@ for (const auto& [key, value] : map)
 
 Les classes/structures ayant **toutes leurs variables membres publiques** sont déstructurables avec une *structured binding declaration*:
 
-{% highlight cpp linenos mark_lines="10" %}
+{% highlight cpp linenos highlight_lines="10" %}
 struct Position2d
 {
 	int x;
@@ -531,7 +531,7 @@ auto [x, y, z] = position; // error: type 'Position2d' decomposes into 2 element
 
 Les *structured binding declarations* supportent les propriétés *cvref*, permettant d'éviter des copies inutiles ou de modifier les données contenues dans le conteneur:
 
-{% highlight cpp linenos mark_lines="13" %}
+{% highlight cpp linenos highlight_lines="13" %}
 struct Person
 {
 	std::string name;
@@ -646,7 +646,7 @@ Pour les classes/structures n'ayant que des variables membres publiques, la dés
 
 Si une classe/structure contient des variables membre privées, il n'est pas possible de les ignorer dans une *structured binding declaration*.
 
-{% highlight cpp linenos mark_lines="6" %}
+{% highlight cpp linenos highlight_lines="6" %}
 struct Person
 {
 	Person(std::string firstName, std::string lastName, int birthYear):

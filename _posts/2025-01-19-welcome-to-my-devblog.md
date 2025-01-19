@@ -34,9 +34,6 @@ Ce Devblog sera également l'occasion pour moi de partager mes connaissances en 
 Vous trouverez des articles techniques, des **tutoriels**, des **astuces** et des **conseils** pour vous améliorer **en programmation**.<br>
 Que vous soyez un débutant cherchant à apprendre ou un développeur chevronné à la recherche d'informations précises, il y en aura **pour tous les niveaux**.
 
-La connaissance est libre et appartient à tous.<br>
-Cela dit, indépendamment des connaissances partagées ici, ce site reste protégé par le droit d'auteur.
-
 ## A venir
 
 De nombreux articles en C++ sont **en cours de rédaction**. Ils seront publiés au fil du temps lorsqu'ils seront terminés.<br>
@@ -51,9 +48,4 @@ Restez à l'affût des **prochains articles** et n'hésitez pas rejoindre notre 
 
 *Morgan*
 
-<br>
-
 [discord]: https://discord.gg/mxZvun4
-
-> Notre curiosité vous accompagne au cours de votre périple. Vous marchez dans les pas de vos prédécesseurs, et votre chemin guidera ceux qui viendront après vous.<br>
-> Nomaï _ Outer Wilds
