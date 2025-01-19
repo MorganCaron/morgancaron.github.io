@@ -38,9 +38,9 @@ background: meadow1.webp
 	<section class="article-cards">
 		{% for article in site.articles %}
 			<a href="{{ article.url }}" class="card">
-				<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{article.background}}');"{% endif %}>
+				<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{ article.background }}');"{% endif %}>
 					<h2>{{ article.title }}</h2>
-					<img src="/assets/images/logos/{{article.logo}}">
+					<img src="/assets/images/logos/{{ article.logo }}">
 				</header>
 				<div>{{ article.excerpt }}</div>
 			</a>

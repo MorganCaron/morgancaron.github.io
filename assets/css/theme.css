@@ -114,6 +114,7 @@ body {
 
 	> .parallax > header {
 		padding: 1rem;
+		margin-bottom: 1rem;
 
 		> .button {
 			position: absolute;

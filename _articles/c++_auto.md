@@ -413,6 +413,13 @@ Cette fonctionnalité est compatible avec:
 - Les [tuple-like](/articles/c++/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
 - Les classes/structures ayant toutes leurs variables membres publiques
 
+Leur écriture est conçue comme une variante des déclarations de variables.
+En renseignant plusieurs noms de variables au lieu d'un seul.
+
+{% highlight cpp %}
+auto [x, y, z] = container;
+{% endhighlight %}
+
 ### C-like array
 
 {% highlight cpp linenos mark_lines="6" %}
@@ -749,18 +756,114 @@ auto [x, y] = std::pair{1, 2}; // Ok
 auto n = x; // warning: unused variable 'n' [-Wunused-variable]
 {% endhighlight %}
 
-### Non autorisé dans les conditions
+### Structured binding declaration as a condition (depuis C++26)
 
-Les *structured binding declaration* ne sont pas autorisées dans les conditions:
+Avant C++26, les *structured binding declaration* ne sont pas autorisées dans les conditions:
 {% highlight cpp %}
 if (auto [x, y] = std::pair{1, 2}) {} // warning: ISO C++17 does not permit structured binding declaration in a condition [-Wbinding-in-condition]
 {% endhighlight %}
-Ce qui est assez normal étant donné qu'on ne sait pas trop ce qui serait vérifié par cette condition.
 
-Mais elles autorisées dans la partie initialisation ([init-statement (C++17)](https://en.cppreference.com/w/cpp/language/if)) des conditions:
+Il est cependant possible de les utiliser dans la partie initialisation des conditions ([init-statement (C++17)](/articles/c++/control_flow#init-statement-depuis-c17)), dans laquelle elles se comportent comme n'importe quelle déclaration écrite à cet endroit:
 {% highlight cpp %}
-if (auto [x, y] = std::pair{1, 2}; x == y) {}  // Ok
+if (auto [x, y] = std::pair{1, 2}; x == y) {} // Ok
 {% endhighlight %}
+
+Depuis C++26, il est possible d'écrire directement une *structured binding declaration* dans la partie conditionnelle  ([proposal](https://wg21.link/p0963r3), [approval](https://wg21.link/p0963r3/status)), apportant une nouvelle mécanique que nous allons détailler.
+
+{% highlight cpp %}
+if (auto [x, y] = std::pair{1, 2}) {} // Ok depuis C++26
+{% endhighlight %}
+
+Cette écriture n'est pas sans rappeler les [*range-based for loop*](/articles/c++/control_flow#range-based-for-loop-depuis-c11) dans lesquelles il est également possible d'utiliser une *structured binding declaration* pour décomposer l'objet pointé par l'iterateur.
+
+{% highlight cpp %}
+for (auto [x, y] : container) {}
+{% endhighlight %}
+
+C'est dans cette optique qu'a été proposé le port des *structured binding declaration* aux conditions.
+
+Dans une *range-based for loop*, **la condition n'évalue pas les variables issues de la décomposition, mais l'itérateur**. Ainsi, la boucle se poursuit **jusqu'à atteindre la [valeur sentinelle](https://fr.wikipedia.org/wiki/Valeur_sentinelle)** signalant la fin des éléments itérables.
+
+La *structured binding declaration* dans une condition fait une vérification un peu similaire sur l'objet.
+La condition **caste l'objet en bool** pour vérifier la validité de la condition, **puis décompose ses éléments**.
+
+{% highlight cpp linenos %}
+struct Stock
+{
+    unsigned int available;
+    unsigned int reserved;
+
+    explicit operator bool() const noexcept
+	{
+		return available >= reserved;
+	}
+};
+
+auto main() -> int
+{
+    auto stock = Stock{10, 3};
+    if (auto [available, reserved] = stock)
+        std::print("Articles prêts pour livraison: {}\nStock total: {}\n", reserved, available);
+    else
+        std::print("Stock insuffisant!\n");
+}
+{% endhighlight %}
+
+{% highlight console %}
+Articles prêts pour livraison: 3
+Stock total: 10
+{% endhighlight %}
+
+> Attention, contrairement aux *range-based for loop* qui utilisent le caractère ``:`` comme **séparateur entre élément et conteneur** (symbolisant l'opération d'itération), une *structured binding declaration* dans une condition est bien une **déclaration complète**, sans séparateur. C'est pourquoi on y trouve un ``=`` et non un ``:``.<br>
+> ``for (auto [x, y] : container)`` (pas de ``=``)<br>
+> ``if (auto [x, y] = std::pair{1, 2})`` (pas de ``:``)
+{: .block-warning }
+
+Certains types standards supportent leur utilisation au sein d'une *structured binding declaration* dans une condition, nous allons en voir quelques uns.
+
+#### Structured binding declaration: ``std::from_chars`` / ``std::to_chars``
+
+La fonction ``std::to_chars``, permettant d'**écrire un nombre dans une chaîne de caractères**, retourne une structure ``std::to_chars_result`` informant l'appelant du bon déroulé de cette écriture.<br>
+Cette structure contient 2 variables membres publiques **pouvant être décomposées** par une *structured binding declaration*:
+
+| Member name | Définition |
+| ``ptr`` | a pointer of type ``char*`` (public) |
+| ``ec`` | an error code of type [``std::errc``](https://en.cppreference.com/w/cpp/error/errc) (public) |
+
+([Source: CppReference ``std::to_chars_result``](https://en.cppreference.com/w/cpp/utility/to_chars_result#Data_members))
+
+Cette structure a la particularité d'avoir un [``operator bool()``](https://en.cppreference.com/w/cpp/utility/to_chars_result#operator_bool) en C++26, lui permettant d'être **utilisable dans une condition**.<br>
+Cet opérateur vérifie que sa variable membre publique ``ec`` (error code) ne contient aucun code d'erreur (``std::errc{}``).
+
+Avant C++26, on utilise l'écriture:
+{% highlight cpp linenos %}
+auto string = std::string{};
+string.resize(20);
+if (auto [pointer, errorCode] = std::to_chars(std::data(string), std::data(string) + std::size(string), 3.14);
+	errorCode == std::errc{})
+	std::print("{}\n", string);
+else
+{
+	// Gestion d'erreur
+}
+{% endhighlight %}
+([Pour la gestion d'erreur](https://en.cppreference.com/w/cpp/error/errc#Example))
+
+> Dans le code précédent, remarquez l'utilisation de l'[*init-statement*](/articles/c++/control_flow#init-statement-depuis-c17) dans la condition pour restreindre la portée des variables ``pointer`` et ``errorCode`` au scope de cette condition.
+
+Depuis C++26, on peut écrire:
+{% highlight cpp linenos %}
+auto string = std::string{};
+string.resize(20);
+if (auto [pointer, errorCode] = std::to_chars(std::data(string), std::data(string) + std::size(string), 3.14))
+	std::print("{}\n", string);
+else
+{
+	// Gestion d'erreur
+}
+{% endhighlight %}
+
+> La même chose pourrait être dite au sujet de la fonction [``std::from_chars``](https://en.cppreference.com/w/cpp/utility/from_chars), qui sert à **parser un nombre** dans une chaîne de caractères.
 
 ## ``auto`` in template parameters (depuis C++17)
 
@@ -780,7 +883,7 @@ Le passage de valeur en template est possible en écrivant le type accepté à l
 {% highlight cpp %}
 template<std::size_t value>
 constexpr auto constant = value;
-constexpr auto const IntConstant42 = constant<42>;
+constexpr auto IntConstant42 = constant<42>;
 {% endhighlight %}
 
 Pour plus de généricité, il est également possible de le définir avec ``auto`` (``template<auto>``).
@@ -789,7 +892,7 @@ Ici, ``auto`` sert à indiquer une valeur en template qui sera déduite à l'ins
 {% highlight cpp %}
 template<auto value>
 constexpr auto constant = value;
-constexpr auto const IntConstant42 = constant<42>;
+constexpr auto IntConstant42 = constant<42>;
 {% endhighlight %}
 
 Equivaut à:
@@ -797,7 +900,7 @@ Equivaut à:
 {% highlight cpp %}
 template<class Type, Type value>
 constexpr Type constant = value;
-constexpr auto const IntConstant42 = constant<int, 42>;
+constexpr auto IntConstant42 = constant<int, 42>;
 {% endhighlight %}
 
 ``template<auto>`` accepte toute *constant expression*, c'est à dire toute valeur connue à la compilation (integral, pointer, pointer to member, enum, lambda, constexpr object).
@@ -891,6 +994,8 @@ function(auto{expr});
 {% endhighlight %}
 
 ## Structured binding pack (depuis C++26)
+
+Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité de d'extraire des éléments dans un pack ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9)).
 
 {% wip %}
 
