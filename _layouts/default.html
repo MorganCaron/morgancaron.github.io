@@ -7,6 +7,17 @@
 		<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="google-site-verification" content="nC62xmWcEPfHav4tLcQ6H-ahkag6BfxbtsfH_pRZVpo" />
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-6689VSX7J9"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-6689VSX7J9', {
+				'anonymize_ip': true, // Anonymise les utilisateurs (On respecte le RGPD, permettant de ne pas avoir de bandeau d'acceptation des cookies)
+				'allow_google_signals': true, // Désactive le croisement des données permettant à Google d'affiner le profil publicitaire de l'utilisateur
+				'allow_ad_personalization_signals': false // Désactive la personnalisation des annonces publicitaires (de toute façon il n'y en a pas ici)
+			});
+		</script>
 	</head>
 	<body {% if page.background != "" %}style="--background-image: url('/assets/images/backgrounds/{{page.background}}');"{% endif %}>
 		{{ content }}
