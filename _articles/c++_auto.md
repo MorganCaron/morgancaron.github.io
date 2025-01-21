@@ -6,9 +6,16 @@ category: c++
 logo: c++.svg
 background: corridor4.webp
 published: true
+reviewers:
+  - name: Arthur Laurent (Arthapz)
+    link: https://github.com/Arthapz
+  - name: Gabin Lefranc (Gly)
+    link: https://github.com/glcraft
 ---
 
 Le mot clef ``auto``, ses **avantages** et ses différents comportements **selon la version** et le contexte.
+
+{% reviewers %}
 
 ## Automatic storage duration specifier (avant C++11) (obsolète)
 
@@ -139,7 +146,7 @@ auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
 
 Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
 
-#### Oublier une conversion explicite
+### Oublier une conversion explicite
 
 Par négligence ou par méconnaissance de la bibliothèque standard, on peut penser que les deux codes suivants sont identiques:
 
@@ -1029,23 +1036,6 @@ template<class Lhs, class Rhs>
 void sum(Lhs lhs, Rhs rhs);
 {% endhighlight %}
 
-### try-catch ne supporte pas ``auto``
-
-Bien que la syntaxe d'un ``catch`` puisse le laisser penser, un try-catch block **n'est pas une fonction**.<br>
-Il n'est pas possible de templater le paramètre d'un ``catch``.<br>
-De la même manière, il n'est pas possible d'utiliser ``auto`` pour typer ce paramètre.
-
-{% highlight cpp linenos highlight_lines="5" %}
-try
-{
-	// ...
-}
-catch (const auto& exception) // error: 'auto' not allowed in exception declaration
-{
-	std::cout << exception.what();
-}
-{% endhighlight %}
-
 ## auto cast (depuis C++23)
 
 Une manière générique d'obtenir la copie d'un objet en C++ est ``auto variable = x;``, mais une telle copie est une [lvalue](/articles/c++/value_categories#lvalue).
@@ -1059,7 +1049,9 @@ function(auto{expr});
 
 ## Structured binding pack (depuis C++26)
 
-Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité de d'extraire des éléments dans un pack ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9)).
+Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité de d'extraire des éléments dans un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
+
+Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
 
 {% wip %}
 

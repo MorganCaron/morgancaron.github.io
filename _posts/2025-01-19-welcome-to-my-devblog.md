@@ -18,7 +18,7 @@ Je suis un **développeur C++ et web**, en constante veille technologique pour m
 Ma philosophie en programmation est basée sur la **rigueur**, la **généricité**, la **clarté**, les **performances** et la **sécurité**.<br>
 J'ai un fort besoin de comprendre les choses pour pouvoir les manipuler, ce qui me pousse à creuser toujours plus dans l'aspect technique des langages.
 
-Si vous partagez ma passion pour la programmation ou que vous cherchez à apprendre des choses, vous êtes au bon endroit.
+Si vous partagez ma passion pour la programmation et que vous cherchez à apprendre des choses, vous êtes au bon endroit.
 
 ## Objectif de ce site
 
