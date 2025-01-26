@@ -1049,11 +1049,185 @@ function(auto{expr});
 
 ## Structured binding pack (depuis C++26)
 
-Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité de d'extraire des éléments dans un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
+Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité de d'extraire des éléments d'un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
 
 Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
+On peut cependant la trouver en experimental sur Clang.
 
-{% wip %}
+Ce n'est pas une nouvelle fonctionnalité à proprement parler, il s'agit en fait d'une extension des [structured binding declaration](#structured-binding-declaration-depuis-c17)** leur permettant de supporter les [pack](/articles/c++/templates#pack).
+
+{% highlight cpp linenos highlight_lines="4" %}
+auto container = std::tuple{1, 2, 3};
+
+auto [x, y, z] = container;
+auto [...values] = container; // values contient les valeurs 1, 2 et 3
+{% endhighlight %}
+
+Pour [rappel](/articles/c++/templates#pack), un pack est un outil de **metaprogrammation** fonctionnant dans le **contexte d'une template**.<br>
+Les *structured binding pack* sont donc utilisables **uniquement dans des fonctions templatées** (dans une "templated region"):
+
+{% highlight cpp linenos highlight_lines="6" %}
+auto main() -> int
+{
+    auto container = std::tuple{1, 2, 3};
+
+	[[maybe_unused]] auto [x, y, z] = container; // Ok
+    [[maybe_unused]] auto [...values] = container; // error: pack declaration outside of template
+}
+{% endhighlight %}
+
+Dans le contexte d'une template:
+{% highlight cpp linenos highlight_lines="1" %}
+template<class Container>
+auto function(Container container) -> void
+{
+    [[maybe_unused]] auto [...values] = container; // Ok
+}
+{% endhighlight %}
+
+Ou écrit plus simplement:
+{% highlight cpp linenos %}
+auto function(auto container) -> void // Fonction template (le type du paramètre container est templaté)
+{
+    [[maybe_unused]] auto [...values] = container; // Ok
+}
+{% endhighlight %}
+
+> Ce sujet a levé beaucoup d'interrogations dans la [revision 9 du proposal](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p1061r10.html#removing-packs-outside-of-templates) pour rendre les *structured binding pack* utilisables **dans des fonctions non templatées**. Impliquant qu'une notion d'"**implicit template region**" soit ajoutée au langage pour les supporter.
+>
+> Il a été décidé dans la revision 10 que la notion d'"implicit template region" serait **trop complexe à implémenter** dans les compilateurs et ne serait donc **pas ajouté**, limitant l'usage des *structured binding pack* aux contextes de templates.
+>
+> Petite anecdote: [Jason Rice a implémenté cette notion d'"implicit template region" dans le compilateur Clang](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p1061r10.html#implementation-experience) avant que cette discussion ai lieu. Il a ensuite dû revenir en arrière et supprimer cette notion, disant que "Honnêtement, les contextes implicites de template ont grandement simplifié les choses, et une grande partie du code a été supprimée".
+
+Pour poursuivre sur les différents usages de cette fonctionnalité, le pack n'est pas obligé de contenir tous les éléments du conteneur. Il est possible d'en décomposer quelques-uns avant ou après celui-ci.
+
+{% highlight cpp linenos %}
+auto container = std::tuple{1, 2, 3};
+
+auto [x, ...others] = container; // Ok: x contient 1; Et others contient 2 et 3
+auto [...others, z] = container; // Ok: z contient 3; Et others contient 1 et 2
+{% endhighlight %}
+
+Le pack peut également être vide si tous les éléments sont déjà décomposés dans des variables à part.
+{% highlight cpp linenos %}
+auto container = std::tuple{1, 2, 3};
+
+auto [x, y, z, ...others] = container; // Ok: others est vide
+auto [x, y, z, w, ...others] = container; // error: structured binding size is too small
+{% endhighlight %}
+
+En revanche il ne peut pas y avoir plusieurs packs dans la même *structured binding declaration*.
+{% highlight cpp %}
+auto [...pack1, ...pack2] = container; // error: multiple packs in structured binding declaration
+{% endhighlight %}
+
+### Exemples
+
+Il n'est parfois pas très clair des possibilités qu'apporte qu'une telle fonctionnalité, c'est pourquoi je vous présente quelques exemples d'utilisation:
+
+Une fonction ``print`` qui affiche une liste de valeurs de types variés:
+{% highlight cpp linenos highlight_lines="3" %}
+auto print(const auto& tuple) -> void
+{
+    const auto& [...values] = tuple;
+    (std::cout << ... << values) << "\n";
+}
+
+auto main() -> int
+{
+    auto tuple = std::make_tuple(1, 2, 3, "soleil");
+    print(tuple);
+}
+{% endhighlight %}
+
+{% highlight console %}
+123soleil
+{% endhighlight %}
+
+> Ceci est un exemple, privilégiez la fonction [``std::print``](https://en.cppreference.com/w/cpp/io/print) dans vos projets.
+
+Une fonction de print un peu plus poussée qui affiche les variables membres d'une structure passée en paramètre:
+{% highlight cpp linenos highlight_lines="10" %}
+struct Data
+{
+    int id;
+    double number;
+    std::string name;
+};
+
+auto printFields(const auto& object, const auto& tupleLike) -> void
+{
+    const auto& [...fields] = tupleLike;
+    std::cout << "Champs:\n";
+    ([&] { std::cout << object.*fields << '\n'; }(), ...);
+}
+
+auto main() -> int
+{
+    auto data = Data{42, 3.14, "example"};
+    auto fields = std::make_tuple(&Data::id, &Data::number, &Data::name);
+    printFields(data, fields);
+}
+{% endhighlight %}
+
+{% highlight console %}
+Champs:
+42
+3.14
+example
+{% endhighlight %}
+
+Une fonction qui appelle une fonction membre avec une liste d'arguments définis:
+{% highlight cpp linenos highlight_lines="11" %}
+struct Worker
+{
+    auto doWork(int id, const std::string& task) -> void
+    {
+        std::cout << "Worker " << id << " is performing task: " << task << '\n';
+    }
+};
+
+auto invokeMemberFunction(auto func, const auto& tupleLike) -> void
+{
+    const auto& [thisPointer, ...arguments] = tupleLike;
+    std::invoke(func, thisPointer, arguments...);
+}
+
+auto main() -> int
+{
+    auto worker = Worker{};
+    auto taskInfo = std::make_tuple(&worker, 101, "Compile code");
+    invokeMemberFunction(&Worker::doWork, taskInfo);
+}
+{% endhighlight %}
+
+{% highlight console %}
+Worker 101 is performing task: Compile code
+{% endhighlight %}
+
+> Ceci est un exemple, privilégiez la fonction [std::apply](https://en.cppreference.com/w/cpp/utility/apply) dans vos projets.
+
+Une fonction qui transforme une structure en tuple:
+{% highlight cpp %}
+struct Data
+{
+    int id;
+    double number;
+    std::string name;
+};
+
+[[nodiscard]] auto toTuple(auto& object) -> auto
+{
+    auto& [...values] = object;
+    return std::tie(values...);
+}
+
+auto main() -> int
+{
+    auto data = Data{42, 3.14, "example"};
+    [[maybe_unused]] auto tuple = toTuple(data);
+}
+{% endhighlight %}
 
 ---
 
