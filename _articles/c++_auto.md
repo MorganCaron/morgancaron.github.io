@@ -375,13 +375,13 @@ Ceci explique le "**Almost**" dans "Almost Always Auto". On est passé à ça �
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-i-believed-in-you.gif %}
 
-Mais ne vous arrêtez pas au "**Almost** Always Auto", nous allons revenir sur ce point par la suite avec l'[**Always Auto**](#aa-always-auto-depuis-c17).
+Bien que "**Almost** Always Auto" reste pertinent, la transition vers [**Always Auto**](#aa-always-auto-depuis-c17) s'est imposée grâce aux optimisations introduites en C++17.
 
 Certains développeurs préfèrent utiliser ``auto`` **avec parcimonie**, en **remplacement de types particulièrement verbeux** (notamment les **iterateurs**).
 
 Parfois en évitant de l'utiliser à cause des noms de fonctions et variables **pas assez explicites** sur le type qu'elles contiennent ou retournent (c'est l'argument principal que j'entend).<br>
 Ceci est très courant, notamment dans un cadre professionnel où plusieurs développeurs collaborent sur le même projet.<br>
-Aux personnes qui sont dans cette situation, je recommanderais d'utiliser un IDE qui montre les **types des variables** et les **signatures des fonctions** au **survol de la souris**.<br>
+Dans ce contexte, les outils modernes comme les IDE qui **affichent les types au survol** peuvent atténuer les inconvénients d'une généralisation de ``auto``.<br>
 Je voudrais aussi souligner [cet avantage](#auto-par-défaut) à généraliser l'utilisation de ``auto``.
 
 D'autres seraient même tentés de ne jamais utiliser ``auto``, et passer à côté de tous les autres avantages qu'il apporte.
@@ -1148,11 +1148,9 @@ auto function(auto container) -> void // Fonction template (le type du paramètr
 }
 {% endhighlight %}
 
-> Ce sujet a levé beaucoup d'interrogations dans la [revision 9 du proposal](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p1061r10.html#removing-packs-outside-of-templates) pour rendre les *structured binding pack* utilisables **dans des fonctions non templatées**. Impliquant qu'une notion d'"**implicit template region**" soit ajoutée au langage pour les supporter.
+> Ce sujet a levé beaucoup d'interrogations pour rendre les *structured binding pack* utilisables **dans des fonctions non templatées**. Impliquant qu'une notion d'"**implicit template region**" soit ajoutée au langage pour les supporter.
 >
-> Il a été décidé dans la revision 10 que la notion d'"implicit template region" serait **trop complexe à implémenter** dans les compilateurs et ne serait donc **pas ajouté**, limitant l'usage des *structured binding pack* aux contextes de templates.
->
-> Petite anecdote: [Jason Rice a implémenté cette notion d'"implicit template region" dans le compilateur Clang](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p1061r10.html#implementation-experience) avant que cette discussion ai lieu. Il a ensuite dû revenir en arrière et supprimer cette notion, disant que "Honnêtement, les contextes implicites de template ont grandement simplifié les choses, et une grande partie du code a été supprimée".
+> Bien qu'une notion d'"implicit template region" ait été [testée dans Clang](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p1061r10.html#implementation-experience), elle a été [jugée trop complexe à implémenter et abandonnée](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p1061r10.html#removing-packs-outside-of-templates) dans la version finale.
 
 Pour poursuivre sur les différents usages de cette fonctionnalité, le pack n'est pas obligé de contenir tous les éléments du conteneur. Il est possible d'en décomposer quelques-uns avant ou après celui-ci.
 
