@@ -1052,7 +1052,7 @@ function(auto{expr});
 Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité de d'extraire des éléments d'un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
 
 Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
-On peut cependant la trouver en experimental sur Clang.
+On peut cependant la trouver en experimental [sur Clang](https://godbolt.org/z/ea45Wx5Wh).
 
 Ce n'est pas une nouvelle fonctionnalité à proprement parler, il s'agit en fait d'une extension des [structured binding declaration](#structured-binding-declaration-depuis-c17)** leur permettant de supporter les [pack](/articles/c++/templates#pack).
 
@@ -1121,7 +1121,7 @@ En revanche il ne peut pas y avoir plusieurs packs dans la même *structured bin
 auto [...pack1, ...pack2] = container; // error: multiple packs in structured binding declaration
 {% endhighlight %}
 
-### Exemples
+### Exemples de *structured binding pack*
 
 Il n'est parfois pas très clair des possibilités qu'apporte qu'une telle fonctionnalité, c'est pourquoi je vous présente quelques exemples d'utilisation:
 
@@ -1228,6 +1228,18 @@ auto main() -> int
     [[maybe_unused]] auto tuple = toTuple(data);
 }
 {% endhighlight %}
+
+## Conclusion
+
+Le mot-clef ``auto`` s'est étendu à de nombreux usages au fil des versions du C++, passant d'un rôle obsolète à une pierre angulaire du langage moderne.
+
+Comme nous l'avons vu, ``auto`` améliore la lisibilité, réduit la verbosité et permet une [inférence de type](#placeholder-type-specifiers-depuis-c11) robuste, tout en apportant des fonctionnalités avancées telles que les [*structured bindings*](#structured-binding-declaration-depuis-c17) ou les [templates plus concis](#auto-in-template-parameters-depuis-c17).
+
+Si **son adoption n'est pas universelle**, les principes d'[AAA (**Almost Always Auto**)](#aaa-almost-always-auto-depuis-c11) et d'[AA (**Always Auto**)](#aa-always-auto-depuis-c17) illustrent bien le chemin parcouru. Les débats sur la lisibilité ou les **risques de "types cachés"** restent valables, mais avec des noms de variables explicites et des outils comme des IDE modernes, **ces inconvénients deviennent mineurs** face aux nombreux avantages.
+
+En somme, ``auto`` symbolise la modernisation du C++. Il offre des **solutions élégantes et génériques** tout en respectant les exigences de **performance et de sécurité**. En le maîtrisant, les développeurs disposent d'un levier puissant pour rendre leur code **plus propre, maintenable et générique**.
+
+A titre personnel, je recommande une approche pragmatique: adopter ``auto`` **par défaut (AA) dans un code bien organisé** et opter pour des stratégies plus explicites **(AAA) sur les projets collaboratifs où le code historique ne serait pas assez explicite**.
 
 ---
 
