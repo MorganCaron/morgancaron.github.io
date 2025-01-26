@@ -93,6 +93,60 @@ L'usage explicite de ``auto*`` permet de signaler de manière claire que vous tr
 > L'écriture ``auto c_string0 = std::data(string);`` est quant à elle nommée "**auto to stick**".<br>
 > Elle consiste à déduire le type de la variable ``c_string0`` en fonction du type retourné par la fonction ``std::data``.
 
+### ``auto`` par défaut
+
+Ne pas renseigner explicitement le type d'une variable peut permettre une plus grande généricité, notamment dans des templates.
+
+Prenons ce code pour illustrer:
+{% highlight cpp linenos highlight_lines="4" %}
+void printFirstValue(const std::vector<int>& container)
+{
+	if (std::empty(container)) return;
+	int firstValue = container[0];
+	std::print("{}\n", firstValue);
+}
+
+int main()
+{
+	auto vector = std::vector{1, 2, 3};
+	printFirstValue(vector);
+}
+{% endhighlight %}
+
+Ici, le type de ``firstValue`` est écrit explicitement. Si nous transformons la fonction ``printFirstValue`` en template pour la rendre générique, il faudra revoir tout le code de cette fonction pour en ajuster les types.
+{% highlight cpp linenos highlight_lines="5" %}
+template<class T>
+void printFirstValue(const std::vector<T>& container)
+{
+	if (std::empty(container)) return;
+	T firstValue = container[0];
+	std::print("{}\n", firstValue);
+}
+
+int main()
+{
+	auto vector = std::vector{1, 2, 3};
+	printFirstValue(vector);
+}
+{% endhighlight %}
+
+Nous n'aurions pas eu à modifier le corps de la fonction si celle-ci utilisait ``auto`` pour permettre que le type de ``firstValue`` soit inféré à partir de son initialisation.
+{% highlight cpp linenos highlight_lines="5" %}
+template<class T>
+void printFirstValue(const std::vector<T>& container)
+{
+	if (std::empty(container)) return;
+	auto firstValue = container[0]; // firstValue prend un type différent selon le type de container passé en paramètre
+	std::print("{}\n", firstValue);
+}
+
+int main()
+{
+	auto vector = std::vector{1, 2, 3};
+	printFirstValue(vector);
+}
+{% endhighlight %}
+
 ### Common type deduction
 
 Lorsqu'un type dépend de plusieurs expressions, l'utilisation de ``auto`` permet au compilateur de déduire le [type commun](/articles/c++/type_traits#type_commun) entre les différentes expressions possibles.
@@ -327,7 +381,8 @@ Certains développeurs préfèrent utiliser ``auto`` **avec parcimonie**, en **r
 
 Parfois en évitant de l'utiliser à cause des noms de fonctions et variables **pas assez explicites** sur le type qu'elles contiennent ou retournent (c'est l'argument principal que j'entend).<br>
 Ceci est très courant, notamment dans un cadre professionnel où plusieurs développeurs collaborent sur le même projet.<br>
-Aux personnes qui sont dans cette situation, je recommanderais d'utiliser un IDE qui montre les **types des variables** et les **signatures des fonctions** au **survol de la souris**.
+Aux personnes qui sont dans cette situation, je recommanderais d'utiliser un IDE qui montre les **types des variables** et les **signatures des fonctions** au **survol de la souris**.<br>
+Je voudrais aussi souligner [cet avantage](#auto-par-défaut) à généraliser l'utilisation de ``auto``.
 
 D'autres seraient même tentés de ne jamais utiliser ``auto``, et passer à côté de tous les autres avantages qu'il apporte.
 
