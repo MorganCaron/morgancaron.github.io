@@ -836,6 +836,8 @@ auto main() -> int
 
 Si la classe/structure contenait d'autres variables publiques ou privées, elles ne seraient pas récupérables avec la *structured binding declaration* tant qu'elles ne sont pas supportées par ces éléments que nous venons d'ajouter.
 
+> A noter que c'est exactement par ce procédé, avec une implémentation personnalisée de ``std::tuple_size`` et de ``std::tuple_element``, que le support des *structured binding declaration* a été ajouté sur les types ``std::array`` ([ici](https://en.cppreference.com/w/cpp/container/array#Helper_classes)), ``std::pair`` ([ici](https://en.cppreference.com/w/cpp/utility/pair#Helper_classes)) et évidemment ``std::tuple`` ([ici](https://en.cppreference.com/w/cpp/utility/tuple#Helper_classes)).
+
 ### constexpr Structured Binding (depuis C++26)
 
 Avant C++26, les *structured binding declaration* ne peuvent pas être constexpr:
@@ -1261,7 +1263,7 @@ Worker 101 is performing task: Compile code
 > Ceci est un exemple, privilégiez la fonction [std::apply](https://en.cppreference.com/w/cpp/utility/apply) dans vos projets.
 
 Une fonction qui transforme une structure en tuple:
-{% highlight cpp %}
+{% highlight cpp linenos highlight_lines="10" %}
 struct Data
 {
     int id;
