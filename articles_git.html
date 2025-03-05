@@ -2,7 +2,7 @@
 layout: page
 permalink: /articles/git/
 logo: git.svg
-background: mountains0.jpg
+background: monolith0.webp
 ---
 
 {% include header.html %}
@@ -13,16 +13,19 @@ background: mountains0.jpg
 			<a href="/articles/{{page.category}}" class="button nier highlight-hover bullet triangle-left">Back</a>
 		</span>
 	</div>
+{% assign articles = site.articles | where: "category", "git" %}
+{% if articles.size == 0 %}
+	{% wip %}
+	<p>Aucun article disponible pour le moment. Ils sont bien en cours de rédaction mais aucun n'est encore publié. Merci de repasser ultérieurement.</p>
+{% endif %}
 	<section class="article-cards">
-	{% for article in site.articles %}
-		{% if article.category == "git" %}
+	{% for article in articles %}
 		<a href="{{ article.url }}" class="card">
 			<header{% if article.background != "" %} style="--background-image: url('/assets/images/backgrounds/{{article.background}}');"{% endif %}>
 				<h2>{{ article.title }}</h2>
 			</header>
 			<div>{{ article.excerpt }}</div>
 		</a>
-		{% endif %}
 	{% endfor %}
 	</section>
 </div>

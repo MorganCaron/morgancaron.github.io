@@ -112,6 +112,27 @@ body {
 		background-color: rgb(1, 4, 9);
 	}
 
+	&:not(:has(header.home)) {
+		--hexagon-background-color: #131316;
+		--hexagon-border-color: #0f0f0f;
+		--hexagon-radius: 30px;
+		--hexagon-border-size: 5px;
+
+		--triangle-height: calc(var(--hexagon-radius) * sqrt(3)/2);
+		--vertical-border-size: calc(var(--hexagon-border-size) * sqrt(3)/2);
+		--background-width: calc(var(--triangle-height)*2 + var(--hexagon-border-size));
+		--background-height: calc(var(--hexagon-radius)*3 + var(--vertical-border-size)*2);
+		background:
+			conic-gradient(from 180deg at calc(var(--background-width)/2 - var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), var(--hexagon-background-color) 0deg 120deg, #0000 120deg 360deg) calc(var(--hexagon-border-size)/2 + var(--triangle-height)) calc(0px - var(--vertical-border-size) - var(--hexagon-radius)*1.5),
+			conic-gradient(from 60deg at calc(var(--background-width)/2 + var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), #0000, var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) calc(0px - var(--hexagon-border-size)/2 - var(--triangle-height)) calc(0px - var(--vertical-border-size) - var(--hexagon-radius)*1.5),
+			conic-gradient(from 180deg at calc(var(--background-width)/2 - var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), #0000, var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg),
+			conic-gradient(from 60deg at calc(var(--background-width)/2 + var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg),
+			conic-gradient(from -60deg at 50% calc(var(--hexagon-radius)/2), var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) 0 calc(var(--vertical-border-size) + var(--hexagon-radius)*1.5),
+			conic-gradient(from -60deg at 50% calc(var(--hexagon-radius)/2), var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) calc(var(--background-width)/2) 0
+			var(--hexagon-border-color);
+		background-size: var(--background-width) var(--background-height);
+	}
+
 	> .parallax > header {
 		padding: 1rem;
 		margin-bottom: 1rem;
@@ -554,6 +575,7 @@ section.category-cards {
 	grid-template-columns: 1fr 1fr;
 	gap: 1rem 1rem;
 	margin-bottom: 1rem;
+	user-select: none;
 
 	@media (min-width: 992px) {
 		grid-template-columns: 1fr 1fr 1fr;
@@ -592,7 +614,7 @@ section.category-cards {
 			transform: translateY(0);
 		}
 
-		&::after {
+		&::before {
 			content: "";
 			display: block;
 			position: absolute;
@@ -606,8 +628,39 @@ section.category-cards {
 			box-shadow: 0 1rem 1.5rem -.5rem rgba(0, 0, 0, 0.75);
 		}
 
-		&:hover {
+		&.no-articles {
+			cursor: wait;
+
 			&::after {
+				content: "Work in progress";
+				display: block;
+				position: absolute;
+				top: 20%;
+				transform: rotateZ(-10deg) skewX(-10deg);
+				width: 102%;
+				margin: .5rem 0;
+				border-style: solid;
+				border-width: .5rem 0;
+				border-image: repeating-linear-gradient(45deg, #222, #222 10px, transparent 10px, transparent 25px) 10;
+				background-image: linear-gradient(90deg, transparent, #ff0 10%, #ff0 90%, transparent);
+				background-size: auto, auto 132px, auto;
+				color: #222;
+				font-size: 1rem;
+				font-weight: bold;
+				text-align: center;
+			}
+
+			&::before {
+				filter: grayscale(100%);
+			}
+
+			& img {
+				filter: sepia(100%);
+			}
+		}
+
+		&:not(.no-articles):hover {
+			&::before {
 				transform: perspective(1000px) rotateX(25deg);
 				box-shadow: 2px 30px 30px -10px rgba(0, 0, 0, 0.95);
 			}
