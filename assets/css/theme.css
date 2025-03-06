@@ -15,6 +15,9 @@
 	--md-width: 768px;
 	--lg-width: 992px;
 	--xl-width: 1200px;
+	--white-theme-background-color: #f1f1f3;
+	--dark-theme-background-color: #0a0a0c /* #131316 */;
+	--theme-background-color: var(--dark-theme-background-color);
 }
 
 :target {
@@ -106,31 +109,51 @@ body {
 	font-weight: 400;
 
 	&:has(header.home) {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='53%25' font-size='30' fill='white' fill-opacity='0.3' text-anchor='middle' dominant-baseline='middle'%3E+%3C/text%3E%3C/svg%3E"), radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+		background-image: url("/assets/images/background1.svg"), radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
 		background-size: 100px 100px, 20px 20px;
 		background-position: center;
 		background-color: rgb(1, 4, 9);
 	}
 
+	> footer::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 10%;
+		background: linear-gradient(to bottom, var(--card-background-color), transparent);
+	}
+
 	&:not(:has(header.home)) {
-		--hexagon-background-color: #131316;
-		--hexagon-border-color: #0f0f0f;
+		--hexagon-background-color: var(--theme-background-color);
+		--hexagon-border-color: color-mix(in oklab, var(--hexagon-background-color) 90%, black);
 		--hexagon-radius: 30px;
-		--hexagon-border-size: 5px;
+		--hexagon-border-size: 4px;
 
 		--triangle-height: calc(var(--hexagon-radius) * sqrt(3)/2);
 		--vertical-border-size: calc(var(--hexagon-border-size) * sqrt(3)/2);
 		--background-width: calc(var(--triangle-height)*2 + var(--hexagon-border-size));
 		--background-height: calc(var(--hexagon-radius)*3 + var(--vertical-border-size)*2);
 		background:
-			conic-gradient(from 180deg at calc(var(--background-width)/2 - var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), var(--hexagon-background-color) 0deg 120deg, #0000 120deg 360deg) calc(var(--hexagon-border-size)/2 + var(--triangle-height)) calc(0px - var(--vertical-border-size) - var(--hexagon-radius)*1.5),
-			conic-gradient(from 60deg at calc(var(--background-width)/2 + var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), #0000, var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) calc(0px - var(--hexagon-border-size)/2 - var(--triangle-height)) calc(0px - var(--vertical-border-size) - var(--hexagon-radius)*1.5),
-			conic-gradient(from 180deg at calc(var(--background-width)/2 - var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), #0000, var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg),
-			conic-gradient(from 60deg at calc(var(--background-width)/2 + var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2), var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg),
+			url("/assets/images/noise1.svg"),
+			conic-gradient(from 180deg at calc(var(--background-width)/2 - var(--hexagon-border-size)/2 + 1px) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2 - 1px), var(--hexagon-background-color) 0deg 120deg, #0000 120deg 360deg) calc(var(--hexagon-border-size)/2 + var(--triangle-height) - 1px) calc(0px - var(--vertical-border-size) - var(--hexagon-radius)*1.5 + 1px),
+			conic-gradient(from 60deg at calc(var(--background-width)/2 + var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2 - 1px), #0000, var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) calc(0px - var(--hexagon-border-size)/2 - var(--triangle-height)) calc(0px - var(--vertical-border-size) - var(--hexagon-radius)*1.5 + 1px),
+			conic-gradient(from 180deg at calc(var(--background-width)/2 - var(--hexagon-border-size)/2 + 1px) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2 - 1px), #0000, var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) -1px 1px,
+			conic-gradient(from 60deg at calc(var(--background-width)/2 + var(--hexagon-border-size)/2) calc(var(--hexagon-radius)*2 + var(--vertical-border-size)*2 - 1px), var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) 0 1px,
 			conic-gradient(from -60deg at 50% calc(var(--hexagon-radius)/2), var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) 0 calc(var(--vertical-border-size) + var(--hexagon-radius)*1.5),
 			conic-gradient(from -60deg at 50% calc(var(--hexagon-radius)/2), var(--hexagon-background-color) 0 120deg, #0000 120deg 360deg) calc(var(--background-width)/2) 0
 			var(--hexagon-border-color);
-		background-size: var(--background-width) var(--background-height);
+		background-size:
+			var(--background-width) var(--background-height),
+			var(--background-width) var(--background-height),
+			var(--background-width) var(--background-height),
+			var(--background-width) var(--background-height),
+			var(--background-width) var(--background-height),
+			var(--background-width) var(--background-height),
+			var(--background-width) var(--background-height),
+			auto;
+		background-blend-mode: multiply, normal, normal, normal, normal, normal, normal, normal;
 	}
 
 	> .parallax > header {
@@ -174,16 +197,6 @@ body {
 			background-attachment: fixed;
 			background-size: cover;
 			filter: grayscale(1);
-		}
-
-		&::after {
-			content: "";
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 10%;
-			background: linear-gradient(to bottom, var(--card-background-color), transparent);
 		}
 
 		p {
