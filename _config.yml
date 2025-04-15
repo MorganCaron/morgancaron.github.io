@@ -44,7 +44,7 @@ collections:
 
 toc:
   min_level: 1
-  max_level: 3
+  max_level: 4
 
 feed:
   posts_limit: 20

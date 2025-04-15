@@ -46,8 +46,7 @@ A partir de C++11, le mot clef ``auto`` se voit attribuer une autre significatio
 
 ## Placeholder type specifiers (depuis C++11)
 
-Dès C++11, le mot clef ``auto`` permet de faire de l'**inférence de types**.<br>
-En écrivant ``auto`` **à la place du type** d'une variable, **le type de la variable est déduit** à partir de la valeur à droite du signe égal.
+A partir de C++11, le mot clef ``auto`` change de rôle pour permettre la déduction de types dans des initialisations ([proposal](https://wg21.link/N1984)).<br>
 
 {% highlight cpp %}
 auto a = 1; // int
@@ -63,10 +62,14 @@ auto i = nullptr; // std::nullptr_t
 
 > Les [literals](/articles/c++/literals) facilitent le typage lors de l'initialisation de variables.
 
-Cette déduction de type est faite à la compilation (typage statique) et ne permet pas de faire du typage dynamique.<br>
-Contrairement à ``var``/``let`` en JavaScript, le mot clef ``auto`` **ne permet pas à une variable de changer de type** en cours de route. Son type reste fixe.
+On parle ici d'**inférence de type**, un mécanisme permettant de **déduire le type à la compilation**.<br>
+Ici, ``auto`` prend le type de l'expression à droite du signe égal.<br>
+Contrairement à ``var`` ou ``let`` en JavaScript (typage dynamique), ``auto`` **n'offre aucune flexibilité au runtime** quant au type d'une variable.<br>
+En C++, écrire ``auto a = 1;`` revient exactement à écrire ``int a = 1;``. Le typage en C++ reste statique.
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-deduction.gif %}
+
+### Pointeurs et propriétés cvref
 
 Par défaut, ``auto`` ne récupère pas les propriétés **cvref** (``const``/``volatile``/``reference``) de la valeur qui lui est assignée.
 Il faut penser à bien les renseigner pour **éviter les copies inutiles**.
@@ -74,8 +77,8 @@ Il faut penser à bien les renseigner pour **éviter les copies inutiles**.
 {% highlight cpp %}
 const std::string& Object::get_name() const;
 
-auto string0 = object.get_name(); // Prend une copie
-const auto& string1 = object.get_name(); // Prend une référence constante
+auto string0 = object.get_name(); // string0 prend une copie
+const auto& string1 = object.get_name(); // string1 prend une référence constante
 {% endhighlight %}
 
 Le ``*`` des raw-pointers est bien déduit par le mot clef ``auto``, mais il est préférable de l'expliciter en écrivant ``auto*``.
@@ -86,15 +89,166 @@ auto c_string0 = std::data(string); // c_string0 est de type char*
 auto* c_string1 = std::data(string); // c_string1 est de type char*
 {% endhighlight %}
 
-L'usage explicite de ``auto*`` permet de signaler de manière claire que vous travaillez avec des pointeurs, ce qui peut améliorer la lisibilité du code.
+L'usage explicite de ``auto*`` permet de signaler de manière claire que vous travaillez avec des raw-pointers, ce qui peut améliorer la lisibilité du code.
 
-> A noter que l'écriture ``auto string = std::string{"Hello World"};`` est appelée "**auto to track**".<br>
-> Elle consiste à forcer la variable ``string`` à adopter le type à droite du signe égal (``std::string``).<br><br>
-> L'écriture ``auto c_string0 = std::data(string);`` est quant à elle nommée "**auto to stick**".<br>
-> Elle consiste à déduire le type de la variable ``c_string0`` en fonction du type retourné par la fonction ``std::data``.
+---
 
-### ``auto`` par défaut
+Deux termes sont parfois utilisées: [**auto to track**](#auto-to-track) et [**auto to stick**](#auto-to-stick).<br>
+Il est bon de les aborder pour **comprendre l'intérêt** de cette nouvelle écriture.
 
+### auto to track
+
+Lorsque le mot clef ``auto`` sert à déduire le type de la variable **à partir du type de retour d'une fonction**, on appelle cela "**auto to track**".
+
+Exemples:
+{% highlight cpp %}
+auto size = std::size(string); // std::size_t
+auto data = std::data(string); // const char*
+{% endhighlight %}
+
+C'est également le cas lorsqu'on appelle un opérateur. En C++, les opérateurs qui n'impliquent pas deux types primitifs sont des fonctions:
+
+{% highlight cpp %}
+auto string2 = string1 + '!'; // std::string + char = std::string
+{% endhighlight %}
+
+Ici, le compilateur détermine [quel ``operator+``](https://en.cppreference.com/w/cpp/string/basic_string/operator%2B) est appelé en fonction du type des paramètres qui lui sont passés (``string1`` et ``'!'``). Il en déduit qu'il s'agit ici de l'opérateur suivant:
+{% highlight cpp %}
+template<class CharT, class Traits, class Alloc>
+std::basic_string<CharT,Traits,Alloc> std::basic_string<char>::operator+(const std::basic_string<CharT,Traits,Alloc>& lhs, CharT rhs);
+{% endhighlight %}
+Et du type de retour de cet opérateur, il en déduit le type de notre variable ``string2``.
+
+#### auto to track complique la lecture du code ?
+
+Les développeurs réticents à utiliser **auto to track** soutiennent que de **ne pas écrire explicitement le type des variables ajoute en charge mentale** pour les développeurs. Forçant à **faire l'effort d'aller vérifier les types de retour des fonctions** pour connaitre le type des variables typées avec ``auto``.
+
+{% highlight cpp highlight_lines="2" %}
+auto string = std::string{"hello"};
+auto data = std::data(string); // Quel est le type de data ?? 😕
+{% endhighlight %}
+
+{% highlight cpp highlight_lines="2" %}
+auto string = std::string{"hello"};
+std::string data = std::data(string); // On voit immédiatement que data est de type std::string 👍
+{% endhighlight %}
+
+Cet argument est pertinent mais je voudrais soulever le fait que **c'est aussi le cas sans ``auto``**. On doit se forcer à vérifier les types de retour des fonctions même si nos variables sont typées **pour prévenir les conversions implicites**:<br>
+
+Dans le code suivant nous avons une conversion implicite à la 2ème ligne:
+
+{% highlight cpp highlight_lines="2" %}
+auto string = std::string{"hello"};
+std::string data = std::data(string); // std::string <- const char*
+{% endhighlight %}
+
+Ici, la fonction ``std::data`` retourne un ``const char*``, que nous affectons à une variable de type ``std::string``.<br>
+Cette affectation appelle **implicitement** le constructeur suivant:
+
+{% highlight cpp %}
+std::basic_string<CharT, Traits, Allocator>(const CharT* s, size_type count, const Allocator& alloc = Allocator());
+{% endhighlight %}
+
+{% highlight cpp highlight_lines="2" %}
+auto string = std::string{"hello"};
+auto data = std::data(string);
+{% endhighlight %}
+
+``std::data(const std::string&)`` retourne un ``const char*``, donc ``data`` est un ``const char*``. Nul besoin de chercher une conversion implicite.
+
+> Pour faciliter la vérification des types de retour, je vous invite à activer une option dans votre IDE: **L'affichage de la signature des fonctions** lorsqu'on les survole avec la souris.
+
+En écrivant ``std::string data = std::data(string);``, il ne s'agit pas juste de savoir que ``data`` est de type ``std::string``, mais également de **savoir si une conversion à lieu** et de **savoir par quel procédé la valeur est convertie**.<br>
+Notamment pour savoir si la conversion implique une **perte de précision**, un changement de **format/encodage** ou un **risque d'erreurs** pouvant arriver pendant la conversion.
+
+> La présence potentielle de conversions à chaque affectation de valeur est une précaution que les développeurs doivent avoir pour s'éviter des surprise.<br>
+> Utiliser le **auto to track garantie qu'aucune conversion n'a lieu** lors de la création des variables.<br>
+
+Ca représente selon moi une **réduction de la charge mentale**.
+
+**Si une conversion est souhaitée**, il est préférable de **l'écrire explicitement**.
+
+#### Rendre explicites les conversions
+
+Nous avons le code suivant:
+
+{% highlight cpp highlight_lines="2" %}
+auto string = std::string{"hello"};
+std::string data = std::data(string); // Conversion implicite de const char* vers std::string
+{% endhighlight %}
+
+Nous souhaitons utiliser ``auto`` tout en préservant la conversion de ``const char*`` vers ``std::string``.<br>
+Cette conversion peut être écrite explicitement en faisant appel à ``static_cast<T>()``:
+
+{% highlight cpp highlight_lines="2" %}
+auto string = std::string{"hello"};
+auto data = static_cast<std::string>(std::data(string)); // Conversion explicite
+{% endhighlight %}
+
+Ou faire appel directement à son constructeur:
+
+{% highlight cpp highlight_lines="2" %}
+auto string = std::string{"hello"};
+auto data = std::string{std::data(string)};
+{% endhighlight %}
+
+> Notez qu'ici, le type de ``data`` n'est plus compliqué à retrouver puisqu'il est écrit directement à droite du signe égal.
+
+> Attention, comme dit [plus haut](/#auto-to-track-complique-la-lecture-du-code-), il est important de **vérifier les types de retour des fonctions** pour prévenir toute conversion implicite.<br>
+> Et surtout d'**expliciter toute conversion souhaitée**.
+{: .block-warning }
+
+Voyons un cas où l'oublis d'une conversion explicite peut se révéler problématique:
+
+#### Oublier une conversion explicite
+
+Par oubli ou méconnaissance de la bibliothèque standard, on peut penser que les deux codes suivants sont identiques:
+
+{% row %}
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] auto bit = bits[0];
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "true"
+{% endhighlight %}
+
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] bool bit = bits[0];
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "false"
+{% endhighlight %}
+{% endrow %}
+
+On a pourtant vu plus tôt que ``auto`` ne conserve pas les propriétés cvref d'un type retourné par une fonction. Comment se fait-il que le premier exemple affiche "true" ?
+
+Ici on est face à une particularité de la bibliothèque standard.<br>
+Le type ``std::vector<T>`` est spécialisé pour le type ``bool`` lui donnant un **comportement différent** de celui de base.<br>
+``std::vector<bool>::operator[]`` **ne retourne pas un ``bool``**, mais un **proxy** permettant de modifier le bit stocké dans le conteneur. Et ce, malgré l'utilisation de ``auto`` sans référence.
+
+> Si ces problématiques autour de **``std::vector<bool>``** vous intéressent, [**un autre article**](/articles/c++/std_vector_bool#spécialisation-du-type-stdvectorbool) développe ses particularités et vous propose une bien **meilleure alternative** ([``std::bitset``](/articles/c++/std_vector_bool#stdbitsetn)).
+
+Un moyen d'éviter ce problème consiste à rendre explicite la conversion:
+
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] bool bit = bits[0]; // Conversion implicite de proxy vers bool
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "false"
+{% endhighlight %}
+
+{% highlight cpp linenos highlight_lines="2" %}
+auto bits = std::vector<bool>{0};
+[[maybe_unused]] auto bit = static_cast<bool>(bits[0]); // Conversion explicite
+bit = true;
+std::cout << std::boolalpha << bits[0]; // Affiche "false"
+{% endhighlight %}
+
+> **L'absence de conversions implicites avec ``auto`` force à les expliciter.** Ce qui est une **bonne pratique** pour **éviter les comportements cachés**, **inattendus** et **indésirables**.
+
+#### ``auto`` par défaut
+
+Un autre avantage à **auto to track**:<br>
 Ne pas renseigner explicitement le type d'une variable peut permettre une plus grande généricité, notamment dans des templates.
 
 Prenons ce code pour illustrer:
@@ -103,7 +257,7 @@ void printFirstValue(const std::vector<int>& container)
 {
 	if (std::empty(container)) return;
 	int firstValue = container[0];
-	std::print("{}\n", firstValue);
+	std::println("{}", firstValue);
 }
 
 int main()
@@ -120,7 +274,7 @@ void printFirstValue(const std::vector<T>& container)
 {
 	if (std::empty(container)) return;
 	T firstValue = container[0];
-	std::print("{}\n", firstValue);
+	std::println("{}", firstValue);
 }
 
 int main()
@@ -137,7 +291,7 @@ void printFirstValue(const std::vector<T>& container)
 {
 	if (std::empty(container)) return;
 	auto firstValue = container[0]; // firstValue prend un type différent selon le type de container passé en paramètre
-	std::print("{}\n", firstValue);
+	std::println("{}", firstValue);
 }
 
 int main()
@@ -146,6 +300,69 @@ int main()
 	printFirstValue(vector);
 }
 {% endhighlight %}
+
+### auto to stick
+
+Lorsque le mot clef ``auto`` sert à **affecter directement une valeur** à une variable, on appelle ça "**auto to stick**".
+
+Exemples:
+{% highlight cpp %}
+auto number = 1; // int
+auto cString = "hello"; // const char*
+auto string = std::string{"hello"}; // std::string
+{% endhighlight %}
+
+Si vous développez déjà en C++ sans utiliser ``auto``, cette écriture vous fait peut être grincer des dents.<br>
+Les développeurs C++ ont toujours été habitués à l'écriture historique des définitions et déclarations de variables comme suit:
+
+{% highlight cpp %}
+int number = 1;
+const char* cString = "hello";
+std::string string = "hello";
+{% endhighlight %}
+
+ou encore (pour ne citer que quelques écritures possibles):
+{% highlight cpp %}
+int number(1);
+const char* cString("hello");
+std::string string("hello");
+{% endhighlight %}
+
+Cette nouvelle écriture, avec **auto to stick**, est souvent jugée inutilement verbeuse à premier abord, notamment lorsqu'on appelle explicitement un constructeur.
+
+{% highlight cpp %}
+std::string string1 = "Hello";
+std::string string2("Hello");
+auto string3 = std::string{"Hello"}; // Pourquoi s'encombrer d'un "auto" en plus du type std::string !? 😵‍💫
+{% endhighlight %}
+
+Au delà de son écriture légèrement plus verbeuse, **auto to stick** présente de nombreux avantages.<br>
+Commençons par l'uniformisation qu'elle propose:
+
+#### Oublier une définition
+
+{% wip %}
+
+#### left-to-right declaration
+
+{% wip %}
+
+#### Most vexing parse
+
+{% wip %}
+
+#### Typer une lambda
+
+``auto`` permet également de typer une lambda.<br>
+En effet, en C++ **chaque lambda a un type unique qui lui est propre**, et ce, même si plusieurs lambdas ont la même signature.<br>
+Ecrire explicitement leur type est donc impossible.
+L'utilisation du mot clef ``auto`` **est le seul moyen de typer une variable contenant une lambda**:
+
+{% highlight cpp %}
+auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
+{% endhighlight %}
+
+Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
 
 ### Common type deduction
 
@@ -186,63 +403,6 @@ int b = 3.14; // double vers int: Erreur
     9 |         int b = 3.14;
 {% endhighlight %}
 {% endrow %}
-
-### Typer une lambda
-
-``auto`` permet également de typer une lambda.<br>
-En effet, en C++ **chaque lambda a un type unique qui lui est propre**, et ce, même si plusieurs lambdas ont la même signature.<br>
-Ecrire explicitement leur type est donc impossible.
-L'utilisation du mot clef ``auto`` **est le seul moyen de typer une variable contenant une lambda**:
-
-{% highlight cpp %}
-auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
-{% endhighlight %}
-
-Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
-
-### Oublier une conversion explicite
-
-Par négligence ou par méconnaissance de la bibliothèque standard, on peut penser que les deux codes suivants sont identiques:
-
-{% row %}
-{% highlight cpp linenos highlight_lines="2" %}
-auto bits = std::vector<bool>{0};
-[[maybe_unused]] auto bit = bits[0];
-bit = true;
-std::cout << std::boolalpha << bits[0]; // Affiche "true"
-{% endhighlight %}
-
-{% highlight cpp linenos highlight_lines="2" %}
-auto bits = std::vector<bool>{0};
-[[maybe_unused]] bool bit = bits[0];
-bit = true;
-std::cout << std::boolalpha << bits[0]; // Affiche "false"
-{% endhighlight %}
-{% endrow %}
-
-Ici on est face à une particularité de la bibliothèque standard.<br>
-Le type ``std::vector<T>`` est spécialisé pour le type ``bool`` pour avoir un **comportement différent** de celui de base.<br>
-``std::vector<bool>::operator[]`` **ne retourne pas un ``bool``**, mais un **proxy** permettant de modifier le bit stocké dans le conteneur. Et ce, malgré l'utilisation de ``auto`` sans référence.
-
-> Si ces problématiques autour de **``std::vector<bool>``** vous intéresse, [**un autre article**](/articles/c++/std_vector_bool#spécialisation-du-type-stdvectorbool) développe ses particularités et vous propose une bien **meilleure alternative** ([``std::bitset``](/articles/c++/std_vector_bool#stdbitsetn)).
-
-Un moyen d'éviter ce problèmes consiste à rendre explicite la conversion:
-
-{% highlight cpp linenos highlight_lines="2" %}
-auto bits = std::vector<bool>{0};
-[[maybe_unused]] bool bit = bits[0]; // Conversion implicite de proxy vers bool
-bit = true;
-std::cout << std::boolalpha << bits[0]; // Affiche "false"
-{% endhighlight %}
-
-{% highlight cpp linenos highlight_lines="2" %}
-auto bits = std::vector<bool>{0};
-[[maybe_unused]] auto bit = static_cast<bool>(bits[0]); // Conversion explicite
-bit = true;
-std::cout << std::boolalpha << bits[0]; // Affiche "false"
-{% endhighlight %}
-
-> **L'absence de conversions implicites avec ``auto`` force à les expliciter.** Ce qui est une **bonne pratique** pour **éviter les comportements cachés**, **inattendus** et **indésirables**.
 
 ## Trailing return type (depuis C++11)
 
@@ -540,7 +700,7 @@ auto main() -> int
 	position[0] = 10;
 	position[1] = 15;
 	auto [x, y] = position;
-	std::print("{} {}\n", x, y); // Affiche "10 15"
+	std::println("{} {}", x, y); // Affiche "10 15"
 }
 {% endhighlight %}
 
@@ -553,7 +713,7 @@ auto main() -> int
 {
 	auto position = std::array<int>{10, 15};
 	auto [x, y] = position;
-	std::print("{} {}\n", x, y); // Affiche "10 15"
+	std::println("{} {}", x, y); // Affiche "10 15"
 }
 {% endhighlight %}
 
@@ -563,7 +723,7 @@ auto main() -> int
 using namespace std::literals;
 auto pair = std::tuple{1, 2.2, "text"sv};
 auto [integer, decimal, string] = pair;
-std::print("{} {} {}", integer, decimal, string);
+std::println("{} {} {}", integer, decimal, string);
 {% endhighlight %}
 
 > Ce n'est pas parce qu'il y a écrit ``auto`` devant une *structured binding declaration* que les variables partagent le même type. **Chaque variable peut avoir un type différent**.<br>
@@ -573,7 +733,7 @@ std::print("{} {} {}", integer, decimal, string);
 {% highlight cpp highlight_lines="2" %}
 auto pair = std::pair{1, 2};
 auto [x, y] = pair;
-std::print("{} {}", x, y); // Affiche "1 2"
+std::println("{} {}", x, y); // Affiche "1 2"
 {% endhighlight %}
 
 Grace à ``std::pair`` il est possible d'obtenir les clefs et valeurs dans une *range-based for loop* sur une ``std::map``/``std::unordered_map``.
@@ -584,7 +744,7 @@ auto map = std::unordered_map{
 	std::pair{ "key1"sv, "value1"sv }
 };
 for (const auto& [key, value] : map)
-	std::print("{} {}", key, value); // Affiche "key1 value1"
+	std::println("{} {}", key, value); // Affiche "key1 value1"
 {% endhighlight %}
 
 > Cette utilisation au sein d'un **range-based for loop**, pour séparer clef et valeur, est **l'un des principaux cas d'utilisation** des *structured binding declaration*.
@@ -604,7 +764,7 @@ auto main() -> int
 {
 	auto position = Position2d{10, 15}; // Construction d'un Position2d avec x vallant 10 et y vallant 15
 	auto [x, y] = position; // Extraction des variables membre de Position2d
-	std::print("{} {}\n", x, y); // Affiche: "10 15"
+	std::println("{} {}", x, y); // Affiche: "10 15"
 }
 {% endhighlight %}
 
@@ -622,7 +782,7 @@ auto main() -> int
 {
 	auto position = Position2d{10, 15};
 	auto [a, b] = position;
-	std::print("{} {}\n", a, b); // Affiche: "10 15" malgré l'utilisation de noms de variables différents
+	std::println("{} {}", a, b); // Affiche: "10 15" malgré l'utilisation de noms de variables différents
 }
 {% endhighlight %}
 
@@ -658,7 +818,7 @@ auto main() -> int
 	
 	{
 		const auto& [name, age] = person; // name et age sont récupérés par références constantes
-		std::print("{} a {} ans\n", name, age); // Affiche "John Smith a 43 ans"
+		std::println("{} a {} ans", name, age); // Affiche "John Smith a 43 ans"
 	}
 }
 {% endhighlight %}
@@ -830,7 +990,7 @@ auto main() -> int
 {
 	auto person = Person{"Bjarne", "Stroustrup", 1950};
 	const auto& [firstName, lastName, birthYear] = person;
-	std::print("{} {} est né en {}\n", firstName, lastName, birthYear);
+	std::println("{} {} est né en {}", firstName, lastName, birthYear);
 }
 {% endhighlight %}
 
@@ -914,9 +1074,9 @@ auto main() -> int
 {
     auto stock = Stock{10, 3};
     if (auto [available, reserved] = stock)
-        std::print("Articles prêts pour livraison: {}\nStock total: {}\n", reserved, available);
+        std::println("Articles prêts pour livraison: {}\nStock total: {}", reserved, available);
     else
-        std::print("Stock insuffisant!\n");
+        std::puts("Stock insuffisant!");
 }
 {% endhighlight %}
 
@@ -952,7 +1112,7 @@ auto string = std::string{};
 string.resize(20);
 if (auto [pointer, errorCode] = std::to_chars(std::data(string), std::data(string) + std::size(string), 3.14);
 	errorCode == std::errc{})
-	std::print("{}\n", string);
+	std::println("{}", string);
 else
 {
 	// Gestion d'erreur
@@ -967,7 +1127,7 @@ Depuis C++26, on peut écrire:
 auto string = std::string{};
 string.resize(20);
 if (auto [pointer, errorCode] = std::to_chars(std::data(string), std::data(string) + std::size(string), 3.14))
-	std::print("{}\n", string);
+	std::println("{}", string);
 else
 {
 	// Gestion d'erreur
@@ -1111,7 +1271,7 @@ Dans la continuité des [structured binding declaration](#structured-binding-dec
 Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
 On peut cependant la trouver en experimental [sur Clang](https://godbolt.org/z/ea45Wx5Wh).
 
-Ce n'est pas une nouvelle fonctionnalité à proprement parler, il s'agit en fait d'une extension des [structured binding declaration](#structured-binding-declaration-depuis-c17)** leur permettant de supporter les [pack](/articles/c++/templates#pack).
+Ce n'est pas une nouvelle fonctionnalité à proprement parler, il s'agit en fait d'une extension des [structured binding declaration](#structured-binding-declaration-depuis-c17) leur permettant de supporter les [pack](/articles/c++/templates#pack).
 
 {% highlight cpp linenos highlight_lines="4" %}
 auto container = std::tuple{1, 2, 3};
