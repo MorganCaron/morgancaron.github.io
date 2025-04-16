@@ -96,6 +96,9 @@ L'usage explicite de ``auto*`` permet de signaler de manière claire que vous tr
 Deux termes sont parfois utilisées: [**auto to track**](#auto-to-track) et [**auto to stick**](#auto-to-stick).<br>
 Il est bon de les aborder pour **comprendre l'intérêt** de cette nouvelle écriture.
 
+> **auto to track** et **auto to stick** ne sont que des terminologies **informelles** décrivant l'intention du développeur.<br>
+> Les deux usages reposent sur exactement **les mêmes règles de déduction**. Il ne s'agit pas de mécanismes fondamentalement différents.
+
 ### auto to track
 
 Lorsque le mot clef ``auto`` sert à déduire le type de la variable **à partir du type de retour d'une fonction**, on appelle cela "**auto to track**".
@@ -119,7 +122,7 @@ std::basic_string<CharT,Traits,Alloc> std::basic_string<char>::operator+(const s
 {% endhighlight %}
 Et du type de retour de cet opérateur, il en déduit le type de notre variable ``string2``.
 
-#### auto to track complique la lecture du code ?
+#### auto to track complique la lecture du code?
 
 Les développeurs réticents à utiliser **auto to track** soutiennent que de **ne pas écrire explicitement le type des variables ajoute en charge mentale** pour les développeurs. Forçant à **faire l'effort d'aller vérifier les types de retour des fonctions** pour connaitre le type des variables typées avec ``auto``.
 
@@ -194,7 +197,7 @@ auto data = std::string{std::data(string)};
 
 > Notez qu'ici, le type de ``data`` n'est plus compliqué à retrouver puisqu'il est écrit directement à droite du signe égal.
 
-> Attention, comme dit [plus haut](/#auto-to-track-complique-la-lecture-du-code-), il est important de **vérifier les types de retour des fonctions** pour prévenir toute conversion implicite.<br>
+> Attention, comme dit [plus haut](#auto-to-track-complique-la-lecture-du-code), il est important de **vérifier les types de retour des fonctions** pour prévenir toute conversion implicite.<br>
 > Et surtout d'**expliciter toute conversion souhaitée**.
 {: .block-warning }
 
@@ -303,7 +306,8 @@ int main()
 
 ### auto to stick
 
-Lorsque le mot clef ``auto`` sert à **affecter directement une valeur** à une variable, on appelle ça "**auto to stick**".
+Lorsque le mot clef ``auto`` sert à **affecter directement une valeur** à une variable, on appelle ça "**auto to stick**".<br>
+On reconnait cette écriture par la présence directe d'un **literal** ou un **constructeur** à droite du signe égal.
 
 Exemples:
 {% highlight cpp %}
@@ -339,7 +343,7 @@ auto string3 = std::string{"Hello"}; // Pourquoi s'encombrer d'un "auto" en plus
 Au delà de son écriture légèrement plus verbeuse, **auto to stick** présente de nombreux avantages.<br>
 Commençons par l'uniformisation qu'elle propose:
 
-#### Oublier une définition
+#### Oublier une initialisation
 
 {% wip %}
 
@@ -403,6 +407,40 @@ int b = 3.14; // double vers int: Erreur
     9 |         int b = 3.14;
 {% endhighlight %}
 {% endrow %}
+
+### Multiples déclarations
+
+Lorsqu'on écrit:
+{% highlight cpp %}
+int number1 = 1, number2 = 2; // number1 et number2 sont de type int
+{% endhighlight %}
+On déclare simultanément deux variables de type ``int``, comme si l'on avait fait deux déclarations séparées:
+{% highlight cpp %}
+int number1 = 1;
+int number2 = 2;
+{% endhighlight %}
+
+De la même manière avec ``auto``, le compilateur doit déduire le même type identique à toutes les variables d'une déclaration multiple.
+{% highlight cpp %}
+auto number1 = 1, number2 = 2; // number1 et number2 sont de type int
+auto number = 1, string = "Hello World!"; // error: 'auto' deduced as 'int' in declaration of 'number' and deduced as 'const char *' in declaration of 'string'
+{% endhighlight %}
+
+Et contrairement au [cas des ternaires](#common-type-deduction), ``auto`` ne déduit pas un [type commun](#common-type-deduction) dans les déclarations multiples.
+{% highlight cpp %}
+auto number3 = 1, number4 = 1.2; // error: 'auto' deduced as 'int' in declaration of 'number3' and deduced as 'double' in declaration of 'number4'
+{% endhighlight %}
+
+Les propriétés cvref étant dissociées de ``auto``, il est possible d'avoir dans une même déclaration multiple plusieurs types qui ne varient que par leurs propriétés cvref.
+{% highlight cpp highlight_lines="2" %}
+auto number = 1;
+auto value = number, &reference = number, *pointer = &number;
+{% endhighlight %}
+
+Les variables déclarées plus tôt dans une même déclaration multiple sont immédiatement utilisables.
+{% highlight cpp %}
+auto lhs = 21, rhs = 2, result = lhs * rhs;
+{% endhighlight %}
 
 ## Trailing return type (depuis C++11)
 
@@ -1187,6 +1225,10 @@ struct HeterogenousValueList {};
 using MyList = HeterogenousValueList<42, 'X', 13u>;
 {% endhighlight %}
 
+### ``auto`` in template parameters (depuis C++20)
+
+{% wip %}
+
 ## AA (Always Auto) (depuis C++17)
 
 En C++17, le langage garanti la [copy elision](/articles/c++/copy_elision), faisant disparaitre les surcoûts que nous avons vu [à la fin de la partie sur "Amost Always Auto"](#aaa-almost-always-auto-avant-c17), rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
@@ -1263,6 +1305,8 @@ Une manière générique d'obtenir la copie d'un objet en C++ est ``auto variabl
 function(auto(expr));
 function(auto{expr});
 {% endhighlight %}
+
+{% wip %}
 
 ## Structured binding pack (depuis C++26)
 
