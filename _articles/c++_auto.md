@@ -93,11 +93,51 @@ L'usage explicite de ``auto*`` permet de signaler de manière claire que vous tr
 
 ---
 
-Deux termes sont parfois utilisées: [**auto to track**](#auto-to-track) et [**auto to stick**](#auto-to-stick).<br>
+Deux termes sont parfois utilisées: [**auto to stick**](#auto-to-stick) et [**auto to track**](#auto-to-track).<br>
 Il est bon de les aborder pour **comprendre l'intérêt** de cette nouvelle écriture.
 
-> **auto to track** et **auto to stick** ne sont que des terminologies **informelles** décrivant l'intention du développeur.<br>
+> **auto to stick** et **auto to track** ne sont que des terminologies **informelles** décrivant l'intention du développeur.<br>
 > Les deux usages reposent sur exactement **les mêmes règles de déduction**. Il ne s'agit pas de mécanismes fondamentalement différents.
+
+### auto to stick
+
+Lorsque le mot clef ``auto`` sert à **affecter directement une valeur** à une variable, on appelle ça "**auto to stick**".<br>
+On reconnait cette écriture par la présence directe d'un **literal** ou un **constructeur** à droite du signe égal.
+
+Exemples:
+{% highlight cpp %}
+auto number = 1; // int
+auto cString = "hello"; // const char*
+auto string = std::string{"hello"}; // std::string
+{% endhighlight %}
+
+Si vous développez déjà en C++ sans utiliser ``auto``, cette écriture vous fait peut être grincer des dents.<br>
+Les développeurs C++ ont toujours été habitués à l'écriture historique des définitions et déclarations de variables comme suit:
+
+{% highlight cpp %}
+int number = 1;
+const char* cString = "hello";
+std::string string = "hello";
+{% endhighlight %}
+
+ou encore (pour ne citer que quelques écritures possibles):
+{% highlight cpp %}
+int number(1);
+const char* cString("hello");
+std::string string("hello");
+{% endhighlight %}
+
+Cette nouvelle écriture, avec **auto to stick**, est souvent jugée inutilement verbeuse à premier abord, notamment lorsqu'on appelle explicitement un constructeur.
+
+{% highlight cpp %}
+std::string string1 = "Hello";
+std::string string2("Hello");
+auto string3 = std::string{"Hello"}; // Pourquoi s'encombrer d'un "auto" en plus du type std::string !? 😵‍💫
+auto string3 = "Hello"s; // 👍
+{% endhighlight %}
+
+Au delà de son écriture qui peut parfois être légèrement plus verbeuse, **auto to stick** présente de nombreux avantages.<br>
+Nous allons voir ces points après avoir vu **auto to track**.
 
 ### auto to track
 
@@ -122,9 +162,313 @@ std::basic_string<CharT,Traits,Alloc> std::basic_string<char>::operator+(const s
 {% endhighlight %}
 Et du type de retour de cet opérateur, il en déduit le type de notre variable ``string2``.
 
-#### auto to track complique la lecture du code?
+### left-to-right declaration
 
-Les développeurs réticents à utiliser **auto to track** soutiennent que de **ne pas écrire explicitement le type des variables ajoute en charge mentale** pour les développeurs. Forçant à **faire l'effort d'aller vérifier les types de retour des fonctions** pour connaitre le type des variables typées avec ``auto``.
+Au fil des versions du langage, le C++ a évolué vers une uniformisation des déclarations en **left-to-right**.
+
+Les alias de types:
+{% highlight cpp %}
+typedef int Integer; // Avant C++11: Integer est un alias pour le type int (right-to-left)
+using Integer = int; // Depuis C++11: Ecriture plus intuitive (left-to-right)
+{% endhighlight %}
+
+Les fonctions:
+{% highlight cpp %}
+int sum(int lhs, int rhs); // Avant C++11 (right-to-left)
+auto sum(int lhs, int rhs) -> auto; // Depuis C++11 (left-to-right)
+{% endhighlight %}
+Si cela vous intéresse, nous en reparlons [plus tard](#trailing-return-type-depuis-c11).
+
+Et avec ça, la déclaration des variables avec ``auto`` (en left-to-right):
+{% highlight cpp %}
+auto number = 1;
+auto duration = 10s;
+auto string = "text"s;
+auto* rawPointer = new MyClass{};
+auto smartPointer = std::make_unique<MyClass>();
+auto lambda = [](auto lhs, auto rhs) { return lhs + rhs; };
+{% endhighlight %}
+
+### ``auto`` force l'initialisation
+
+Sans ``auto``, il est possible de **déclarer des variables sans les initialiser**.
+
+{% highlight cpp %}
+char c;
+int number;
+std::string string;
+MyClass object;
+{% endhighlight %}
+
+Ces déclarations sont problématiques car sur des types primitifs ou n'ayant pas de constructeur par défaut, **[elles provoquent des UB](/articles/c++/uniform_initialization#variable-déclarée-mais-pas-initialisée)**. Ca représente donc un **risque d'erreurs non négligeable**.
+
+En déclarant les variables avec ``auto``, il n'est **plus possible d'oublier une initialisation**.<br>
+Etant un des UB les plus fréquents en C++, ça représente un argument majeur pour l'adoption de cette syntaxe.
+
+{% highlight cpp %}
+auto c = 'c';
+auto number = 42;
+auto string = ""s;
+auto object = MyClass{};
+{% endhighlight %}
+
+Notez aussi que ``auto`` peut être facilement couplé avec **[l'uniform initialization](/articles/c++/uniform_initialization)** permettant là aussi d'**éviter des erreurs** en C++.
+
+### Clarifie les appels effectués
+
+Petite devinette: Que fait le code suivant?
+{% highlight cpp %}
+MyClass variable = "Hello";
+{% endhighlight %}
+
+Est ce qu'il appelle un constructeur ``MyClass(const char*)`` ?<br>
+Ou bien il appelle un opérateur ``MyClass::operator=(const char*)`` ?
+
+Pour le savoir, il faut se rendre dans la déclaration de ``MyClass``.
+
+Si celle-ci contient un constructeur ``MyClass(const char*)``, alors c'est ce constructeur qui est utilisé pour initialiser la variable.
+
+Si ``MyClass`` contient un constructeur ``MyClass(std::string)``, ou prenant un argument **dont le type est constructible implicitement** depuis un ``const char*``, alors c'est ce constructeur qui est utilisé.<br>
+Le type ``std::string`` a un constructeur **non ``explicit``** qui accepte un ``const char*``. Mais ceci est valable pour tout type également convertible implicitement.
+
+Si ``MyClass`` a un constructeur par défaut et un ``operator=(const char*)``, alors:
+{% highlight cpp %}
+MyClass variable = "Hello";
+{% endhighlight %}
+sera interprété comme:
+{% highlight cpp %}
+MyClass variable; // appelle MyClass::MyClass()
+variable = "Hello"; // appelle MyClass::operator=(const char*)
+{% endhighlight %}
+
+Etes-vous prêt à faire ce jeu de piste à chaque relecture d'une initialisation ?
+
+Sinon avec ``auto``, l'appel au constructeur devient **nettement plus clair** et **garantie qu'aucune conversion implicite n'ai lieu**.
+{% highlight cpp %}
+auto variable = MyClass("Hello");
+auto variable = MyClass{"Hello"}; // Ou avec l'uniform initialization
+{% endhighlight %}
+
+### Most vexing parse
+
+A votre avis, quel est le type de ``number`` dans le code suivant ?
+
+{% highlight cpp highlight_lines="3" %}
+void function()
+{
+	int number();
+}
+{% endhighlight %}
+
+Une variable de type ``int`` vous dites ? Perdu!<br>
+C'est une fonction qui ne prend aucun argument et qui retourne un ``int``.
+
+Et ici, quel est le type de ``foo`` ?
+
+{% highlight cpp highlight_lines="3" %}
+void function(double number)
+{
+	int foo(int(number));
+}
+{% endhighlight %}
+
+Est-ce un nombre de type ``int``, initialisé en lui fournissant ``number`` casté en ``int`` (avec ``int(number)``) ?
+
+C'est une fonction ayant pour signature ``int foo(int);``.<br>
+
+> Le langage C **autorise les parenthèses superflues autour des paramètres** des fonctions.
+{: .block-warning }
+
+En réalité nous sommes ici dans une situation d'**ambigüité** entre **deux manières différentes** d'interpréter une définition (**variable** ou **fonction**).
+
+Face à cette ambigüité, **le compilateur choisi toujours de considérer comme des fonctions** si ça peut l'être.
+
+> Si les warnings (``-Wvexing-parse``) sont activés sur votre compilateur, celui-ci devrait être assez explicite quant à la raison de cette ambigüité.
+
+Etant donné que c'est particulièrement **trompeur** et que ça peut induire des **bugs difficiles à identifier**, il est utile de **lever l'ambigüité** en optant pour une autre écriture.
+
+Pour **forcer l'interprétation en variable**, on peut utiliser l'[uniform initialization](/articles/c++/uniform_initialization) qui se propose entre-autre comme une manière de résoudre les situations de most vexing parse.
+{% highlight cpp highlight_lines="4" %}
+void function()
+{
+	// int number();
+	int number{};
+}
+{% endhighlight %}
+
+Ou dans le cas d'un cast, faire appel à ``static_cast``:
+{% highlight cpp highlight_lines="4" %}
+void function(double number)
+{
+	// int foo(int(number));
+	int foo(static_cast<int>(number));
+	int bar{static_cast<int>(number)}; // Peut-être combiné avec l'uniform initialization
+	int toto{int{number}}; // Ou juste avec l'uniform initialization
+}
+{% endhighlight %}
+
+La déclaration des variables avec ``auto`` permet de **prévenir ce genre d'ambigüité** en gardant un code clair grace à sa syntaxe [left-to-right](#left-to-right-declaration):
+{% highlight cpp highlight_lines="3 4" %}
+void function()
+{
+	auto foo = int();
+	auto bar = int{}; // Et avec l'uniform initialization
+}
+{% endhighlight %}
+
+{% highlight cpp highlight_lines="3" %}
+void function(double number)
+{
+	auto foo = int{number}; // cast le double en int
+}
+{% endhighlight %}
+
+### Typer une lambda
+
+``auto`` permet également de typer une lambda.<br>
+En effet, en C++ **chaque lambda a un type unique qui lui est propre**, et ce, même si plusieurs lambdas ont la même signature.<br>
+Ecrire explicitement leur type est donc impossible.
+L'utilisation du mot clef ``auto`` **est le seul moyen de typer une variable contenant une lambda**:
+
+{% highlight cpp %}
+auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
+{% endhighlight %}
+
+Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
+
+### Common type deduction
+
+Lorsqu'un type dépend de plusieurs expressions, l'utilisation de ``auto`` permet au compilateur de déduire le [type commun](/articles/c++/type_traits#type_commun) entre les différentes expressions possibles.
+
+Par exemple, dans le cas d'une ternaire où ``c`` peut se voir attribuer la valeur de ``a`` ou de ``b`` selon une condition:
+{% highlight cpp %}
+auto c = (a < b) ? a : b;
+{% endhighlight %}
+
+Si ``a`` et ``b`` sont de types différents, le mot clef ``auto`` permet de déduire automatiquement le [type commun](/articles/c++/type_traits#type_commun) de ces deux expressions.
+
+{% highlight cpp %}
+auto a = 10; // int
+auto b = 3.14; // double
+
+auto c = (a < b) ? a : b; // Type commun entre int et double (double)
+{% endhighlight %}
+
+Équivaut à:
+{% highlight cpp %}
+auto a = 10; // int
+auto b = 3.14; // double
+
+std::common_type_t<int, double> c = (a < b) ? a : b; // double
+{% endhighlight %}
+
+Ici, le type commun de ``int`` et ``double`` est le type ``double``, car un ``double`` peut être construit à partir d'un ``int`` mais l'inverse n'est pas possible directement.
+
+{% row %}
+{% highlight cpp %}
+double a = 10; // int vers double: Ok
+int b = 3.14; // double vers int: Erreur
+{% endhighlight %}
+
+{% highlight console %}
+<source>:9:27: error: implicit conversion from 'double' to 'int' changes value from 3.14 to 3 [-Werror,-Wliteral-conversion]
+    9 |         int b = 3.14;
+{% endhighlight %}
+{% endrow %}
+
+### Multiples déclarations
+
+Lorsqu'on écrit:
+{% highlight cpp %}
+int number1 = 1, number2 = 2; // number1 et number2 sont de type int
+{% endhighlight %}
+On déclare simultanément deux variables de type ``int``, comme si l'on avait fait deux déclarations séparées:
+{% highlight cpp %}
+int number1 = 1;
+int number2 = 2;
+{% endhighlight %}
+
+De la même manière avec ``auto``, le compilateur doit déduire le même type identique à toutes les variables d'une déclaration multiple.
+{% highlight cpp %}
+auto number1 = 1, number2 = 2; // number1 et number2 sont de type int
+auto number = 1, string = "Hello World!"; // error: 'auto' deduced as 'int' in declaration of 'number' and deduced as 'const char *' in declaration of 'string'
+{% endhighlight %}
+
+Et contrairement au [cas des ternaires](#common-type-deduction), ``auto`` ne déduit pas un [type commun](#common-type-deduction) dans les déclarations multiples.
+{% highlight cpp %}
+auto number1 = 1, number2 = 1.2; // error: 'auto' deduced as 'int' in declaration of 'number1' and deduced as 'double' in declaration of 'number2'
+{% endhighlight %}
+
+Les propriétés cvref étant dissociées de ``auto``, il est possible d'avoir dans une même déclaration multiple plusieurs types qui ne varient que par leurs propriétés cvref.
+{% highlight cpp highlight_lines="2" %}
+auto number = 1;
+auto value = number, &reference = number, *pointer = &number;
+{% endhighlight %}
+
+Les variables déclarées plus tôt dans une même déclaration multiple sont immédiatement utilisables.
+{% highlight cpp %}
+auto lhs = 21, rhs = 2, result = lhs * rhs;
+{% endhighlight %}
+
+### ``auto`` couplé aux templates
+
+Ne pas renseigner explicitement le type d'une variable peut permettre une plus grande généricité, notamment dans des templates.
+
+Prenons ce code pour illustrer:
+{% highlight cpp linenos highlight_lines="4" %}
+void printFirstValue(const std::vector<int>& container)
+{
+	if (std::empty(container)) return;
+	int firstValue = container[0];
+	std::println("{}", firstValue);
+}
+
+int main()
+{
+	auto vector = std::vector{1, 2, 3};
+	printFirstValue(vector);
+}
+{% endhighlight %}
+
+Ici, le type de ``firstValue`` est écrit explicitement. Si nous transformons la fonction ``printFirstValue`` en template pour la rendre générique, il faudra revoir tout le code de cette fonction pour en ajuster les types.
+{% highlight cpp linenos highlight_lines="5" %}
+template<class T>
+void printFirstValue(const std::vector<T>& container)
+{
+	if (std::empty(container)) return;
+	T firstValue = container[0];
+	std::println("{}", firstValue);
+}
+
+int main()
+{
+	auto vector = std::vector{1, 2, 3};
+	printFirstValue(vector);
+}
+{% endhighlight %}
+
+Nous n'aurions pas eu à modifier le corps de la fonction si celle-ci utilisait ``auto`` pour permettre que le type de ``firstValue`` soit inféré à partir de son initialisation.
+{% highlight cpp linenos highlight_lines="5" %}
+template<class T>
+void printFirstValue(const std::vector<T>& container)
+{
+	if (std::empty(container)) return;
+	auto firstValue = container[0]; // firstValue prend un type différent selon le type de container passé en paramètre
+	std::println("{}", firstValue);
+}
+
+int main()
+{
+	auto vector = std::vector{1, 2, 3};
+	printFirstValue(vector);
+}
+{% endhighlight %}
+
+Avec cette écriture simplifiant grandement l'utilisation de templates, ``auto`` nous permet écrire plus souvent du code par rapport à des interfaces plutôt qu'à des types concrets, rendant l'ensemble des fonctions plus génériques.
+
+### auto complique la lecture du code?
+
+Les développeurs réticents à utiliser ``auto`` soutiennent que de **ne pas écrire explicitement le type des variables ajoute en charge mentale** pour les développeurs. Forçant à **faire l'effort d'aller vérifier les types de retour des fonctions** pour connaitre le type des variables typées avec ``auto``.
 
 {% highlight cpp highlight_lines="2" %}
 auto string = std::string{"hello"};
@@ -249,199 +593,6 @@ std::cout << std::boolalpha << bits[0]; // Affiche "false"
 
 > **L'absence de conversions implicites avec ``auto`` force à les expliciter.** Ce qui est une **bonne pratique** pour **éviter les comportements cachés**, **inattendus** et **indésirables**.
 
-#### ``auto`` par défaut
-
-Un autre avantage à **auto to track**:<br>
-Ne pas renseigner explicitement le type d'une variable peut permettre une plus grande généricité, notamment dans des templates.
-
-Prenons ce code pour illustrer:
-{% highlight cpp linenos highlight_lines="4" %}
-void printFirstValue(const std::vector<int>& container)
-{
-	if (std::empty(container)) return;
-	int firstValue = container[0];
-	std::println("{}", firstValue);
-}
-
-int main()
-{
-	auto vector = std::vector{1, 2, 3};
-	printFirstValue(vector);
-}
-{% endhighlight %}
-
-Ici, le type de ``firstValue`` est écrit explicitement. Si nous transformons la fonction ``printFirstValue`` en template pour la rendre générique, il faudra revoir tout le code de cette fonction pour en ajuster les types.
-{% highlight cpp linenos highlight_lines="5" %}
-template<class T>
-void printFirstValue(const std::vector<T>& container)
-{
-	if (std::empty(container)) return;
-	T firstValue = container[0];
-	std::println("{}", firstValue);
-}
-
-int main()
-{
-	auto vector = std::vector{1, 2, 3};
-	printFirstValue(vector);
-}
-{% endhighlight %}
-
-Nous n'aurions pas eu à modifier le corps de la fonction si celle-ci utilisait ``auto`` pour permettre que le type de ``firstValue`` soit inféré à partir de son initialisation.
-{% highlight cpp linenos highlight_lines="5" %}
-template<class T>
-void printFirstValue(const std::vector<T>& container)
-{
-	if (std::empty(container)) return;
-	auto firstValue = container[0]; // firstValue prend un type différent selon le type de container passé en paramètre
-	std::println("{}", firstValue);
-}
-
-int main()
-{
-	auto vector = std::vector{1, 2, 3};
-	printFirstValue(vector);
-}
-{% endhighlight %}
-
-### auto to stick
-
-Lorsque le mot clef ``auto`` sert à **affecter directement une valeur** à une variable, on appelle ça "**auto to stick**".<br>
-On reconnait cette écriture par la présence directe d'un **literal** ou un **constructeur** à droite du signe égal.
-
-Exemples:
-{% highlight cpp %}
-auto number = 1; // int
-auto cString = "hello"; // const char*
-auto string = std::string{"hello"}; // std::string
-{% endhighlight %}
-
-Si vous développez déjà en C++ sans utiliser ``auto``, cette écriture vous fait peut être grincer des dents.<br>
-Les développeurs C++ ont toujours été habitués à l'écriture historique des définitions et déclarations de variables comme suit:
-
-{% highlight cpp %}
-int number = 1;
-const char* cString = "hello";
-std::string string = "hello";
-{% endhighlight %}
-
-ou encore (pour ne citer que quelques écritures possibles):
-{% highlight cpp %}
-int number(1);
-const char* cString("hello");
-std::string string("hello");
-{% endhighlight %}
-
-Cette nouvelle écriture, avec **auto to stick**, est souvent jugée inutilement verbeuse à premier abord, notamment lorsqu'on appelle explicitement un constructeur.
-
-{% highlight cpp %}
-std::string string1 = "Hello";
-std::string string2("Hello");
-auto string3 = std::string{"Hello"}; // Pourquoi s'encombrer d'un "auto" en plus du type std::string !? 😵‍💫
-{% endhighlight %}
-
-Au delà de son écriture légèrement plus verbeuse, **auto to stick** présente de nombreux avantages.<br>
-Commençons par l'uniformisation qu'elle propose:
-
-#### Oublier une initialisation
-
-{% wip %}
-
-#### left-to-right declaration
-
-{% wip %}
-
-#### Most vexing parse
-
-{% wip %}
-
-#### Typer une lambda
-
-``auto`` permet également de typer une lambda.<br>
-En effet, en C++ **chaque lambda a un type unique qui lui est propre**, et ce, même si plusieurs lambdas ont la même signature.<br>
-Ecrire explicitement leur type est donc impossible.
-L'utilisation du mot clef ``auto`` **est le seul moyen de typer une variable contenant une lambda**:
-
-{% highlight cpp %}
-auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
-{% endhighlight %}
-
-Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
-
-### Common type deduction
-
-Lorsqu'un type dépend de plusieurs expressions, l'utilisation de ``auto`` permet au compilateur de déduire le [type commun](/articles/c++/type_traits#type_commun) entre les différentes expressions possibles.
-
-Par exemple, dans le cas d'une ternaire où ``c`` peut se voir attribuer la valeur de ``a`` ou de ``b`` selon une condition:
-{% highlight cpp %}
-auto c = (a < b) ? a : b;
-{% endhighlight %}
-
-Si ``a`` et ``b`` sont de types différents, le mot clef ``auto`` permet de déduire automatiquement le [type commun](/articles/c++/type_traits#type_commun) de ces deux expressions.
-
-{% highlight cpp %}
-auto a = 10; // int
-auto b = 3.14; // double
-
-auto c = (a < b) ? a : b; // Type commun entre int et double (double)
-{% endhighlight %}
-
-Équivaut à:
-{% highlight cpp %}
-auto a = 10; // int
-auto b = 3.14; // double
-
-std::common_type_t<int, double> c = (a < b) ? a : b; // double
-{% endhighlight %}
-
-Ici, le type commun de ``int`` et ``double`` est le type ``double``, car un ``double`` peut être construit à partir d'un ``int`` mais l'inverse n'est pas possible directement.
-
-{% row %}
-{% highlight cpp %}
-double a = 10; // int vers double: Ok
-int b = 3.14; // double vers int: Erreur
-{% endhighlight %}
-
-{% highlight console %}
-<source>:9:27: error: implicit conversion from 'double' to 'int' changes value from 3.14 to 3 [-Werror,-Wliteral-conversion]
-    9 |         int b = 3.14;
-{% endhighlight %}
-{% endrow %}
-
-### Multiples déclarations
-
-Lorsqu'on écrit:
-{% highlight cpp %}
-int number1 = 1, number2 = 2; // number1 et number2 sont de type int
-{% endhighlight %}
-On déclare simultanément deux variables de type ``int``, comme si l'on avait fait deux déclarations séparées:
-{% highlight cpp %}
-int number1 = 1;
-int number2 = 2;
-{% endhighlight %}
-
-De la même manière avec ``auto``, le compilateur doit déduire le même type identique à toutes les variables d'une déclaration multiple.
-{% highlight cpp %}
-auto number1 = 1, number2 = 2; // number1 et number2 sont de type int
-auto number = 1, string = "Hello World!"; // error: 'auto' deduced as 'int' in declaration of 'number' and deduced as 'const char *' in declaration of 'string'
-{% endhighlight %}
-
-Et contrairement au [cas des ternaires](#common-type-deduction), ``auto`` ne déduit pas un [type commun](#common-type-deduction) dans les déclarations multiples.
-{% highlight cpp %}
-auto number3 = 1, number4 = 1.2; // error: 'auto' deduced as 'int' in declaration of 'number3' and deduced as 'double' in declaration of 'number4'
-{% endhighlight %}
-
-Les propriétés cvref étant dissociées de ``auto``, il est possible d'avoir dans une même déclaration multiple plusieurs types qui ne varient que par leurs propriétés cvref.
-{% highlight cpp highlight_lines="2" %}
-auto number = 1;
-auto value = number, &reference = number, *pointer = &number;
-{% endhighlight %}
-
-Les variables déclarées plus tôt dans une même déclaration multiple sont immédiatement utilisables.
-{% highlight cpp %}
-auto lhs = 21, rhs = 2, result = lhs * rhs;
-{% endhighlight %}
-
 ## Trailing return type (depuis C++11)
 
 En C++, le type de retour des fonctions est écrit au début de leur définition/déclaration:
@@ -469,7 +620,12 @@ function sum(lhs: number, rhs: number) : number
 }
 {% endhighlight %}
 
-Pour revenir au C++, le **trailing return type** permet de spécifier le type de retour des fonctions à la fin de leur définition/déclaration (depuis C++11):
+On parle ici de déclaration **left-to-right**, en opposition à l'écriture **right-to-left** du C++ jusque là.
+
+Depuis C++11, [le langage se lance dans un changement d'écriture de ses déclarations vers une uniformisation en left-to-right](#left-to-right-declaration). Profitant de cette syntaxe pour apporter de nombreux autres avantages.
+
+Pour les déclarations/définitions des fonctions, on parle de **trailing return type**.<br>
+Ceci consiste à spécifier le type de retour des fonctions à la fin de leur définition/déclaration:
 
 {% highlight cpp %}
 auto sum(int lhs, int rhs) -> int
@@ -478,7 +634,7 @@ auto sum(int lhs, int rhs) -> int
 }
 {% endhighlight %}
 
-Cette écriture permet entre autre de définir un type de retour qui dépend des paramètres de la fonction.
+Cette écriture permet entre autre de définir un type de retour qui dépend des paramètres de la fonction, puisque ceux-ci sont connus avant.
 
 {% highlight cpp %}
 template<class Lhs, class Rhs>

@@ -9,30 +9,34 @@ background: campfire1.webp
 
 Hello World! 👋
 
-Bienvenue sur mon Devblog, un endroit où partager mes projets, mes réflexions et mes connaissances en développement C++, web et autres.
+Bienvenue sur mon Devblog, un endroit où partager mes projets, mes réflexions et des connaissances en développement C++, web et autres.
 
 ## Qui suis-je ?
 
 Je m'appelle Morgan Caron, passionné de programmation.<br>
 Je suis un **développeur C++ et web**, en constante veille technologique pour me tenir au courant des dernières nouveautés.<br>
 Ma philosophie en programmation est basée sur la **rigueur**, la **généricité**, la **clarté**, les **performances** et la **sécurité**.<br>
-J'ai un fort besoin de comprendre les choses pour pouvoir les manipuler, ce qui me pousse à creuser toujours plus dans l'aspect technique des langages.
+J'ai un fort besoin de comprendre les choses pour pouvoir les manipuler, ce qui me pousse à explorer l'aspect technique des langages.
 
-Si vous partagez ma passion pour la programmation et que vous cherchez à apprendre des choses, vous êtes au bon endroit.
+Si vous partagez ma passion pour la programmation et que vous cherchez à apprendre des choses, j'espère que vous y trouverez ce que vous recherchez.
 
 ## Objectif de ce site
 
 ### Mes projets
 
-Sur ce Devblog, vous trouverez mes différents projets personnels, notamment mon projet **Script**, un **compilateur multi-langages** écrit en **C++23**.<br>
-Mais également **CppUtils**, une **bibliothèque d'utilitaires** pour les projets en C++ moderne.<br>
+Sur ce Devblog, vous trouverez mes différents projets personnels, notamment:
+- **Script** : un **compilateur multi-langages** écrit en **C++23**<br>
+- **CppUtils** : une **bibliothèque d'utilitaires** pour les projets en C++ moderne<br>
+- (prochainement) **Cora** : Une intelligence artificielle formelle, vérifiable et déterministe, **sans machine learning**<br>
 Et divers projets web plus ou moins utiles.
 
 ### Publication d'articles
 
-Ce Devblog sera également l'occasion pour moi de partager mes connaissances en **C++** et **web**, partager des conseils et des **bonnes pratiques**, mais aussi **enrichir les ressources disponibles dans la communauté francophone**.<br>
-Vous trouverez des articles techniques, des **tutoriels**, des **astuces** et des **conseils** pour vous améliorer **en programmation**.<br>
-Que vous soyez un débutant cherchant à apprendre ou un développeur chevronné à la recherche d'informations précises, il y en aura **pour tous les niveaux**.
+Ce Devblog servira aussi à partager des conseils, des **bonnes pratiques** et **enrichir les ressources disponibles dans la communauté francophone**.<br>
+Vous trouverez des articles techniques, des **tutoriels**, des **astuces** et des **conseils** en programmation.<br>
+Que vous soyez un débutant cherchant à apprendre ou un développeur chevronné à la recherche d'informations précises, il y en aura **pour tous les niveaux**.<br>
+Chaque article vise à être exaustif sur les notions abordées, ce qui implique un certain temps d'attente avant leur publication.<br>
+D'abord conçu comme un mémento pour moi-même, ils seront je l'espère aussi utile à d'autres développeurs qui voudraient se lancer ou progresser.
 
 ## A venir
 
