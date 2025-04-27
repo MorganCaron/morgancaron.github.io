@@ -21,7 +21,7 @@
 title: Morgan Caron's Devblog
 # email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  I'm Morgan Caron, a French software and web developer. I program mainly in C++. This site is a blog on which I post various articles on web and C++ programming. You can join my Discord server (French-speaking community).
+  Blog sur lequel je poste divers articles sur la programmation web et C++.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb

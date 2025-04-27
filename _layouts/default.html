@@ -2,7 +2,18 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>{% if page.title %}{{ page.title }}{% else %}Morgan Caron's Devblog{% endif %}</title>
+	{% if page.seo and page.seo.title %}
+	<title>{{ page.seo.title }}</title>
+	{% else %}
+	<title>{{ page.title | default: site.title }}</title>
+	{% endif %}
+
+	{% if page.seo and page.seo.description %}
+	<meta name="description" content="{{ page.seo.description }}">
+	{% else %}
+	<meta name="description" content="{{ site.description }}">
+	{% endif %}
+
 	<meta name="darkreader-lock">
 	<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />

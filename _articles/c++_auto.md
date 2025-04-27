@@ -5,6 +5,9 @@ permalink: articles/c++/auto
 category: c++
 logo: c++.svg
 background: corridor4.webp
+seo:
+  title: Tout sur le mot clef auto en C++
+  description: Article exaustif sur toutes les utilisations, évolutions, cas particuliers et pièges du mot clef auto en C++.
 published: true
 reviewers:
   - name: Arthur Laurent (Arthapz)
