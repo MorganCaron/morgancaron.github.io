@@ -254,8 +254,7 @@ auto variable = MyClass{"Hello"}; // Ou avec l'uniform initialization
 
 ### Most vexing parse
 
-A votre avis, quel est le type de ``number`` dans le code suivant ?
-
+Quel est le type de ``number`` dans le code suivant ?
 {% highlight cpp highlight_lines="3" %}
 void function()
 {
@@ -263,11 +262,9 @@ void function()
 }
 {% endhighlight %}
 
-Une variable de type ``int`` vous dites ? Perdu!<br>
-C'est une fonction qui ne prend aucun argument et qui retourne un ``int``.
+Une variable de type ``int`` ? Non, c'est une fonction qui ne prend aucun argument et qui retourne un ``int``.
 
 Et ici, quel est le type de ``foo`` ?
-
 {% highlight cpp highlight_lines="3" %}
 void function(double number)
 {
@@ -277,14 +274,14 @@ void function(double number)
 
 Est-ce un nombre de type ``int``, initialisé en lui fournissant ``number`` casté en ``int`` (avec ``int(number)``) ?
 
-C'est une fonction ayant pour signature ``int foo(int);``.<br>
+Non, c'est une fonction ayant pour signature ``int foo(int);``.<br>
 
 > Le langage C **autorise les parenthèses superflues autour des paramètres** des fonctions.
 {: .block-warning }
 
 En réalité nous sommes ici dans une situation d'**ambigüité** entre **deux manières différentes** d'interpréter une définition (**variable** ou **fonction**).
 
-Face à cette ambigüité, **le compilateur choisi toujours de considérer comme des fonctions** si ça peut l'être.
+Face à cette ambigüité, **le compilateur choisi toujours de considérer ces déclarations comme étant des fonctions**.
 
 > Si les warnings (``-Wvexing-parse``) sont activés sur votre compilateur, celui-ci devrait être assez explicite quant à la raison de cette ambigüité.
 
@@ -1384,9 +1381,21 @@ struct HeterogenousValueList {};
 using MyList = HeterogenousValueList<42, 'X', 13u>;
 {% endhighlight %}
 
-### ``auto`` in template parameters (depuis C++20)
+### ``auto`` in lambda template parameters (depuis C++20)
 
-{% wip %}
+Avec le support des templates sur les lambdas en C++20, il est possible d'utiliser ``auto`` en type templaté.
+
+{% highlight cpp linenos highlight_lines="1 8 9" %}
+auto apply = []<auto Operation>(int lhs, int rhs) {
+	return Operation(lhs, rhs);
+};
+
+auto add = [](int lhs, int rhs) { return lhs + rhs; };
+auto multiply = [](int lhs, int rhs) { return lhs * rhs; };
+
+std::println("3 + 4 = {}", apply.operator()<add>(3, 4)); // 7
+std::println("3 * 4 = {}", apply.operator()<multiply>(3, 4)); // 12
+{% endhighlight %}
 
 ## AA (Always Auto) (depuis C++17)
 
@@ -1456,16 +1465,114 @@ void sum(Lhs lhs, Rhs rhs);
 
 ## auto cast (depuis C++23)
 
-Une manière générique d'obtenir la copie d'un objet en C++ est ``auto variable = x;``, mais une telle copie est une [lvalue](/articles/c++/value_categories#lvalue).
+Une manière **générique** d'obtenir la copie d'un objet en C++ est ``auto variable = x;``, mais une telle copie est une [lvalue](/articles/c++/value_categories#lvalue).
 
-``auto(a)`` (ou ``auto{x}``) permet d'en obtenir une copie sous forme de [prvalue](/articles/c++/value_categories#prvalue), ce qui peut être utile pour transmettre cet objet en paramètre à une fonction.
+``auto(a)`` (ou ``auto{x}``) permet d'obtenir une copie sous forme de [prvalue](/articles/c++/value_categories#prvalue), ce qui peut être utile pour transmettre cet objet en paramètre à une fonction.
 
 {% highlight cpp %}
 function(auto(expr));
 function(auto{expr});
 {% endhighlight %}
 
-{% wip %}
+Cette écriture permet de dire **explicitement** au compilateur de faire une copie.<br>
+Mais c'est également un **outil sémantique pour signifier aux développeurs de l'intention de faire une copie**.
+
+Cela revient à écrire:
+{% highlight cpp %}
+auto copy(const auto& value)
+{
+	return value;
+}
+{% endhighlight %}
+
+{% highlight cpp %}
+function(copy(expr));
+{% endhighlight %}
+Mais avec une syntaxe intégrée au langage.
+
+> En réalité, ``auto(expr)``/``auto{expr}`` correspond plutôt à faire un ``std::decay_t<decltype(expr)>{expr}``, et non à appeler une fonction ``copy``.
+
+> L'équivalence avec [``std::decay_t``](https://en.cppreference.com/w/cpp/types/decay) signifie également que les tableaux (ex: ``int[N]``) sont convertis en pointeurs (ex: ``int*``). Pour préserver le type tableau, il faut utiliser [``auto`` (Placeholder type specifiers)](#placeholder-type-specifiers-depuis-c11) ou [``decltype(auto)``](#decltypeauto-depuis-c14).
+{: .block-warning }
+
+{% highlight cpp %}
+function(auto{expr});
+{% endhighlight %}
+équivaut à:
+{% highlight cpp %}
+function(std::decay_t<decltype(expr)>{expr});
+{% endhighlight %}
+
+A première vue on pourrait penser que ça ne répond à aucun besoin réel.<br>
+Mais regardons [la motivation](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0849r8.html#Motivation) derrière cet ajout:
+
+Prenons le code suivant, dans lequel on veut supprimer toute occurrence de la première valeur (``"A"``):
+{% highlight cpp highlight_lines="3" %}
+void erase_all_of_first(auto& container)
+{
+	std::erase(container, container.front());
+}
+
+int main()
+{
+	auto values = std::vector<std::string>{"A", "A", "B", "C", "D", "B", "B"};
+	erase_all_of_first(values);
+	std::println("{}", values);
+}
+{% endhighlight %}
+
+{% highlight console %}
+["B", "C", "D"]
+{% endhighlight %}
+Les deux occurrences de ``"A"`` ont bien été supprimées, mais où sont passées les autres occurrences de ``"B"`` ?
+
+Regardons comment fonctionne ``std::erase``. La fonction ``std::erase`` se présente comme suit:
+{% highlight cpp %}
+template<class T, class Alloc, class U>
+constexpr typename std::vector<T, Alloc>::size_type erase(std::vector<T, Alloc>& c, const U& value);
+{% endhighlight %}
+
+Elle prend une **référence** sur un ``std::vector`` ainsi qu'une **référence constante** sur l'élément à rechercher et **à supprimer** dans le conteneur.
+
+[La documentation](https://en.cppreference.com/w/cpp/container/vector/erase2) nous dit que la fonction ``std::erase`` supprime chaque élément du conteneur ``c`` égal à l'argument ``value`` de la manière suivante:
+{% highlight cpp %}
+auto it = std::remove(c.begin(), c.end(), value);
+auto r = c.end() - it;
+c.erase(it, c.end());
+return r;
+{% endhighlight %}
+Hors, ``std::remove`` ne supprime pas réellement d'éléments, mais [les réorganise](https://en.cppreference.com/w/cpp/algorithm/remove#Possible_implementation): il déplace vers le début du conteneur les éléments à conserver, **en écrasant les éléments à supprimer** par ces affectations.
+
+Cela signifie que ``container.front()``, passé par référence constante à ``std::erase``, **peut être modifié pendant l'appel**, notamment si sa position est réutilisée pour stocker une autre valeur (comme ``"B"`` dans l'exemple).
+
+Résultat: la valeur utilisée dans la comparaison **est modifiée en cours de traitement** et **les suppressions deviennent incohérentes**.
+
+Pour éviter cela, il faut s'assurer que la valeur passée à ``std::erase`` reste **indépendante** du conteneur pour éviter les effets de bord:
+{% highlight cpp highlight_lines="3" %}
+void erase_all_of_first(auto& container)
+std::erase(container, auto{container.front()});
+{% endhighlight %}
+
+Ce qui nous donne:
+{% highlight cpp highlight_lines="3" %}
+void erase_all_of_first(auto& container)
+{
+	std::erase(container, auto{container.front()});
+}
+
+int main()
+{
+	auto values = std::vector<std::string>{"A", "A", "B", "C", "D", "B", "B"};
+	erase_all_of_first(values);
+	std::println("{}", values);
+}
+{% endhighlight %}
+
+{% highlight console %}
+["B", "C", "D", "B", "B"]
+{% endhighlight %}
+
+``auto(expr)``/``auto{expr}`` a été proposé pour résoudre des situations comme celle-ci.
 
 ## Structured binding pack (depuis C++26)
 
