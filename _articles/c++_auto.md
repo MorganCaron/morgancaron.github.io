@@ -6,8 +6,8 @@ category: c++
 logo: c++.svg
 background: corridor4.webp
 seo:
-  title: Tout sur le mot clef auto en C++
-  description: Article exaustif sur toutes les utilisations, évolutions, cas particuliers et pièges du mot clef auto en C++.
+  title: "Maîtriser complètement auto en C++"
+  description: Article exhaustif sur toutes les utilisations, évolutions, cas particuliers et pièges du mot clef auto en C++.
 published: true
 reviewers:
   - name: Arthur Laurent (Arthapz)
@@ -219,38 +219,36 @@ Notez aussi que ``auto`` peut être facilement couplé avec **[l'uniform initial
 
 ### Clarifie les appels effectués
 
-Petite devinette: Que fait le code suivant?
+Bien que le code suivant ressemble à un ``operator=``, il n'en est rien:
 {% highlight cpp %}
 MyClass variable = "Hello";
 {% endhighlight %}
 
-Est ce qu'il appelle un constructeur ``MyClass(const char*)`` ?<br>
-Ou bien il appelle un opérateur ``MyClass::operator=(const char*)`` ?
+Il s'agit d'un **appel à un constructeur** de manière **implicite**. Plus précisément une **conversion implicite**.
 
-Pour le savoir, il faut se rendre dans la déclaration de ``MyClass``.
-
-Si celle-ci contient un constructeur ``MyClass(const char*)``, alors c'est ce constructeur qui est utilisé pour initialiser la variable.
-
-Si ``MyClass`` contient un constructeur ``MyClass(std::string)``, ou prenant un argument **dont le type est constructible implicitement** depuis un ``const char*``, alors c'est ce constructeur qui est utilisé.<br>
-Le type ``std::string`` a un constructeur **non ``explicit``** qui accepte un ``const char*``. Mais ceci est valable pour tout type également convertible implicitement.
-
-Si ``MyClass`` a un constructeur par défaut et un ``operator=(const char*)``, alors:
+Ca revient à écrire:
 {% highlight cpp %}
-MyClass variable = "Hello";
-{% endhighlight %}
-sera interprété comme:
-{% highlight cpp %}
-MyClass variable; // appelle MyClass::MyClass()
-variable = "Hello"; // appelle MyClass::operator=(const char*)
+MyClass variable("Hello");
 {% endhighlight %}
 
-Etes-vous prêt à faire ce jeu de piste à chaque relecture d'une initialisation ?
+Ca ne se voit pas immédiatement, et c'est pour cela qu'on parle d'appel **implicite**.<br>
+Ce n'est pas un appel explicitement demandé par le développeur.
 
-Sinon avec ``auto``, l'appel au constructeur devient **nettement plus clair** et **garantie qu'aucune conversion implicite n'ai lieu**.
+Cette seconde écriture peut être déroutante, notamment si on compare à la construction d'objets dans d'autres langages.
+
+Une **autre manière** d'expliciter l'appel au constructeur serait de la manière suivante:
+{% highlight cpp %}
+MyClass variable = MyClass("Hello");
+MyClass variable = MyClass{"Hello"}; // Ou avec l'uniform initialization
+{% endhighlight %}
+
+Et avec ``auto`` pour éviter les répétitions inutiles:
 {% highlight cpp %}
 auto variable = MyClass("Hello");
 auto variable = MyClass{"Hello"}; // Ou avec l'uniform initialization
 {% endhighlight %}
+
+Ici, l'appel au constructeur devient **nettement plus clair** et ``auto`` **garantie qu'aucune conversion implicite n'ai lieu**.
 
 ### Most vexing parse
 
@@ -1479,29 +1477,18 @@ Mais c'est également un **outil sémantique pour signifier aux développeurs de
 
 Cela revient à écrire:
 {% highlight cpp %}
-auto copy(const auto& value)
-{
-	return value;
-}
-{% endhighlight %}
-
-{% highlight cpp %}
-function(copy(expr));
-{% endhighlight %}
-Mais avec une syntaxe intégrée au langage.
-
-> En réalité, ``auto(expr)``/``auto{expr}`` correspond plutôt à faire un ``std::decay_t<decltype(expr)>{expr}``, et non à appeler une fonction ``copy``.
-
-> L'équivalence avec [``std::decay_t``](https://en.cppreference.com/w/cpp/types/decay) signifie également que les tableaux (ex: ``int[N]``) sont convertis en pointeurs (ex: ``int*``). Pour préserver le type tableau, il faut utiliser [``auto`` (Placeholder type specifiers)](#placeholder-type-specifiers-depuis-c11) ou [``decltype(auto)``](#decltypeauto-depuis-c14).
-{: .block-warning }
-
-{% highlight cpp %}
-function(auto{expr});
-{% endhighlight %}
-équivaut à:
-{% highlight cpp %}
+function(std::decay_t<decltype(expr)>(expr));
 function(std::decay_t<decltype(expr)>{expr});
 {% endhighlight %}
+
+Mais avec une syntaxe intégrée au langage.
+
+> On parle ici de faire une ["decay-copy"](https://en.cppreference.com/w/cpp/standard_library/decay-copy).<br>
+> A savoir aussi que ``auto(expr)``/``auto{expr}`` est une [no-op](https://en.wikipedia.org/wiki/NOP_(code)) si ``expr`` est déjà une *prvalue* ([Source](https://en.cppreference.com/w/cpp/standard_library/decay-copy)).
+
+> Le fait qu'``auto(expr)``/``auto{expr}`` fasse un ["decay-copy"](https://en.cppreference.com/w/cpp/standard_library/decay-copy) signifie également que les tableaux (ex: ``int[N]``) sont convertis en pointeurs (ex: ``int*``) ([Documentation ``std::decay_t``](https://en.cppreference.com/w/cpp/types/decay)).<br>
+> Pour préserver le type tableau, il faut utiliser [``auto`` (Placeholder type specifiers)](#placeholder-type-specifiers-depuis-c11) ou [``decltype(auto)``](#decltypeauto-depuis-c14).
+{: .block-warning }
 
 A première vue on pourrait penser que ça ne répond à aucun besoin réel.<br>
 Mais regardons [la motivation](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0849r8.html#Motivation) derrière cet ajout:
@@ -1526,7 +1513,7 @@ int main()
 {% endhighlight %}
 Les deux occurrences de ``"A"`` ont bien été supprimées, mais où sont passées les autres occurrences de ``"B"`` ?
 
-Regardons comment fonctionne ``std::erase``. La fonction ``std::erase`` se présente comme suit:
+Regardons comment fonctionne la fonction [``std::erase``](https://en.cppreference.com/w/cpp/container/vector/erase2). Elle se présente comme suit:
 {% highlight cpp %}
 template<class T, class Alloc, class U>
 constexpr typename std::vector<T, Alloc>::size_type erase(std::vector<T, Alloc>& c, const U& value);
@@ -1534,14 +1521,14 @@ constexpr typename std::vector<T, Alloc>::size_type erase(std::vector<T, Alloc>&
 
 Elle prend une **référence** sur un ``std::vector`` ainsi qu'une **référence constante** sur l'élément à rechercher et **à supprimer** dans le conteneur.
 
-[La documentation](https://en.cppreference.com/w/cpp/container/vector/erase2) nous dit que la fonction ``std::erase`` supprime chaque élément du conteneur ``c`` égal à l'argument ``value`` de la manière suivante:
+[La documentation](https://en.cppreference.com/w/cpp/container/vector/erase2) nous dit que la fonction [``std::erase``](https://en.cppreference.com/w/cpp/container/vector/erase2) supprime chaque élément du conteneur ``c`` égal à l'argument ``value`` de la manière suivante:
 {% highlight cpp %}
 auto it = std::remove(c.begin(), c.end(), value);
 auto r = c.end() - it;
 c.erase(it, c.end());
 return r;
 {% endhighlight %}
-Hors, ``std::remove`` ne supprime pas réellement d'éléments, mais [les réorganise](https://en.cppreference.com/w/cpp/algorithm/remove#Possible_implementation): il déplace vers le début du conteneur les éléments à conserver, **en écrasant les éléments à supprimer** par ces affectations.
+Hors, [``std::remove``](https://en.cppreference.com/w/cpp/algorithm/remove) ne supprime pas réellement d'éléments, mais [les réorganise](https://en.cppreference.com/w/cpp/algorithm/remove#Possible_implementation): il déplace vers le début du conteneur les éléments à conserver, **en écrasant les éléments à supprimer** par ces affectations.
 
 Cela signifie que ``container.front()``, passé par référence constante à ``std::erase``, **peut être modifié pendant l'appel**, notamment si sa position est réutilisée pour stocker une autre valeur (comme ``"B"`` dans l'exemple).
 
