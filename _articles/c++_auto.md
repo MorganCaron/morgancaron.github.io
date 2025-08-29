@@ -72,6 +72,9 @@ En C++, écrire ``auto a = 1;`` revient exactement à écrire ``int a = 1;``. Le
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-deduction.gif %}
 
+<br>
+> Le langage C a effectué le même changement au niveau de [son mot clef ``auto``](https://en.cppreference.com/w/c/language/auto) en [C23](https://en.cppreference.com/w/c/23) en lui donnant la même fonction qu'en C++11 pour faire de l'**inférence de types** ([proposal](https://open-std.org/JTC1/SC22/WG14/www/docs/n3007.htm)).
+
 ### Pointeurs et propriétés cvref
 
 Par défaut, ``auto`` ne récupère pas les propriétés **cvref** (``const``/``volatile``/``reference``) de la valeur qui lui est assignée.
@@ -639,7 +642,7 @@ template<class Lhs, class Rhs>
 auto sum(Lhs lhs, Rhs rhs) -> decltype(lhs + rhs)
 {
 	return lhs + rhs;
-};
+}
 {% endhighlight %}
 
 > Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/c++/templates).
@@ -652,7 +655,7 @@ template<class Lhs, class Rhs>
 decltype(lhs + rhs) sum(Lhs lhs, Rhs rhs)
 {
 	return lhs + rhs;
-};
+}
 {% endhighlight %}
 
 > \<source\>:5:10: **error**: 'lhs' was not declared in this scope;<br>
@@ -749,7 +752,7 @@ template<class Lhs, class Rhs>
 auto sum(Lhs lhs, Rhs rhs)
 {
 	return lhs + rhs;
-};
+}
 {% endhighlight %}
 
 Cependant, ce n'est pas une écriture que vous verrez souvent car elle **comporte des risques** et qu'elle **ne couvre pas toutes les situations**.
@@ -772,7 +775,7 @@ template<class Lhs, class Rhs>
 auto sum(Lhs lhs, Rhs rhs)
 {
 	return lhs + rhs;
-};
+}
 {% endhighlight %}
 
 Il arrive que la fonction contienne plusieurs ``return``.
@@ -786,7 +789,7 @@ auto getText(int value)
 		return "La valeur est positive"; // const char*
 	else
 		return std::string_view{"La valeur est négative"}; // std::string_view
-};
+}
 {% endhighlight %}
 
 Ceci provoque une erreur de compilation, bien qu'un [type commun](/articles/c++/type_traits#type_commun) existe (``std::string_view``)
@@ -802,7 +805,7 @@ auto getText(int value) -> std::string_view
 		return "La valeur est positive"; // const char*
 	else
 		return std::string_view{"La valeur est négative"}; // std::string_view
-};
+}
 {% endhighlight %}
 
 Le compilateur tente maintenant de construire un ``std::string_view`` à partir du ``const char*`` retourné. Ce qui est fait via un appel implicite à un constructeur de ``std::string_view``.
@@ -817,7 +820,7 @@ template<class Lhs, class Rhs>
 auto sum(Lhs lhs, Rhs rhs) -> auto
 {
 	return lhs + rhs;
-};
+}
 {% endhighlight %}
 
 Ici, il n'y a pas de redondance du mot clef ``auto``.<br>
@@ -841,7 +844,7 @@ template<class Function>
 auto call(Function function) -> decltype(auto)
 {
 	return function();
-};
+}
 
 // call(foo) retourne un int
 // call(bar) retourne un int&
@@ -853,7 +856,7 @@ auto main() -> int
 {
 	decltype(auto) result = call(bar);
 	return result;
-};
+}
 {% endhighlight %}
 
 Avec cette initialisation de variable, il est possible de faire ceci:
@@ -946,7 +949,7 @@ for (const auto& [key, value] : map)
 Les classes/structures ayant **toutes leurs variables membres publiques** sont déstructurables avec une *structured binding declaration*:
 
 {% highlight cpp linenos highlight_lines="10" %}
-struct Position2d
+struct Point2d
 {
 	int x;
 	int y;
@@ -954,8 +957,8 @@ struct Position2d
 
 auto main() -> int
 {
-	auto position = Position2d{10, 15}; // Construction d'un Position2d avec x vallant 10 et y vallant 15
-	auto [x, y] = position; // Extraction des variables membre de Position2d
+	auto position = Point2d{10, 15}; // Construction d'un Point2d avec x vallant 10 et y vallant 15
+	auto [x, y] = position; // Extraction des variables membre de Point2d
 	std::println("{} {}", x, y); // Affiche: "10 15"
 }
 {% endhighlight %}
@@ -964,7 +967,7 @@ La déstructuration doit **respecter l'ordre des paramètres**.<br>
 **Leur nom n'a pas d'importance**, il peut être changé. Par exemple: ``auto [foo, bar] = position;``
 
 {% highlight cpp linenos highlight_lines="10" %}
-struct Position2d
+struct Point2d
 {
 	int x;
 	int y;
@@ -972,7 +975,7 @@ struct Position2d
 
 auto main() -> int
 {
-	auto position = Position2d{10, 15};
+	auto position = Point2d{10, 15};
 	auto [a, b] = position;
 	std::println("{} {}", a, b); // Affiche: "10 15" malgré l'utilisation de noms de variables différents
 }
@@ -982,10 +985,10 @@ auto main() -> int
 Ceci est également valable pour [chaque type cité ci-dessous](#c-like-array)
 
 {% highlight cpp %}
-auto position = Position2d{10, 15};
-auto [x] = position; // error: type 'Position2d' decomposes into 2 elements, but only 1 name was provided
+auto position = Point2d{10, 15};
+auto [x] = position; // error: type 'Point2d' decomposes into 2 elements, but only 1 name was provided
 auto [x, y] = position; // Ok
-auto [x, y, z] = position; // error: type 'Position2d' decomposes into 2 elements, but 3 names were provided
+auto [x, y, z] = position; // error: type 'Point2d' decomposes into 2 elements, but 3 names were provided
 {% endhighlight %}
 
 ### Propriétés cvref
@@ -1416,7 +1419,7 @@ template<class Lhs, class Rhs>
 auto sum(Lhs lhs, Rhs rhs) -> auto
 {
 	return lhs + rhs;
-};
+}
 {% endhighlight %}
 
 Depuis C++20, il est possible d'utiliser ``auto`` comme syntaxe alternative aux templates, améliorant grandement leur lisibilité:
@@ -1425,7 +1428,7 @@ Depuis C++20, il est possible d'utiliser ``auto`` comme syntaxe alternative aux 
 auto sum(auto lhs, auto rhs) -> auto
 {
 	return lhs + rhs;
-};
+}
 {% endhighlight %}
 
 > Attention, derrière ses airs de [placeholder type specifiers](#placeholder-type-specifiers-depuis-c11), il s'agit ici bien de **types templatés**.<br>
@@ -1444,7 +1447,7 @@ Comme avec les templates, il est toujours possible de faire des *variadic templa
 auto sum(auto... types) -> auto
 {
 	return (types + ...);
-};
+}
 {% endhighlight %}
 
 Lorsque templates et paramètres ``auto`` sont combinés, cela équivaut à avoir les types des paramètres ``auto`` après les templates:
@@ -1494,7 +1497,7 @@ A première vue on pourrait penser que ça ne répond à aucun besoin réel.<br>
 Mais regardons [la motivation](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0849r8.html#Motivation) derrière cet ajout:
 
 Prenons le code suivant, dans lequel on veut supprimer toute occurrence de la première valeur (``"A"``):
-{% highlight cpp highlight_lines="3" %}
+{% highlight cpp linenos highlight_lines="3" %}
 void erase_all_of_first(auto& container)
 {
 	std::erase(container, container.front());
@@ -1522,7 +1525,7 @@ constexpr typename std::vector<T, Alloc>::size_type erase(std::vector<T, Alloc>&
 Elle prend une **référence** sur un ``std::vector`` ainsi qu'une **référence constante** sur l'élément à rechercher et **à supprimer** dans le conteneur.
 
 [La documentation](https://en.cppreference.com/w/cpp/container/vector/erase2) nous dit que la fonction [``std::erase``](https://en.cppreference.com/w/cpp/container/vector/erase2) supprime chaque élément du conteneur ``c`` égal à l'argument ``value`` de la manière suivante:
-{% highlight cpp %}
+{% highlight cpp linenos %}
 auto it = std::remove(c.begin(), c.end(), value);
 auto r = c.end() - it;
 c.erase(it, c.end());
@@ -1541,7 +1544,7 @@ std::erase(container, auto{container.front()});
 {% endhighlight %}
 
 Ce qui nous donne:
-{% highlight cpp highlight_lines="3" %}
+{% highlight cpp linenos highlight_lines="3" %}
 void erase_all_of_first(auto& container)
 {
 	std::erase(container, auto{container.front()});

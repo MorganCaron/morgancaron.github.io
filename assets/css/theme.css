@@ -16,7 +16,7 @@
 	--lg-width: 992px;
 	--xl-width: 1200px;
 	--white-theme-background-color: #f1f1f3;
-	--dark-theme-background-color: #0a0a0c /* #131316 */;
+	--dark-theme-background-color: #0a0a0c; /* #131316 */
 	--theme-background-color: var(--dark-theme-background-color);
 }
 
@@ -69,18 +69,22 @@
 		transform: translate(-50%, -50%) rotate(30deg) scale(1.2);
 		color: orange;
 	}
+
 	25% {
 		transform: translate(-50%, -50%) rotate(120deg) scale(0.7);
 		color: yellow;
 	}
+
 	50% {
 		transform: translate(-50%, -50%) rotate(50deg) scale(1.1);
 		color: aqua;
 	}
+
 	75% {
 		transform: translate(-50%, -50%) rotate(15deg) scale(0.9);
 		color: yellow;
 	}
+
 	100% {
 		transform: translate(-50%, -50%) rotate(-50deg) scale(1.2);
 		color: orange;
@@ -210,7 +214,8 @@ body {
 	}
 }
 
-h1, h2 {
+h1,
+h2 {
 	margin: 0;
 }
 
@@ -223,7 +228,9 @@ h6 {
 	font-weight: 300;
 }
 
-p, li, td {
+p,
+li,
+td {
 	& a:not(.anchorjs-link):not(:has(img)) {
 		text-decoration: none;
 		background: linear-gradient(to top, currentColor 0%, currentColor 10%, transparent 10.01%) no-repeat;
@@ -292,13 +299,16 @@ header.home {
 	transform-style: preserve-3d;
 	perspective-origin: center;
 	perspective: 50vw;
+
 	* {
 		transform-style: inherit;
 	}
 
-	h1, h2 {
+	h1,
+	h2 {
 		display: inline-block;
 		margin: .5rem 0 0;
+
 		&::before {
 			content: attr(data-text);
 			position: absolute;
@@ -307,20 +317,28 @@ header.home {
 			filter: blur(1px);
 		}
 	}
-	h1, h2, h2::after {
+
+	h1,
+	h2,
+	h2::after {
 		position: relative;
 		z-index: 1;
 		text-shadow: 2px 2px 2px #111;
 	}
+
 	h2::after {
 		content: '_';
 		animation: blinker .7s step-start infinite;
 		color: currentColor;
 		filter: brightness(80%);
 	}
-	h1, h2, ul {
+
+	h1,
+	h2,
+	ul {
 		transform: translateZ(30px);
 	}
+
 	.title {
 		position: relative;
 		width: 500px;
@@ -330,7 +348,9 @@ header.home {
 		border-color: currentcolor;
 		border-radius: 1rem;
 		background-color: var(--muted-bg-color);
-		&::before, &::after {
+
+		&::before,
+		&::after {
 			display: block;
 			content: '';
 			position: absolute;
@@ -342,15 +362,18 @@ header.home {
 			border-color: currentcolor;
 			transform: translate(-50%, -50%) rotate(45deg);
 		}
+
 		&::before {
 			top: -1%;
 			border-width: 2px 0 0 2px;
 		}
+
 		&::after {
 			top: 101%;
 			border-width: 0 2px 2px 0;
 		}
 	}
+
 	.smoke {
 		position: absolute;
 		top: 0;
@@ -359,7 +382,9 @@ header.home {
 		height: 100%;
 		border-radius: 1rem;
 		overflow: hidden;
-		&::before, &::after {
+
+		&::before,
+		&::after {
 			display: block;
 			content: '';
 			position: absolute;
@@ -373,6 +398,7 @@ header.home {
 			transform: translate(-50%, -50%);
 			filter: blur(15px) drop-shadow(20px 20px 20px currentcolor);
 		}
+
 		&::before {
 			background-image: linear-gradient(45deg, currentcolor 25%, transparent 25%, transparent 75%, currentcolor 75%), linear-gradient(45deg, currentcolor 25%, transparent 25%, transparent 75%, currentcolor 75%);
 			background-size: 50px 50px;
@@ -380,6 +406,7 @@ header.home {
 			animation: smoke-animation 10s ease-in-out infinite alternate;
 			box-shadow: 5px 5px 50px aqua;
 		}
+
 		&::after {
 			background: linear-gradient(45deg, currentcolor 12.5%, transparent 12.5%, transparent 37.5%, currentcolor 37.5%, currentcolor 62.5%, transparent 62.5%, transparent 87.5%, currentcolor 87.5%);
 			background-size: 50px 50px;
@@ -387,6 +414,7 @@ header.home {
 			box-shadow: 5px 5px 50px purple;
 		}
 	}
+
 	nav {
 		display: flex;
 		justify-content: center;
@@ -397,6 +425,7 @@ header.home {
 			transform: translateZ(30px);
 		}
 	}
+
 	nav + nav {
 		margin-top: .5rem;
 		border: 0 solid white;
@@ -446,6 +475,7 @@ body:not(:hover) .mouse-oriented {
 
 	> aside {
 		margin: calc(-100dvh + 5.5rem + 12rem) .5rem .5rem;
+
 		> .rounded-card {
 			display: none;
 			top: .5rem;
@@ -476,6 +506,7 @@ body:not(:hover) .mouse-oriented {
 	@media (min-width: 992px) {
 		grid-template-rows: 1fr;
 		grid-template-columns: 1fr minmax(0, 4fr) 1fr;
+
 		> aside > .rounded-card {
 			display: inline-block;
 		}
@@ -517,9 +548,11 @@ article {
 
 	> table {
 		margin-bottom: 1rem;
+
 		tr {
 			border-top: 1px solid currentColor;
 			border-bottom: 1px solid currentColor;
+
 			td {
 				padding-right: 1rem;
 			}
@@ -529,7 +562,7 @@ article {
 	ul#toc {
 		max-width: max-content;
 		margin: 0 auto 1rem;
-	
+
 		&,
 		& ul {
 			list-style-type: disclosure-closed;
@@ -861,29 +894,37 @@ figure.highlight {
 		background-color: #181818;
 		box-shadow: inset 1px -1px 5px black;
 	}
+
 	&:hover {
 		&::after {
 			display: none;
 		}
 	}
+
 	&:has(.language-c)::after {
 		content: "C";
 	}
+
 	&:has(.language-cpp)::after {
 		content: "C++";
 	}
+
 	&:has(.language-console)::after {
 		content: "Output terminal";
 	}
+
 	&:has(.language-html)::after {
 		content: "HTML";
 	}
+
 	&:has(.language-css)::after {
 		content: "CSS";
 	}
+
 	&:has(.language-javascript)::after {
 		content: "JS";
 	}
+
 	&:has(.language-armasm)::after {
 		content: "ASM";
 	}
@@ -907,7 +948,8 @@ figure.highlight {
 		background-color: rgba(0, 0, 0, 0.5);
 	}
 
-	.language-c, .language-cpp {
+	.language-c,
+	.language-cpp {
 
 		/* preprocessor, include */
 		& .cp,
@@ -954,7 +996,8 @@ figure.highlight {
 		}
 
 		/* comment */
-		& .c1 {
+		& .c1,
+		& .cm {
 			color: lime;
 		}
 	}
@@ -1006,7 +1049,8 @@ figure.highlight {
 	& .language-armasm {
 
 		/* labels name */
-		& .nl, .nv {
+		& .nl,
+		.nv {
 			color: lightseagreen;
 		}
 
@@ -1015,7 +1059,9 @@ figure.highlight {
 			color: steelblue;
 		}
 
-		& .err, .o, .mi {
+		& .err,
+		.o,
+		.mi {
 			color: chocolate;
 		}
 	}
