@@ -195,6 +195,10 @@ auto smartPointer = std::make_unique<MyClass>();
 auto lambda = [](auto lhs, auto rhs) { return lhs + rhs; };
 {% endhighlight %}
 
+> Le **left-to-right** rend la lecture beaucoup plus naturelle:<br>
+> Lorsqu'on décrit une variable, on dit "Une variable ``duration`` qui vaut 10 secondes.".<br>
+> On ne dit pas "En secondes, une variable ``duration`` qui vaut 10."
+
 ### ``auto`` force l'initialisation
 
 Sans ``auto``, il est possible de **déclarer des variables sans les initialiser**.
@@ -635,6 +639,21 @@ auto sum(int lhs, int rhs) -> int
 }
 {% endhighlight %}
 
+> Le **left-to-right** rend la lecture beaucoup plus naturelle:<br>
+> Lorsqu'on décrit une fonction, on dit "Une fonction ``sum`` qui prend deux int et qui retourne un int".<br>
+> On ne dit pas "Un int retourné par une fonction ``sum`` qui prend deux int."
+
+> Certains pourraient trouver cette syntaxe absurde, car elle semble préciser **deux types au lieu d'un** (``auto`` et ``int``).
+> Mais ici, **``auto`` n'est pas un type**.<br>
+> ``auto main() -> int`` semble ridicule de premier abord, mais c'est uniquement parce que **nous n'y sommes pas habitués**.
+> Il n'y a rien d'intrinsèquement ridicule dans cette syntaxe.<br>
+> Le seul défaut qu'on pourrait y voir est que ça ne se distingue pas vraiment des autres utilisations de ``auto``. Un mot clef ``func``, ``function`` (Typescript) ou [``fn`` (Rust)](https://doc.rust-lang.org/book/ch03-03-how-functions-work.html) serait plus approprié.
+{: .block-warning }
+
+Cette nouvelle écriture offre plusieurs autres avantages:
+
+### Type de retour dépendant des paramètres
+
 Cette écriture permet entre autre de définir un type de retour qui dépend des paramètres de la fonction, puisque ceux-ci sont connus avant.
 
 {% highlight cpp %}
@@ -663,6 +682,77 @@ decltype(lhs + rhs) sum(Lhs lhs, Rhs rhs)
 
 Le compilateur comprend les déclarations dans l'ordre dans lequel il les lit. Et comme il lit les fichiers de haut en bas et de gauche à droite, il ne connait pas encore ``lhs`` et ``rhs`` à l'instant où on les utilise dans ``decltype(lhs + rhs)``.
 
+### Fonctions retournant un pointeur de fonction
+
+Lorsqu'on souhaite créer une fonction qui retourne un pointeur de fonction, parvenir à écrire sa déclaration est un défi en soi, et la comprendre l'est encore plus.
+
+{% highlight cpp %}
+int (*getFunction())(int); // Retourne un pointeur de fonction prenant un int et retournant un int
+{% endhighlight %}
+
+Il devient facile de l'écrire et de la comprendre en utilisant la syntaxe du *trailing return type*:
+{% highlight cpp %}
+auto getFunction() -> int (*)(int);
+{% endhighlight %}
+
+### Simplifie la résolution des scopes
+
+Un autre avantage non négligeable du *trailing return type* est une simplification de la résolution des scopes:
+{% highlight cpp %}
+struct Foo
+{
+	using Int = std::int16_t;
+	Int getNumber();
+};
+
+using Int = std::int64_t;
+
+Int Foo::getNumber() { return 0; } // Ne compile pas, type de retour incorrect
+Foo::Int Foo::getNumber() { return 0; } // Ok
+
+auto Foo::getNumber() -> Int { return 0; } // Ok
+{% endhighlight %}
+
+Le *trailing return type* étant après le nom de la fonction, il prend en compte **le même scope** que celle-ci.<br>
+Lorsqu'on utilise beaucoup de namespaces, nested classes et alias de types, le *trailing return type* permet d'avoir une syntaxe beaucoup plus simple et claire.
+
+### Levée d'ambiguïté par le trailing return type
+
+Lorsqu'on définie une fonction depuis le namespace global, le *trailing return type* permet même de lever une ambiguïté du compilateur:
+{% highlight cpp %}
+using Int = std::int64_t;
+
+Int ::Foo::getNumber() { return 0; }
+{% endhighlight %}
+
+Clang:
+{% highlight console %}
+<source>:12:1: error: 'Int' (aka 'int') is not a class, namespace, or enumeration
+   12 | Int ::Foo::getNumber() { return 0; }
+      | ^
+1 error generated.
+{% endhighlight %}
+
+MSVC:
+{% highlight console %}
+<source>(12): error C2825: 'Int': must be a class or namespace when followed by '::'
+<source>(12): error C2510: 'Int': left of '::' must be a class/struct/union
+<source>(12): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+Compiler returned: 2
+{% endhighlight %}
+
+Ici, ``Int ::Foo::getNumber`` peut être interprété par le compilateur comme étant ``Int::Foo::getNumber``.<br>
+Il s'attend donc à ce que ``Int`` soit une struct, une classe, un namespace, une enum ou une union.
+
+Pas d'ambiguïté possible avec le *trailing return type*.
+{% highlight cpp %}
+using Int = std::int64_t;
+
+auto ::Foo::getNumber() -> Int { return 0; }
+{% endhighlight %}
+
+### Syntaxe uniforme avec les lambdas
+
 Cette nouvelle syntaxe apporte aussi une **uniformisation entre la syntaxe des fonctions et celle des lambdas**.
 
 Les lambdas (C++11) s'écrivent de la façon suivante, avec le type de retour à droite:
@@ -675,7 +765,7 @@ auto sum = [](int lhs, int rhs) -> int {
 A noter qu'ici, ``auto`` n'est pas le type de la valeur de retour de la lambda, mais le type de la lambda elle-même.<br>
 Ca a été abordée dans la [section précédente](#placeholder-type-specifiers-depuis-c11).
 
-> En résumé, utiliser ``auto`` avec le trailing return type permet d'**uniformiser** la manière dont les types de retour sont déclarés et assure une meilleure lisibilité, surtout dans les fonctions dont le type de retour dépend des paramètres.<br>
+> En résumé, utiliser ``auto`` avec le *trailing return type* permet de **simplifier et clarifier** les types retournés par les fonctions, **lever des ambiguïtés** du compilateur, **uniformiser** la manière dont les types de retour sont déclarés et permet aux fonctions de **retourner des types dépendant des paramètres**.<br>
 > Cette pratique est **recommandée en C++ moderne**.
 
 ## AAA (Almost Always Auto) (depuis C++11)
