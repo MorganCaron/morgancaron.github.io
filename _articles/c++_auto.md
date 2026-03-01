@@ -1,13 +1,13 @@
 ---
 layout: article
-title: Évolution du mot clef auto
+title: Évolutions du mot clef auto
 permalink: articles/c++/auto
 category: c++
 logo: c++.svg
 background: corridor4.webp
 seo:
-  title: "Maîtriser complètement auto en C++"
-  description: Article exhaustif sur toutes les utilisations, évolutions, cas particuliers et pièges du mot clef auto en C++.
+  title: "Évolutions du mot clef auto du C++98 à C++26"
+  description: Toutes les utilisations, évolutions, cas particuliers, pièges et bonnes pratiques du mot clef auto en C++.
 published: true
 reviewers:
   - name: Arthur Laurent (Arthapz)
@@ -74,6 +74,24 @@ En C++, écrire ``auto a = 1;`` revient exactement à écrire ``int a = 1;``. Le
 
 <br>
 > Le langage C a effectué le même changement au niveau de [son mot clef ``auto``](https://en.cppreference.com/w/c/language/auto) en [C23](https://en.cppreference.com/w/c/23) en lui donnant la même fonction qu'en C++11 pour faire de l'**inférence de types** ([proposal](https://open-std.org/JTC1/SC22/WG14/www/docs/n3007.htm)).
+
+### Réduction de la verbosité
+
+L'utilisation de ``auto`` est souvent plébiscitée pour sa **facilité d'écriture** et sa capacité à réduire la verbosité, notamment lors de la manipulation de types complexes comme les **itérateurs** (ex: ``std::vector<std::string>::iterator``). 
+
+{% highlight cpp %}
+// Sans auto
+std::vector<std::string> strings;
+std::vector<std::string>::iterator it = strings.begin();
+{% endhighlight %}
+
+{% highlight cpp %}
+// Avec auto
+std::vector<std::string> strings;
+auto it = strings.begin();
+{% endhighlight %}
+
+> Mais au-delà de ce confort, il est important de noter qu'en C++, l'utilisation de ``auto`` répond avant tout à des **besoins** techniques et de conception: [**forcer l'initialisation**](#auto-force-linitialisation) (obligatoire avec ``auto``), [**éliminer les conversions implicites**](#clarifie-les-appels-effectués) (en traquant le type exact), [**lever des ambiguïtés syntaxiques**](#most-vexing-parse) (via la syntaxe *left-to-right*), [**typer les lambdas**](#typer-une-lambda), [**décomposer des objets**](#structured-binding-declaration-depuis-c17), [**réduire la verbosité**](#réduction-de-la-verbosité) ou encore faciliter la [**programmation générique**](/articles/c++/programmation_generique) par la [**propagation des types**](#abbreviated-function-template-depuis-c20).
 
 ### Pointeurs et propriétés cvref
 
@@ -471,6 +489,40 @@ int main()
 
 Avec cette écriture simplifiant grandement l'utilisation de templates, ``auto`` nous permet écrire plus souvent du code par rapport à des interfaces plutôt qu'à des types concrets, rendant l'ensemble des fonctions plus génériques.
 
+### auto dans les boucles for
+
+L'utilisation de ``auto`` dans les **range-based for loops** est devenue une **pratique idiomatique** en C++ moderne. Elle permet d'écrire des boucles de manière générique, sans avoir besoin de connaître le type exact des éléments du conteneur, tout en améliorant la lisibilité. Cependant, il faut être vigilant quant aux copies inutiles.
+
+{% highlight cpp %}
+// Copie chaque élément (à éviter pour les types lourds)
+for (auto value : container) {}
+{% endhighlight %}
+
+{% highlight cpp %}
+// Référence constante (recommandé par défaut)
+for (const auto& value : container) {}
+{% endhighlight %}
+
+L'utilisation de ``auto&`` permet de modifier les éléments du conteneur pendant l'itération.
+
+### auto et std::initializer_list
+
+Un point d'attention particulier concerne la déduction de ``std::initializer_list``.
+
+{% highlight cpp %}
+// Ok: auto déduit std::initializer_list<int>
+auto list = {1, 2, 3};
+{% endhighlight %}
+
+{% highlight cpp %}
+// Erreur: déduction impossible dans une fonction
+void f(auto list);
+
+f({1, 2, 3}); // error: cannot deduce 'auto' from braced-init-list
+{% endhighlight %}
+
+Cette différence vient du fait que l'**inférence de type pour les variables** ([**Placeholder type specifiers**](#placeholder-type-specifiers-depuis-c11)) a une **règle spéciale** pour les **listes entre accolades**, alors que la **déduction des templates** (utilisée pour les **paramètres ``auto`` de fonctions**) n'en a pas. Pour que cela fonctionne dans une fonction, il faut explicitement demander un **``std::initializer_list<T>``**.
+
 ### auto complique la lecture du code?
 
 Les développeurs réticents à utiliser ``auto`` soutiennent que de **ne pas écrire explicitement le type des variables ajoute en charge mentale** pour les développeurs. Forçant à **faire l'effort d'aller vérifier les types de retour des fonctions** pour connaitre le type des variables typées avec ``auto``.
@@ -507,6 +559,19 @@ auto data = std::data(string);
 {% endhighlight %}
 
 ``std::data(const std::string&)`` retourne un ``const char*``, donc ``data`` est un ``const char*``. Nul besoin de chercher une conversion implicite.
+
+En réalité, ``auto`` doit être vu comme un **alias** permettant de découper le code en étapes logiques. C'est le même principe que lorsqu'on appelle une fonction imbriquée dans une autre:
+{% highlight cpp %}
+process(get_data(object));
+{% endhighlight %}
+Ici, le type transitoire retourné par ``get_data`` n'est pas non plus visible, et cela ne dérange personne. Utiliser ``auto`` pour extraire ce résultat intermédiaire revient au même:
+{% highlight cpp %}
+auto data = get_data(object);
+process(data);
+{% endhighlight %}
+Cela ne pose pas de problème de "type flou" car, même s'il n'est pas explicite, il est déterminé de manière unique par l'expression.
+
+> Attention cependant: ``auto`` **ne doit pas être utilisé comme un joker** sans connaître le type derrière. Il ne doit pas servir à perdre la maîtrise du code, ce n'est pas son rôle. C'est un outil pour exprimer l'intention, pas pour masquer une méconnaissance de l'architecture.
 
 > Pour faciliter la vérification des types de retour, je vous invite à activer une option dans votre IDE: **L'affichage de la signature des fonctions** lorsqu'on les survole avec la souris.
 
@@ -744,7 +809,7 @@ Compiler returned: 2
 Ici, ``Int ::Foo::getNumber`` peut être interprété par le compilateur comme étant ``Int::Foo::getNumber``.<br>
 Il s'attend donc à ce que ``Int`` soit une struct, une classe, un namespace, une enum ou une union.
 
-Pas d'ambiguïté possible avec le *trailing return type*.
+Cette écriture n'est plus ambigue avec le *trailing return type*:
 {% highlight cpp %}
 using Int = std::int64_t;
 
@@ -770,19 +835,19 @@ Ca a été abordée dans la [section précédente](#placeholder-type-specifiers-
 
 ## AAA (Almost Always Auto) (depuis C++11)
 
-Le principe **AAA (Almost Always Auto)** a vu le jour dès le C++11 pour encourager l'utilisation d'``auto`` par défaut.
+Le principe **AAA (Almost Always Auto)** a vu le jour dès le C++11 pour encourager l'utilisation d'``auto`` par défaut. Au fil des versions du standard, les raisons d'adopter cette pratique n'ont cessé de croître.
 
 Comme nous venons de le voir, ``auto`` apporte de nombreux avantages, aussi bien pour la lisibilité et l'apport de nouvelles fonctionnalités.
 
 Quelques avantages notables à utiliser ``auto`` :
 
-- **Force l'initialisation des variables**, évitant au développeur un oubli d'initialisation (``int i;``), évitant ainsi des erreurs
-- Évite les **conversions implicites** lors de l'initialisation des variables (``float f = 1;``: conversion implicite de int vers float)
-- Plus **agréable à écrire** pour les types longs (Par exemple les itérateurs)
+- [**Forcer l'initialisation des variables**](#auto-force-linitialisation), évitant au développeur un oubli d'initialisation (``int i;``) et donc des erreurs
+- [**Éviter les conversions implicites**](#clarifie-les-appels-effectués) lors de l'initialisation (ex: ``float f = 1;``: conversion implicite de int vers float)
+- [**Réduire la verbosité**](#réduction-de-la-verbosité) pour les types longs (notamment les **itérateurs**)
 - Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
 - Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
-- Les **templates** deviennent beaucoup **plus lisibles**
-- ``auto`` est le seul moyen de **typer une lambda**
+- Les **templates** deviennent beaucoup [**plus lisibles**](#abbreviated-function-template-depuis-c20) (depuis C++20)
+- ``auto`` est le seul moyen de [**typer une lambda**](#typer-une-lambda)
 
 Mais il reste un problème:<br>
 Dans l'écriture suivante, le compilateur n'est pas tenu de considérer la ligne comme étant une **simple initialisation de variable**:
@@ -920,9 +985,36 @@ Celui de gauche est simplement nécessaire pour l'écriture du *trailing return 
 > Ici, il n'y a aucun intérêt autre que l'uniformisation d'écrire ``-> auto``.<br>
 > Ecrire simplement ``auto sum(Lhs lhs, Rhs rhs)`` revient au même.
 
+### Déduction récursive
+
+Il est possible d'utiliser la déduction du type de retour pour des fonctions récursives. Cependant, le compilateur doit rencontrer au moins un ``return`` fournissant un type concret **avant** l'appel récursif pour pouvoir déduire le type.
+
+{% row %}
+{% highlight cpp %}
+// Ok: le premier return donne le type
+auto factorial(int n) 
+{
+    if (n <= 1) return 1; // int
+    return n * factorial(n - 1);
+}
+{% endhighlight %}
+
+{% highlight cpp %}
+// Erreur: type inconnu lors de l'appel
+auto factorial(int n) 
+{
+    if (n > 1) 
+        return n * factorial(n - 1);
+    return 1;
+}
+{% endhighlight %}
+{% endrow %}
+
 ## ``decltype(auto)`` (depuis C++14)
 
-Contrairement à ``auto``, ``decltype(auto)`` permet de **préserver les propriétés cvref** (``const``/``volatile``/``reference``) d'une expression.
+``decltype(auto)`` se comporte exactement comme un ``decltype(expr)`` dans lequel ``expr`` est l'expression d'initialisation (ou l'expression de retour pour une fonction). Contrairement à ``auto`` ([**Placeholder type specifiers**](#placeholder-type-specifiers-depuis-c11)), il permet de **préserver les propriétés cvref** (``const``/``volatile``/``reference``).
+
+> Écrire ``decltype(auto) x = expr;`` est rigoureusement équivalent à écrire ``decltype(expr) x = expr;``.
 
 ``decltype(auto)`` est particulièrement utile lorsqu'il est nécessaire de préserver la nature exacte de l'expression retournée, que ce soit une référence ou un type constant:
 
@@ -959,6 +1051,23 @@ decltype(auto) k = (i); // int&
 
 L'utilisation de **parenthèses** autour de ``i`` **force la déduction en référence**.<br>
 Sans les parenthèses, le résultat est une copie.
+
+## Forwarding Reference (``auto&&``) (depuis C++11)
+
+Le terme "**forwarding reference**" (autrefois appelé *universal reference*) a été inventé par **Scott Meyers** pour désigner une référence qui peut se lier aussi bien à des [**lvalues**](/articles/c++/value_categories#lvalue) qu'à des [**rvalues**](/articles/c++/value_categories#rvalue), tout en préservant leur nature (const, rvalue, etc.).
+
+Dans un contexte de template:
+- ``T&&`` est une **forwarding reference** (ou ``auto&&`` dans une [**abbreviated function template**](#abbreviated-function-template-depuis-c20)).
+- ``T&&`` hors template (ex: ``void f(int&&)``) est une **rvalue reference**.
+
+Le mot-clef ``auto&&`` est **toujours une forwarding reference**, car ``auto`` est déduit selon les mêmes règles qu'un paramètre de template. C'est l'outil idéal pour manipuler des objets de manière générique sans savoir à l'avance s'il s'agit d'une [**lvalue**](/articles/c++/value_categories#lvalue) ou d'une [**rvalue**](/articles/c++/value_categories#rvalue).
+
+{% highlight cpp %}
+// auto&& sera une lvalue ou rvalue reference selon la valeur reçue:
+auto&& variable = getValue(); // Placeholder type specifier (C++11)
+auto lambda = [](auto&& x) {}; // Paramètre template de lambda (C++14)
+void function(auto&& x); // Paramètre template de fonction (C++20)
+{% endhighlight %}
 
 ## Structured binding declaration (depuis C++17)
 
@@ -1500,6 +1609,29 @@ A votre tour de prendre le pas et d'adopter ``auto`` dans vos projets.
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-fusco.gif %}
 
+### Résumé des bonnes pratiques
+
+- Privilégiez **``const auto&``** par défaut pour les objets complexes pour éviter les copies.
+- Utilisez **``auto*``** pour rendre explicite le fait que vous travaillez avec des pointeurs.
+- Ne voyez pas ``auto`` comme un joker, mais comme un moyen de **rendre les conversions explicites**.
+
+> À noter que l'utilisation de ``auto`` est **interdite pour les variables membres non-statiques** d'une classe ou structure. Celles-ci doivent avoir un type explicite car le compilateur doit connaître la taille et le layout de la classe au moment de sa définition.
+
+{% highlight cpp %}
+struct Point {
+    auto x = 0; // Erreur: auto interdit ici
+    auto y = 0.0; // Erreur
+};
+{% endhighlight %}
+
+{% highlight cpp %}
+struct Point {
+    int x = 0; // Ok
+    double y = 0.0; // Ok
+    static constexpr auto Z = 42; // Ok (statique)
+};
+{% endhighlight %}
+
 ## Abbreviated function template (depuis C++20)
 
 Les templates ont toujours été très verbeuses.
@@ -1521,6 +1653,8 @@ auto sum(auto lhs, auto rhs) -> auto
 }
 {% endhighlight %}
 
+Cette syntaxe rend l'écriture **concise** et **lisible**, notamment lorsqu'on adopte une [**programmation générique sans types explicites**](/articles/c++/programmation_generique).
+
 > Attention, derrière ses airs de [placeholder type specifiers](#placeholder-type-specifiers-depuis-c11), il s'agit ici bien de **types templatés**.<br>
 > Une template n'est **pas toujours souhaitable**. Dans cette situation il faut n'utiliser ``auto`` que si une template est souhaitée.
 {: .block-warning }
@@ -1531,13 +1665,22 @@ auto sum(auto lhs, auto rhs) -> auto
 > Pas à: ``template<class T> auto sum(T lhs, T rhs) -> auto``
 {: .block-warning }
 
-Comme avec les templates, il est toujours possible de faire des *variadic template* avec ``auto``:
+> Contrairement aux templates classiques, il n'est **pas possible** de spécifier un **type par défaut** pour un **paramètre ``auto``**. Si vous avez besoin qu'un argument ait un type par défaut s'il n'est pas fourni, vous devrez repasser par une **syntaxe template classique**.
 
 {% highlight cpp %}
-auto sum(auto... types) -> auto
-{
-	return (types + ...);
-}
+// Ne permet pas d'appeler f() sans argument
+void f(auto x = 0);
+
+f(); // Erreur: déduction de 'auto' impossible
+f<int>(); // Ok: le type est explicitement fourni
+{% endhighlight %}
+
+{% highlight cpp %}
+// Ok, f() est possible
+template<class T = int>
+void f(T x = 0);
+
+f(); // Ok: T est int
 {% endhighlight %}
 
 Lorsque templates et paramètres ``auto`` sont combinés, cela équivaut à avoir les types des paramètres ``auto`` après les templates:
@@ -1552,6 +1695,15 @@ Equivaut à:
 {% highlight cpp %}
 template<class Lhs, class Rhs>
 void sum(Lhs lhs, Rhs rhs);
+{% endhighlight %}
+
+Comme avec les templates, il est toujours possible de faire des *variadic template* avec ``auto``:
+
+{% highlight cpp %}
+auto sum(auto... types) -> auto
+{
+	return (types + ...);
+}
 {% endhighlight %}
 
 ## auto cast (depuis C++23)
@@ -1621,7 +1773,7 @@ auto r = c.end() - it;
 c.erase(it, c.end());
 return r;
 {% endhighlight %}
-Hors, [``std::remove``](https://en.cppreference.com/w/cpp/algorithm/remove) ne supprime pas réellement d'éléments, mais [les réorganise](https://en.cppreference.com/w/cpp/algorithm/remove#Possible_implementation): il déplace vers le début du conteneur les éléments à conserver, **en écrasant les éléments à supprimer** par ces affectations.
+Or, [``std::remove``](https://en.cppreference.com/w/cpp/algorithm/remove) ne supprime pas réellement d'éléments, mais [les réorganise](https://en.cppreference.com/w/cpp/algorithm/remove#Possible_implementation): il déplace vers le début du conteneur les éléments à conserver, **en écrasant les éléments à supprimer** par ces affectations.
 
 Cela signifie que ``container.front()``, passé par référence constante à ``std::erase``, **peut être modifié pendant l'appel**, notamment si sa position est réutilisée pour stocker une autre valeur (comme ``"B"`` dans l'exemple).
 
@@ -1653,6 +1805,23 @@ int main()
 {% endhighlight %}
 
 ``auto(expr)``/``auto{expr}`` a été proposé pour résoudre des situations comme celle-ci.
+
+### Désambiguïsation syntaxique (depuis C++23)
+
+L'introduction de [**``auto(x)``** comme expression de **cast (decay-copy)**](#auto-cast-depuis-c23) pourrait théoriquement entrer en conflit avec certaines **syntaxes de déclaration**.
+
+Prenons l'exemple suivant:
+{% highlight cpp %}
+auto(s)()->N;
+{% endhighlight %}
+
+Ici, deux interprétations sont possibles pour le compilateur:
+1. Une **déclaration de fonction** nommée ``s``, retournant un type ``N`` (les parenthèses autour du nom d'une fonction étant autorisées depuis le langage C).
+2. Une **expression** : [un **cast** (copie) de ``s``](#auto-cast-depuis-c23), suivi d'un **appel de fonction** (``()``), puis d'un **accès au membre** ``N`` via l'opérateur ``->``. Dans ce cas, ``N`` ne serait pas un type, mais une variable membre de l'objet retourné.
+
+> Pour lever toute ambiguïté, le langage applique une règle fondamentale héritée du C: **face à une ambiguïté syntaxique, la déclaration l'emporte toujours sur l'expression**.
+
+C'est cette même philosophie qui est à l'origine du [**Most Vexing Parse**](#most-vexing-parse) abordé plus tôt. L'objectif est d'assurer la **stabilité et la cohérence du langage** : une syntaxe qui a toujours été interprétée comme une déclaration ne doit pas changer de sens suite à l'ajout de nouvelles fonctionnalités. Ainsi, ``auto(s)()->N;`` sera toujours traité comme une **déclaration de fonction**. Ce mécanisme garantit que l'arrivée du [**decay-copy**](#auto-cast-depuis-c23) ne casse pas la rétrocompatibilité des syntaxes existantes.
 
 ## Structured binding pack (depuis C++26)
 
