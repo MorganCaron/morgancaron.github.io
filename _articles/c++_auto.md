@@ -7,7 +7,7 @@ logo: c++.svg
 background: corridor4.webp
 seo:
   title: "Évolutions du mot clef auto du C++98 à C++26"
-  description: Toutes les utilisations, évolutions, cas particuliers, pièges et bonnes pratiques du mot clef auto en C++.
+  description: "Toutes les utilisations, évolutions, cas particuliers, pièges et bonnes pratiques du mot clef auto en C++."
 published: true
 reviewers:
   - name: Arthur Laurent (Arthapz)
