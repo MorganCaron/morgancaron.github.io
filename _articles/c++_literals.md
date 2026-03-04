@@ -103,7 +103,7 @@ auto number2 = 0123; // int exprimé en octal (Base 8) (commence par 0)
 auto number3 = 123'456'789; // int avec des séparateurs (C++14)
 {% endhighlight %}
 
-> **Séparateurs de chiffres**: Les apostrophes (``'``) peuvent être placées librement dans le nombre. Elles n'ont aucun impact sur la valeur et sont ignorées par le compilateur. Leur seul but est d'améliorer la lisibilité des grands nombres.
+Les apostrophes (``'``) peuvent être placées librement dans le nombre. Elles n'ont **aucun impact** sur la valeur et sont ignorées par le compilateur. Leur seul but est d'améliorer la **lisibilité des grands nombres**.
 
 > [**Attention à l'octal**](#integer-literal): Un nombre commençant par **``0``** est interprété comme de l'**octal** (Base 8).<br>
 > C'est un piège classique: ``0123`` en octal vaut **``83`` en décimal** (``1*8² + 2*8¹ + 3*8⁰ = 83``).<br>
@@ -132,11 +132,11 @@ Le C++23 a introduit des suffixes spécifiques pour faciliter la manipulation de
 | **``uz``** (et variantes) | [**``std::size_t``**](/articles/c++/std_size_t) | Type non signé pour les tailles d'objets. |
 | **``z``**, **``Z``** | ``std::make_signed_t<std::size_t>`` | Version signée de ``std::size_t`` (souvent identique à ``std::ptrdiff_t``). |
 
-> **Combinaisons de suffixes (C++23)** : Pour ``std::size_t``, n'importe quelle combinaison de **``z``** (ou ``Z``) et de **``u``** (ou ``U``) est valide : ``zu``, ``zU``, ``Zu``, ``ZU``, ``uz``, ``uZ``, ``Uz`` ou ``UZ``.
+Pour ``std::size_t``, n'importe quelle combinaison de **``z``** (ou ``Z``) et de **``u``** (ou ``U``) est valide : ``zu``, ``zU``, ``Zu``, ``ZU``, ``uz``, ``uZ``, ``Uz`` ou ``UZ``.
 
-> Le type signé produit par **``z``** est l'équivalent standard du type [**``ssize_t`` (POSIX)**](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html). Il est très utile pour les boucles décrémentales afin d'éviter les débordements (underflow) des types non signés.
+Le type signé produit par **``z``** est l'[**équivalent standard**](/articles/c++/size#les-alternatives-signées--ptrdiff_t-et-stdssize) du type [**``ssize_t`` (POSIX)**](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html). Il est très utile pour les boucles décrémentales afin d'éviter les débordements (underflow) des types non signés.
 
-En revanche, il n'existe toujours pas de literal pour les types à **largeur fixe** stricte (comme ``std::int64_t`` ou ``std::int32_t``). On continue d'utiliser les literals des types fondamentaux correspondants :
+En revanche, il n'existe toujours pas de literal pour les types à **largeur fixe** stricte (comme ``std::int64_t`` ou ``std::int32_t``). On continue d'utiliser les literals des types fondamentaux correspondants:
 {% highlight cpp %}
 auto n64 = 42ll; // Type long long int (au moins 64 bits)
 auto u64 = 42ull; // Type unsigned long long int (au moins 64 bits)
@@ -292,7 +292,9 @@ Elle reste présente [dans les includes de headers C portés en C++](https://en.
 Le **C++11** se voit ajouter le **literal ``nullptr``** (oui, c'est bien un literal et pas une constante comme [``nullptr`` en C](#en-c-depuis-c23-nullptr)), version à partir de laquelle ``NULL`` est **redéfini en ``#define NULL nullptr``** pour bénéficier tout de même du **typage fort** sur les codes historiques.
 
 > Bien que ``nullptr`` en C++11 et ``nullptr`` en C23  **partagent le même nom** et remplissent un rôle similaire (valeur nulle non ambiguë), ce sont deux entités distinctes, **chacune définie dans son langage respectif** avec des mécanismes internes différents.<br>
+>
 > Il en est de même pour ``std::nullptr_t`` en C++11 et ``nullptr_t`` en C23. Le premier étant un type propre au langage C++ **importé depuis ``<cstddef>``** tandis que le second est un **type fondamental** du langage C.<br>
+>
 > Ils représentent la même notion et partagent des comportements similaires, **mais ne sont ni la même valeur, ni le même type partagé entre les deux langages**.<br>
 > Une **interopérabilité** reste cependant **possible, mais pas automatique**.<br>
 > Ceci requiert l'utilisation de ``extern "C"``.
@@ -393,8 +395,7 @@ Ces séquences sont utilisables aussi bien dans les [**character literal**](#cha
 
 > Notez qu'il n'est pas nécessaire d'échapper un double guillemet à l'intérieur de guillemets simples (``'"'`` est valide), ni un guillemet simple à l'intérieur de guillemets doubles (``"'"`` est valide). L'échappement n'est requis que pour lever une ambiguïté.
 
-Voici la liste complète des [séquences d'échappement reconnues par le standard](https://en.cppreference.com/w/cpp/language/escape):
-
+Voici la liste des [**séquences d'échappement simples**](https://en.cppreference.com/w/cpp/language/escape):
 
 | Séquence | Signification |
 | :--- | :--- |
@@ -409,13 +410,51 @@ Voici la liste complète des [séquences d'échappement reconnues par le standar
 | ``\'`` | Guillemet simple |
 | ``\"`` | Guillemet double |
 | ``\?`` | Point d'interrogation |
-| **``\0``** | Caractère nul utilisé comme **sentinelle** (valant **0**, équivalent à [**``NULL``**](#en-c-avant-c23-null) en langage C) |
-| **``\nnn``** | Code **octal** (ex: ``\123``) |
-| **``\xnn``** | Code **hexadécimal** (ex: ``\x53``) |
-| **``\unnnn``** | Code **Unicode** (UTF-16) |
-| **``\Unnnnnnnn``** | Code **Unicode** (UTF-32) |
+| ``\0`` | Caractère nul utilisé comme **sentinelle** (valant **0**, équivalent à [**``NULL``**](#en-c-avant-c23-null) en langage C) |
 
 > **Note sur le signal sonore (``\a``)**: L'émission d'un son dépend de votre terminal et de sa configuration. Le caractère est envoyé au flux de sortie, mais c'est à l'émulateur de terminal de décider s'il doit déclencher un "beep" système ou une notification.
+
+#### Codes numériques et Unicode
+
+Les [**universal character names**](https://en.cppreference.com/w/cpp/language/escape) (tableau ci-dessous) permettent de référencer un caractère par son [*code point*](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-2/#G25564) Unicode. Ils **évitent toute dépendance** à l'**encodage du fichier** source.
+
+Sans ces codes, un caractère écrit "**en dur**" peut être **interprété différemment selon la machine** qui compile:
+{% highlight cpp %}
+// Le résultat dépend de l'encodage du fichier source
+auto s = "é";
+// Si le fichier source est en UTF-8 → C3 A9
+// Si le fichier source est en Windows-1252 → E9
+
+// Avec un universal character name
+auto s = "\u00E9"; // // garantie de référencer le code point Unicode U+00E9
+{% endhighlight %}
+
+En revanche, **l'encodage final** du caractère dans le binaire **dépend du type de literal** ("", [u8""](#string-literal), [u""](#string-literal), [U""](#string-literal)).<br>
+Seuls **les literals UTF** (u8, u, U) **garantissent l'encodage** exact des octets générés.
+
+| Séquence | Signification |
+| :--- | :--- |
+| ``\nnn`` | Valeur **octale** (1 à 3 chiffres, ex: ``\123``) |
+| ``\xn...`` | Valeur **hexadécimale**. ``\x`` suivi d'un **nombre arbitraire de chiffres** hexadécimaux (ex: ``\x53``), **jusqu'à un caractère non-hexadécimal** |
+| ``\unnnn`` | Code **Unicode**. ``\u`` suivi de **4 chiffres** hexadécimaux |
+| ``\Unnnnnnnn`` | Code **Unicode**. ``\U`` suivi de **8 chiffres** hexadécimaux |
+| ``\o{n...}`` | **Octal délimité**¹ (C++23) |
+| ``\x{n...}`` | **Hexadécimal délimité**¹ (C++23) |
+| ``\u{n...}`` | **Unicode délimité**¹ (C++23) exprimé en hexadécimal |
+| ``\N{NAME}`` | **Caractère nommé** (C++23). Permet d'utiliser un caractère par son nom officiel Unicode. |
+
+*¹Le terme "**délimité**" signifie que la valeur est **entourée d'accolades**. Celles-ci peuvent contenir un **nombre arbitraire de chiffres**. Cette syntaxe permet une longueur libre et **évite que le compilateur ne "mange" par erreur des chiffres** appartenant au texte qui suit.*
+
+{% highlight cpp %}
+auto s0 = "\123"; // 'S' (Octal)
+auto s1 = "\x53"; // 'S' (Hexadécimal)
+
+auto s2 = "\u{1F600}"; // 😀 (Unicode délimité)
+auto s3 = "\x{41}"; // 'A' (Hexadécimal délimité)
+
+auto s4 = "\N{GREEK DELTA}"; // Δ
+auto s5 = "\N{GRINNING FACE}"; // 😀
+{% endhighlight %}
 
 ### Multi-caractères (Multi-character literal)
 
@@ -447,7 +486,7 @@ auto s3 = U"hello"; // const char32_t[6] (UTF-32) (Depuis C++11)
 auto s4 = L"hello"; // const wchar_t[6] (Wide character)
 {% endhighlight %}
 
-> Chaque literal de chaîne, quel que soit son encodage, se termine par une **sentinelle nulle** (``\0``) ajoutée automatiquement par le compilateur. La taille du tableau (``[6]`` ici) inclut toujours ce caractère invisible.
+Chaque literal de chaîne, quel que soit son encodage, se termine par une **sentinelle nulle** (``\0``) ajoutée automatiquement par le compilateur. La taille du tableau (``[6]`` ici) inclut toujours ce caractère invisible.
 
 ### ``std::string`` literal (C++14) et ``std::string_view`` literal (C++17)
 
@@ -513,7 +552,7 @@ auto sv = u"hello"sv; // std::u16string_view
 > À noter que la plupart de ces littéraux sont devenus [**``constexpr``**](/articles/c++/compile-time_execution) à partir du C++20.
 
 
-> **Sécurité de string_view**: Par nature, un ``std::string_view`` ne garantit pas la présence d'un ``\0`` final (il se contente d'un pointeur et d'une taille). Cependant, lorsqu'il est construit à partir d'un **literal** (``"..."sv``), il pointe vers le tableau statique du binaire qui, lui, possède bien cette sentinelle. Passer ``sv.data()`` à une fonction attendant un pointeur C est donc **techniquement sûr** dans ce cas précis, bien que risqué conceptuellement.
+Par nature, un ``std::string_view`` ne garantit pas la présence d'un ``\0`` final (il se contente d'un pointeur et d'une taille). Cependant, lorsqu'il est construit à partir d'un **literal** (``"..."sv``), il pointe vers le tableau statique du binaire qui, lui, possède bien cette sentinelle. Passer ``sv.data()`` à une fonction attendant un pointeur C est donc **techniquement sûr** dans ce cas précis, bien que risqué conceptuellement.
 
 ### String literal: lvalue ou prvalue ?
 
@@ -663,6 +702,8 @@ Les opérateurs de literals ne peuvent prendre [**que des types spécifiques**](
 - **Caractères** : ``char``, ``wchar_t``, ``char8_t`` (C++20), ``char16_t``, ``char32_t``.
 - **Chaînes** : Un couple ``(const T*, std::size_t)`` où ``T`` est l'un des types de caractères ci-dessus.
 
+> **Conflits de suffixes**: Il est possible d'utiliser le même suffixe pour des catégories différentes (ex: le suffixe ``s`` utilisé pour les [**chaînes**](#stdstring-literal-c14-et-stdstring_view-literal-c17) (``"hello"s``) et pour [**chrono**](#chrono-literal-c14--c20) (``1s``)). Le compilateur ne rencontre aucune ambiguïté car il distingue les catégories par leurs paramètres (un couple ``ptr, size`` pour une chaîne contre un ``unsigned long long`` pour un nombre).
+
 > **Le cas particulier du ``const char*``**: Un opérateur ne prenant qu'un simple ``const char*`` est utilisé **uniquement** pour les literals numériques en mode "Raw". Il n'existe pas d'équivalent pour les chaînes de caractères (**qui exigent toujours la taille en second paramètre**).
 >
 > Ainsi, si vous définissez un ``operator ""_suffix(const char*)``:
@@ -715,9 +756,36 @@ void operator ""_print(const char* rawString)
 42_print; // Affiche "Literal brut: 42"
 {% endhighlight %}
 
+## Combinaison extrême
+
+Pour illustrer la complexité de l'analyse lexicale du C++, voici un littéral qui combine presque toutes les fonctionnalités abordées dans cet article en une seule valeur:
+
+{% highlight cpp %}
+auto x = 0x14'2.e9'1'fp-1'3_e\u00e9l\u{d4}f;
+{% endhighlight %}
+
+Décortiquons rigoureusement ce "monstre" syntaxique:
+
+1. **Préfixe ``0x``** : Indique que la valeur est exprimée en **hexadécimal**
+2. **[Mantisse](https://fr.wikipedia.org/wiki/Mantisse) ``14'2.e9'1'f``**:
+	- La partie entière est ``142`` (hex)
+	- La partie fractionnaire est ``e91f`` (hex). ``e`` et ``f`` sont ici des chiffres hexadécimaux et non des suffixes
+	- Des **séparateurs de chiffres** (``'``) sont insérés arbitrairement pour la "lisibilité"
+3. **Exposant ``p-1'3``**:
+	- Le [**préfixe ``p``**](#hexadécimaux-à-virgule-flottante-c17) est **obligatoire pour les flottants hexadécimaux** et indique une **puissance de 2**
+	- L'exposant ici est **-13** (exprimé en décimal)
+4. [**Suffixe UDL**](#user-defined-literal-depuis-c11) ``_e\u00e9l\u{d4}f`` (``operator""_eélÔf``):
+	- L'identifiant commence par un underscore (``_``)
+	- Le caractère 'e'
+	- Une séquence Unicode classique: [**``\u00e9``**](#codes-numériques-et-unicode) (lettre ``é``)
+	- Le caractère 'l'
+	- Une séquence Unicode délimitée (C++23): [**``\u{d4}``**](#codes-numériques-et-unicode) (lettre ``Ô``)
+	- Le caractère 'f'
+
 ---
 
 Aller plus loin:
 - [Auto](/articles/c++/auto)
+- [Encodages](/articles/c++/encoding)
 - [Types Fondamentaux](/articles/c++/fundamental_types)
-- [Tailles (std::size_t)](/articles/c++/std_size_t)
+- [Les tailles en C++ (std::size_t)](/articles/c++/std_size_t)

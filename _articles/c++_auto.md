@@ -6,7 +6,7 @@ category: c++
 logo: c++.svg
 background: corridor4.webp
 seo:
-  title: "Évolutions du mot clef auto du C++98 à C++26"
+  title: "Maîtriser complètement auto en C++" # "Évolutions du mot clef auto du C++98 à C++26"
   description: "Toutes les utilisations, évolutions, cas particuliers, pièges et bonnes pratiques du mot clef auto en C++."
 published: true
 reviewers:
@@ -16,7 +16,7 @@ reviewers:
     link: https://github.com/glcraft
 ---
 
-Le mot clef ``auto``, ses **avantages** et ses différents comportements **selon la version** et le contexte.
+Le mot clef ``auto`` de C++98 à C++26, ses **avantages** et ses différents comportements **selon la version** et le contexte.
 
 {% reviewers %}
 
