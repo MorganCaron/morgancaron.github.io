@@ -111,6 +111,8 @@ body {
 	line-height: 1.5;
 	font-size: 1.2rem;
 	font-weight: 400;
+	display: grid;
+	grid-template-columns: 100%;
 
 	&:has(header.home) {
 		background-image: url("/assets/images/background1.svg"), radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
@@ -160,19 +162,25 @@ body {
 		background-blend-mode: multiply, normal, normal, normal, normal, normal, normal, normal;
 	}
 
-	> .parallax > header {
-		padding: 1rem;
-		margin-bottom: 1rem;
+	> .parallax {
+		grid-row: 1;
+		grid-column: 1;
 
-		> .button {
-			position: absolute;
-			top: 1rem;
-			left: 1rem;
-		}
+		> header {
+			padding-top: 7rem;
+			padding-bottom: 1rem;
+			margin-bottom: 1rem;
 
-		.logo {
-			width: 7rem;
-			height: auto;
+			> .button {
+				position: absolute;
+				top: 1rem;
+				left: 1rem;
+			}
+
+			.logo {
+				width: 7rem;
+				height: auto;
+			}
 		}
 	}
 
@@ -250,6 +258,10 @@ td {
 }
 
 body > nav.sticky-top {
+	grid-row: 1;
+	grid-column: 1;
+	align-self: start;
+	z-index: 10;
 	display: grid;
 	grid-template-rows: 1fr;
 	grid-template-columns: 1fr 4fr 1fr;
@@ -287,11 +299,6 @@ body > nav.sticky-top {
 			}
 		}
 	}
-}
-
-nav.sticky-top + .parallax {
-	margin-top: -5.5rem;
-	padding-top: 5rem;
 }
 
 header.home {
@@ -605,10 +612,6 @@ blockquote {
 
 .parallax {
 	width: 100%;
-
-	&::before {
-		background-image: var(--background-image);
-	}
 
 	&::after {
 		background-color: var(--background-color);

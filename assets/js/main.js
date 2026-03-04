@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 }, false);
 
 const update = () => {
+	updateParallax();
 	requestAnimationFrame(update);
 };
 
@@ -28,7 +29,6 @@ const initTopButtons = () => {
 };
 
 const initParallax = () => {
-	window.addEventListener('scroll', updateParallax);
 	updateParallax();
 };
 
@@ -63,17 +63,10 @@ const updateMouse = () => {
 };
 
 const updateParallax = () => {
-	const scrollX = window.scrollX || document.documentElement.scrollLeft;
-	const scrollY = window.scrollY || document.documentElement.scrollTop;
-
 	document.querySelectorAll('.parallax').forEach(parallax => {
 		const rectangle = parallax.getBoundingClientRect();
-		const offsetLeft = -rectangle.left;
-		const offsetTop = -rectangle.top;
-		const relativeScrollX = offsetLeft - scrollX + scrollX/2;
-		const relativeScrollY = offsetTop  - scrollY + scrollY/2;
-
-		parallax.style.setProperty('--scroll-x', `${relativeScrollX}px`);
-		parallax.style.setProperty('--scroll-y', `${relativeScrollY}px`);
+		const factor = 0.5;
+		const scrollY = -rectangle.top * factor;
+		parallax.style.setProperty('--scroll-y', `${scrollY}px`);
 	});
 };
