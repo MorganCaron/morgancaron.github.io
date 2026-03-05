@@ -101,10 +101,14 @@
 
 html,
 body {
-	scroll-padding-top: 60px;
+	scroll-padding-top: var(--navbar-height);
 }
 
 body {
+	--navbar-height: 12rem;
+	@media (min-width: 992px) {
+		--navbar-height: 5.5rem;
+	}
 	background-color: var(--background-color);
 	color: var(--color);
 	font-family: 'Rajdhani', monospace;
@@ -167,7 +171,7 @@ body {
 		grid-column: 1;
 
 		> header {
-			padding-top: 7rem;
+			padding-top: calc(var(--navbar-height) + 1.5rem);
 			padding-bottom: 1rem;
 			margin-bottom: 1rem;
 
@@ -190,7 +194,7 @@ body {
 		}
 
 		> .container {
-			margin-top: 4rem;
+			margin-top: var(--navbar-height);
 		}
 	}
 
@@ -481,7 +485,7 @@ body:not(:hover) .mouse-oriented {
 	grid-template-columns: 10px minmax(0, 4fr) 10px;
 
 	> aside {
-		margin: calc(-100dvh + 5.5rem + 12rem) .5rem .5rem;
+		margin: calc(-100dvh + var(--navbar-height) + 12rem) .5rem .5rem;
 
 		> .rounded-card {
 			display: none;
@@ -492,7 +496,7 @@ body:not(:hover) .mouse-oriented {
 
 	> section {
 		position: relative;
-		margin-top: calc(-100dvh + 5.5rem + 12rem);
+		margin-top: calc(-100dvh + var(--navbar-height) + 12rem);
 		padding: 0 1rem;
 		background-color: var(--alpha-background-color);
 
@@ -621,10 +625,14 @@ blockquote {
 section.category-cards {
 	display: grid;
 	grid-template-rows: 1fr;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr;
 	gap: 1rem 1rem;
 	margin-bottom: 1rem;
 	user-select: none;
+
+	@media (min-width: 576px) {
+		grid-template-columns: 1fr 1fr;
+	}
 
 	@media (min-width: 992px) {
 		grid-template-columns: 1fr 1fr 1fr;
@@ -649,7 +657,7 @@ section.category-cards {
 
 		.logo {
 			transition: transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-			transform: translateY(120px) scale(0.6);
+			transform: translateY(60%) scale(0.6);
 			width: 50%;
 			height: auto;
 		}
@@ -765,23 +773,25 @@ section.article-cards {
 
 			h2 {
 				position: relative;
+				top: -1px;
 				display: inline-block;
-				height: 3rem;
+				height: calc(3rem + 2px);
 				margin: 0;
 				padding-top: .2rem;
 				padding-left: .5rem;
 				background-color: var(--card-background-color);
 				white-space: nowrap;
+				z-index: 1;
 
 				&::after {
 					content: "";
 					position: absolute;
 					top: 0;
-					border-color: transparent transparent var(--card-background-color) var(--card-background-color);
-					border-style: solid;
-					border-width: 1.5rem;
-					width: 1rem;
+					left: calc(100% - 1px);
 					height: 100%;
+					aspect-ratio: 8 / 10;
+					background-color: var(--card-background-color);
+					clip-path: polygon(0 0, 0 100%, 100% 100%);
 				}
 			}
 
@@ -930,6 +940,11 @@ figure.highlight {
 
 	&:has(.language-armasm)::after {
 		content: "ASM";
+	}
+
+	pre, table, td, .lineno {
+		font-family: inherit;
+		font-size: 1rem;
 	}
 
 	pre {
