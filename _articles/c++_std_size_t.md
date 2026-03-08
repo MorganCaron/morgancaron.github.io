@@ -4,7 +4,7 @@ title: Les tailles en C++ (std::size_t)
 permalink: articles/c++/size
 category: c++
 logo: c++.svg
-background: sea4.webp
+background: sea5.webp
 seo:
   title: "Maîtriser std::size_t en C++: Tailles, types signés et bonnes pratiques"
   description: "Pourquoi et comment utiliser std::size_t, std::ssize_t et std::ptrdiff_t. Comprendre les risques à ne pas les utiliser, les garanties de la norme et les littéraux C++23."
