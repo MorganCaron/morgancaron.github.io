@@ -367,7 +367,7 @@ Il bénéficie donc par dépendance au type ``std::size_t`` des mêmes garanties
 
 Mais l'arrivée de ``qsizetype`` vient également avec une **série de problèmes** dont on aimerait bien se passer.
 
-Face à ces **équivalences**, on pourrait utiliser ``qsizetype`` et ``std::diffptr_t`` de manière interchangeable (en décidant d'**ignorer les coûts** liés aux conversions si les types sous-jacents ne sont pas strictement identiques, ce qui en soit **est déjà un problème**).
+Face à ces **équivalences**, on pourrait utiliser ``qsizetype`` et ``std::ptrdiff_t`` de manière interchangeable (en décidant d'**ignorer les coûts** liés aux conversions si les types sous-jacents ne sont pas strictement identiques, ce qui en soi **est déjà un problème**).
 
 Mais ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**.
 
@@ -389,17 +389,17 @@ Dès que vous comparez un index issu d'une recherche Qt avec une taille ou un in
 Le risque est **réel**: une valeur négative de ``qsizetype`` (``-1`` utilisé comme **sentinelle** si non trouvé) [sera interprétée comme une valeur positive gigantesque](#le-mélange-signé--non-signé) lors de la comparaison avec un ``std::size_t``.
 
 {% highlight cpp linenos highlight_lines="9" %}
-const auto text = "Hello World!"; // de type const char[7]
+const auto text = "Hello World!"; // de type const char[13]
 const auto string = QString{text};
 
 // indexOf retourne -1 si le mot-clé n'est pas trouvé
 auto position = string.indexOf("Word");
 
 // Comparaison d'une valeur signée (qsizetype) avec une non-signée (std::size_t)
-// Si le pattern n'est pas trouvé (position = -1), la condition sera VRAIE car -1 > 7 en non-signé.
+// Si "Word" n'est pas trouvé (position = -1), la condition sera VRAIE car -1 > 13 en non-signé.
 if (position > std::size(text))
 {
-	...
+	// ...
 }
 {% endhighlight %}
 
@@ -453,9 +453,9 @@ if (std::ssize(list) < std::ssize(vector)) { ... }
 
 - **Lorsque vous manipulez des objets Qt**, utiliser les types attendus et retournés par Qt (comme ``qsizetype``) permet d'être sûr de ne pas avoir de conversions. Mais vous serez [parfois obligés de les faire interagir avec des ``std::size_t``](#lenfer-des-comparaisons-mixtes).
 
-- Si votre code n'est **pas fortement lié à Qt**, il est cohérent de confiner la propagation ``qsizetype`` aux strictes parties qui l'utilisent. Et d'utiliser les standards ``std::size_t`` et ``std::diffptr_t`` dans le reste de votre projet lorsque vous avez une **sémantique** de **taille**, de **quantité**, d'**index**, de **différence** ou de **distance**.
+- Si votre code n'est **pas fortement lié à Qt**, il est cohérent de confiner la propagation ``qsizetype`` aux strictes parties qui l'utilisent. Et d'utiliser les standards ``std::size_t`` et ``std::ptrdiff_t`` dans le reste de votre projet lorsque vous avez une **sémantique** de **taille**, de **quantité**, d'**index**, de **différence** ou de **distance**.
 
-Ce n'est **pas une question simple**. Utiliser ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**. Et ne pas l'utiliser introduit des conversions (**risques et coût**) entre les types qu'on manipule ``std::size_t``/``std::diffptr_t`` et le type attendu par les fonctions Qt ``qsizetype``.
+Ce n'est **pas une question simple**. Utiliser ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**. Et ne pas l'utiliser introduit des conversions (**risques et coût**) entre les types qu'on manipule ``std::size_t``/``std::ptrdiff_t`` et le type attendu par les fonctions Qt ``qsizetype``.
 
 > **Aucun** des deux choix **n'est idéal et gratuit** (hormis se tourner vers **autre chose que Qt** ?<br>
 > A noter que ce n'est **pas le seul point de friction** entre Qt, la STL et le langage. On peut noter aussi le [*copy-on-write*](https://en.wikipedia.org/wiki/Copy-on-write) et les [iterateurs](https://wiki.qt.io/Iterators)).
