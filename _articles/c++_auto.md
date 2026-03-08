@@ -160,7 +160,7 @@ auto string3 = std::string{"Hello"}; // Pourquoi s'encombrer d'un "auto" en plus
 auto string3 = "Hello"s; // 👍
 {% endhighlight %}
 
-Au delà de son écriture qui peut parfois être légèrement plus verbeuse, **auto to stick** présente de nombreux avantages.<br>
+Au-delà de son écriture qui peut parfois être légèrement plus verbeuse, **auto to stick** présente de nombreux avantages.<br>
 Nous allons voir ces points après avoir vu **auto to track**.
 
 ### auto to track
@@ -273,7 +273,7 @@ auto variable = MyClass("Hello");
 auto variable = MyClass{"Hello"}; // Ou avec l'uniform initialization
 {% endhighlight %}
 
-Ici, l'appel au constructeur devient **nettement plus clair** et ``auto`` **garantie qu'aucune conversion implicite n'ai lieu**.
+Ici, l'appel au constructeur devient **nettement plus clair** et ``auto`` **garantit qu'aucune conversion implicite n'ait lieu**.
 
 ### Most vexing parse
 
@@ -302,15 +302,15 @@ Non, c'est une fonction ayant pour signature ``int foo(int);``.<br>
 > Le langage C **autorise les parenthèses superflues autour des paramètres** des fonctions.
 {: .block-warning }
 
-En réalité nous sommes ici dans une situation d'**ambigüité** entre **deux manières différentes** d'interpréter une définition (**variable** ou **fonction**).
+En réalité nous sommes ici dans une situation d'**ambiguïté** entre **deux manières différentes** d'interpréter une définition (**variable** ou **fonction**).
 
-Face à cette ambigüité, **le compilateur choisi toujours de considérer ces déclarations comme étant des fonctions**.
+Face à cette ambiguïté, **le compilateur choisit toujours de considérer ces déclarations comme étant des fonctions**.
 
-> Si les warnings (``-Wvexing-parse``) sont activés sur votre compilateur, celui-ci devrait être assez explicite quant à la raison de cette ambigüité.
+> Si les warnings (``-Wvexing-parse``) sont activés sur votre compilateur, celui-ci devrait être assez explicite quant à la raison de cette ambiguïté.
 
-Etant donné que c'est particulièrement **trompeur** et que ça peut induire des **bugs difficiles à identifier**, il est utile de **lever l'ambigüité** en optant pour une autre écriture.
+Etant donné que c'est particulièrement **trompeur** et que ça peut induire des **bugs difficiles à identifier**, il est utile de **lever l'ambiguïté** en optant pour une autre écriture.
 
-Pour **forcer l'interprétation en variable**, on peut utiliser l'[uniform initialization](/articles/c++/uniform_initialization) qui se propose entre-autre comme une manière de résoudre les situations de most vexing parse.
+Pour **forcer l'interprétation en variable**, on peut utiliser l'[uniform initialization](/articles/c++/uniform_initialization) qui se propose entre autres comme une manière de résoudre les situations de most vexing parse.
 {% highlight cpp highlight_lines="4" %}
 void function()
 {
@@ -330,7 +330,7 @@ void function(double number)
 }
 {% endhighlight %}
 
-La déclaration des variables avec ``auto`` permet de **prévenir ce genre d'ambigüité** en gardant un code clair grace à sa syntaxe [left-to-right](#left-to-right-declaration):
+La déclaration des variables avec ``auto`` permet de **prévenir ce genre d'ambiguïté** en gardant un code clair grace à sa syntaxe [left-to-right](#left-to-right-declaration):
 {% highlight cpp highlight_lines="3 4" %}
 void function()
 {
@@ -542,7 +542,7 @@ Cet argument est pertinent mais je voudrais soulever le fait que **c'est aussi l
 Dans le code suivant nous avons une conversion implicite à la 2ème ligne:
 
 {% highlight cpp highlight_lines="2" %}
-auto string = std::string{"hello"};
+const auto string = std::string{"hello"};
 std::string data = std::data(string); // std::string <- const char*
 {% endhighlight %}
 
@@ -550,15 +550,15 @@ Ici, la fonction ``std::data`` retourne un ``const char*``, que nous affectons �
 Cette affectation appelle **implicitement** le constructeur suivant:
 
 {% highlight cpp %}
-std::basic_string<CharT, Traits, Allocator>(const CharT* s, size_type count, const Allocator& alloc = Allocator());
+std::basic_string<CharT, Traits, Allocator>(const CharT* s, const Allocator& alloc = Allocator());
 {% endhighlight %}
 
 {% highlight cpp highlight_lines="2" %}
-auto string = std::string{"hello"};
+const auto string = std::string{"hello"};
 auto data = std::data(string);
 {% endhighlight %}
 
-``std::data(const std::string&)`` retourne un ``const char*``, donc ``data`` est un ``const char*``. Nul besoin de chercher une conversion implicite.
+``std::data(const std::string&)`` retourne un ``const char*``, donc la variable ``data`` est de type ``const char*``. Nul besoin de chercher une conversion implicite.
 
 En réalité, ``auto`` doit être vu comme un **alias** permettant de découper le code en étapes logiques. C'est le même principe que lorsqu'on appelle une fonction imbriquée dans une autre:
 {% highlight cpp %}
@@ -695,7 +695,7 @@ On parle ici de déclaration **left-to-right**, en opposition à l'écriture **r
 Depuis C++11, [le langage se lance dans un changement d'écriture de ses déclarations vers une uniformisation en left-to-right](#left-to-right-declaration). Profitant de cette syntaxe pour apporter de nombreux autres avantages.
 
 Pour les déclarations/définitions des fonctions, on parle de **trailing return type**.<br>
-Ceci consiste à spécifier le type de retour des fonctions à la fin de leur définition/déclaration:
+Cela consiste à spécifier le type de retour des fonctions à la fin de leur définition/déclaration:
 
 {% highlight cpp %}
 auto sum(int lhs, int rhs) -> int
@@ -783,7 +783,7 @@ Lorsqu'on utilise beaucoup de namespaces, nested classes et alias de types, le *
 
 ### Levée d'ambiguïté par le trailing return type
 
-Lorsqu'on définie une fonction depuis le namespace global, le *trailing return type* permet même de lever une ambiguïté du compilateur:
+Lorsqu'on définit une fonction depuis le namespace global, le *trailing return type* permet même de lever une ambiguïté du compilateur:
 {% highlight cpp %}
 using Int = std::int64_t;
 
@@ -809,7 +809,7 @@ Compiler returned: 2
 Ici, ``Int ::Foo::getNumber`` peut être interprété par le compilateur comme étant ``Int::Foo::getNumber``.<br>
 Il s'attend donc à ce que ``Int`` soit une struct, une classe, un namespace, une enum ou une union.
 
-Cette écriture n'est plus ambigue avec le *trailing return type*:
+Cette écriture n'est plus ambiguë avec le *trailing return type*:
 {% highlight cpp %}
 using Int = std::int64_t;
 
@@ -828,7 +828,7 @@ auto sum = [](int lhs, int rhs) -> int {
 {% endhighlight %}
 
 A noter qu'ici, ``auto`` n'est pas le type de la valeur de retour de la lambda, mais le type de la lambda elle-même.<br>
-Ca a été abordée dans la [section précédente](#placeholder-type-specifiers-depuis-c11).
+Cela a été abordé dans la [section précédente](#placeholder-type-specifiers-depuis-c11).
 
 > En résumé, utiliser ``auto`` avec le *trailing return type* permet de **simplifier et clarifier** les types retournés par les fonctions, **lever des ambiguïtés** du compilateur, **uniformiser** la manière dont les types de retour sont déclarés et permet aux fonctions de **retourner des types dépendant des paramètres**.<br>
 > Cette pratique est **recommandée en C++ moderne**.
@@ -887,9 +887,9 @@ Ceci explique le "**Almost**" dans "Almost Always Auto". On est passé à ça �
 
 Bien que "**Almost** Always Auto" reste pertinent, la transition vers [**Always Auto**](#aa-always-auto-depuis-c17) s'est imposée grâce aux optimisations introduites en C++17.
 
-Certains développeurs préfèrent utiliser ``auto`` **avec parcimonie**, en **remplacement de types particulièrement verbeux** (notamment les **iterateurs**).
+Certains développeurs préfèrent utiliser ``auto`` **avec parcimonie**, en **remplacement de types particulièrement verbeux** (notamment les **itérateurs**).
 
-Parfois en évitant de l'utiliser à cause des noms de fonctions et variables **pas assez explicites** sur le type qu'elles contiennent ou retournent (c'est l'argument principal que j'entend).<br>
+Parfois en évitant de l'utiliser à cause des noms de fonctions et variables **pas assez explicites** sur le type qu'elles contiennent ou retournent (c'est l'argument principal que j'entends).<br>
 Ceci est très courant, notamment dans un cadre professionnel où plusieurs développeurs collaborent sur le même projet.<br>
 Dans ce contexte, les outils modernes comme les IDE qui **affichent les types au survol** peuvent atténuer les inconvénients d'une généralisation de ``auto``.<br>
 Je voudrais aussi souligner [cet avantage](#auto-par-défaut) à généraliser l'utilisation de ``auto``.
@@ -1130,7 +1130,7 @@ auto [x, y] = pair;
 std::println("{} {}", x, y); // Affiche "1 2"
 {% endhighlight %}
 
-Grace à ``std::pair`` il est possible d'obtenir les clefs et valeurs dans une *range-based for loop* sur une ``std::map``/``std::unordered_map``.
+Grâce à ``std::pair`` il est possible d'obtenir les clefs et valeurs dans une *range-based for loop* sur une ``std::map``/``std::unordered_map``.
 
 {% highlight cpp highlight_lines="5" %}
 using namespace std::literals;
@@ -1156,8 +1156,8 @@ struct Point2d
 
 auto main() -> int
 {
-	auto position = Point2d{10, 15}; // Construction d'un Point2d avec x vallant 10 et y vallant 15
-	auto [x, y] = position; // Extraction des variables membre de Point2d
+	auto position = Point2d{10, 15}; // Construction d'un Point2d avec x valant 10 et y vallant 15
+	auto [x, y] = position; // Extraction des variables membres de Point2d
 	std::println("{} {}", x, y); // Affiche: "10 15"
 }
 {% endhighlight %}
@@ -1180,7 +1180,7 @@ auto main() -> int
 }
 {% endhighlight %}
 
-**Le nombre de variables** issues de la décomposition doit être **strictement égal** au **nombre de valeurs déstructurables**. Et ce, quelque soit le type du conteneur.<br>
+**Le nombre de variables** issues de la décomposition doit être **strictement égal** au **nombre de valeurs déstructurables**. Et ce, quel que soit le type du conteneur.<br>
 Ceci est également valable pour [chaque type cité ci-dessous](#c-like-array)
 
 {% highlight cpp %}
@@ -1206,7 +1206,7 @@ auto main() -> int
 	auto person = Person{"John Smith", 42};
 
 	{
-		auto& [name, age] = person; // name et age sont récupérés par références non-constantes
+		auto& [name, age] = person; // name et age sont récupérés par références non constantes
 		++age;
 	}
 	
@@ -1234,7 +1234,7 @@ int i = 42; // Résolution du type auto à la compilation
 {% endhighlight %}
 {% endrow %}
 
-> En réalité, dans cet exemple simple on dit que [**le type est inféré**](https://fr.wikipedia.org/wiki/Inférence_de_types). Ici il ne s'agit pas réellement d'un remplacement de code, mais ça abouti au même résultat.
+> En réalité, dans cet exemple simple on dit que [**le type est inféré**](https://fr.wikipedia.org/wiki/Inférence_de_types). Ici il ne s'agit pas réellement d'un remplacement de code, mais ça aboutit au même résultat.
 
 Pour les cas un peu plus complexes comme les *structured binding declaration*, ``auto`` est remplacé par un code légèrement plus complexe:
 {% highlight cpp %}
@@ -1307,7 +1307,7 @@ Pour les classes/structures n'ayant que des variables membres publiques, la dés
 - Les [tuple-like](/articles/c++/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
 - Les classes/structures ayant toutes leurs variables membres publiques
 
-Si une classe/structure contient des variables membre privées, il n'est pas possible de les ignorer dans une *structured binding declaration*.
+Si une classe/structure contient des variables membres privées, il n'est pas possible de les ignorer dans une *structured binding declaration*.
 
 {% highlight cpp linenos %}
 struct Person
@@ -1318,16 +1318,16 @@ struct Person
 		birthYear{birthYear}
 	{}
 
-    std::string firstName;
+	std::string firstName;
 	std::string lastName;
 private:
-    std::size_t age = 3;
+	std::size_t age = 3;
 };
 
 auto main() -> int
 {
-    auto person = Person{};
-    auto [firstName, lastName] = person; // error: type 'Person' decomposes into 3 elements, but only 2 names were provided
+	auto person = Person{};
+	auto [firstName, lastName] = person; // error: type 'Person' decomposes into 3 elements, but only 2 names were provided
 	auto [firstName, lastName, age] = person; // error: cannot decompose private member 'age' of 'Person'
 }
 {% endhighlight %}
@@ -1415,7 +1415,7 @@ A noter que le compilateur se plaint d'une variable non utilisée seulement lors
 {% highlight cpp %}
 auto [x, y] = std::pair{1, 2}; // warning: unused variable '[x, y]' [-Wunused-variable]
 {% endhighlight %}
-Si on utilise au moins une des variables, la *structured binding declaration* devient pertinente pour extraire la ou les valeurs utiles, donc cet avertissement disparait.
+Si on utilise au moins une des variables, la *structured binding declaration* devient pertinente pour extraire la ou les valeurs utiles, donc cet avertissement disparaît.
 {% highlight cpp %}
 auto [x, y] = std::pair{1, 2}; // Ok
 auto n = x; // warning: unused variable 'n' [-Wunused-variable]
@@ -1455,10 +1455,10 @@ La condition **caste l'objet en bool** pour vérifier la validité de la conditi
 {% highlight cpp linenos highlight_lines="6 15" %}
 struct Stock
 {
-    unsigned int available;
-    unsigned int reserved;
+	unsigned int available;
+	unsigned int reserved;
 
-    explicit operator bool() const noexcept
+	explicit operator bool() const noexcept
 	{
 		return available >= reserved;
 	}
@@ -1466,11 +1466,11 @@ struct Stock
 
 auto main() -> int
 {
-    auto stock = Stock{10, 3};
-    if (auto [available, reserved] = stock)
-        std::println("Articles prêts pour livraison: {}\nStock total: {}", reserved, available);
-    else
-        std::puts("Stock insuffisant!");
+	auto stock = Stock{10, 3};
+	if (auto [available, reserved] = stock)
+		std::println("Articles prêts pour livraison: {}\nStock total: {}", reserved, available);
+	else
+		std::puts("Stock insuffisant!");
 }
 {% endhighlight %}
 
@@ -1534,7 +1534,7 @@ else
 
 > Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/c++/templates).
 
-Vous avez surement remarqué que certains templates prennent des valeurs, au lieu de prendre des types.
+Vous avez sûrement remarqué que certains templates prennent des valeurs, au lieu de prendre des types.
 
 Par exemple:
 {% highlight cpp %}
@@ -1552,7 +1552,7 @@ constexpr auto IntConstant42 = constant<42>;
 {% endhighlight %}
 
 Pour plus de généricité, il est également possible de le définir avec ``auto`` (``template<auto>``).
-Ici, ``auto`` sert à indiquer une valeur en template qui sera déduite à l'instantiation.
+Ici, ``auto`` sert à indiquer une valeur en template qui sera déduite à l'instanciation.
 
 {% highlight cpp %}
 template<auto value>
@@ -1599,7 +1599,7 @@ std::println("3 * 4 = {}", apply.operator()<multiply>(3, 4)); // 12
 
 ## AA (Always Auto) (depuis C++17)
 
-En C++17, le langage garanti la [copy elision](/articles/c++/copy_elision), faisant disparaitre les surcoûts que nous avons vu [à la fin de la partie sur "Amost Always Auto"](#aaa-almost-always-auto-avant-c17), rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
+En C++17, le langage garantit la [copy elision](/articles/c++/copy_elision), faisant disparaitre les surcoûts que nous avons vus [à la fin de la partie sur "Almost Always Auto"](#aaa-almost-always-auto-avant-c17), rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
 
 La [copy elision](/articles/c++/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/c++/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
 
@@ -1825,7 +1825,7 @@ C'est cette même philosophie qui est à l'origine du [**Most Vexing Parse**](#m
 
 ## Structured binding pack (depuis C++26)
 
-Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité de d'extraire des éléments d'un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
+Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité d'extraire des éléments d'un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
 
 Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
 On peut cependant la trouver en experimental [sur Clang](https://godbolt.org/z/ea45Wx5Wh).

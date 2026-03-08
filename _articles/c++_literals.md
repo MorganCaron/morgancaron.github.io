@@ -30,7 +30,7 @@ Ceci n'est qu'un concept théorique, pas un type présent dans le langage. Nous 
 
 Un literal est un **préfixe** et/ou un **suffixe** qui s'ajoutent autour d'une valeur pour en **définir le type**.<br>
 Dans certains cas, cela peut aussi être un simple mot clef représentant une valeur ([``nullptr``](#pointer-literal-nullptr), [``true``/``false``](#boolean-literal-truefalse)).<br>
-[Certains literals](#raw-string-literals) sont particuliers car ils **ne changent pas le type** de la valeur, mais les rend juste **plus lisibles** dans le code.
+[Certains literals](#raw-string-literals) sont particuliers car ils **ne changent pas le type** de la valeur, mais les rendent juste **plus lisibles** dans le code.
 
 Un literal est souvent une [prvalue](/articles/c++/value_categories/prvalue), mais nous allons voir qu'il existe [des exceptions](#string-literal-lvalue-ou-prvalue-).
 
@@ -93,7 +93,7 @@ auto number9 = 0uZ; // OK : std::size_t
 auto number10 = 0UZ; // OK : std::size_t
 {% endhighlight %}
 
-Par soucis de lisibilité, on écrit généralement les literals tous en majuscules ou tous en minuscules.
+Par souci de lisibilité, on écrit généralement les literals tous en majuscules ou tous en minuscules.
 
 Parmi les literals qui ne servent pas à définir le type d'une valeur, on en trouve trois du côté des integer literals:
 {% highlight cpp %}
@@ -234,7 +234,7 @@ void* allocString(size_t length)
 {% endhighlight %}
 
 
-Ou également très utilisée en tant que **[valeur sentinelle](https://fr.wikipedia.org/wiki/Valeur_sentinelle)** dans les **listes chainées** et certains tableaux **pour marquer la fin des éléments listés**.
+Ou également très utilisée en tant que **[valeur sentinelle](https://fr.wikipedia.org/wiki/Valeur_sentinelle)** dans les **listes chaînées** et certains tableaux **pour marquer la fin des éléments listés**.
 {% highlight c linenos highlight_lines="9" %}
 typedef struct s_node {
 	struct s_node* next;
@@ -255,7 +255,7 @@ size_t getLength(const Node* head)
 
 Etant une macro, sa valeur est simplement copiée par le préprocesseur à l'endroit de chaque utilisation de ``NULL``.
 
-Ce qui est problématique car cette valeur n'étant pas typée, ça autorise son usage dans des contextes inappropriés mais néanmoins valides fonctionnellement-parlant:
+Ce qui est problématique car cette valeur n'étant pas typée, ça autorise son usage dans des contextes inappropriés mais néanmoins valides fonctionnellement parlant:
 {% highlight c %}
 int number = NULL;
 {% endhighlight %}
@@ -385,7 +385,7 @@ auto c4 = L'c'; // wchar_t (Wide character)
 
 > **Évolutions importantes** :
 > - **C++20** : ``u8'c'`` passe du type ``char`` au type [**``char8_t``**](/articles/c++/fundamental_types#le-cas-de-char8_t-c20).
-> - **C++23** : Le standard définit désormais que les littéraux préfixés **``u8``**, **``u``** et **``U``** sont encodés respectivement en **UTF-8**, **UTF-16** et **UTF-32** ([**P2314R2**](https://wg21.link/p2314r2)). Cette clarification lève les ambiguïtés historiques sur leur encodage, tandis que l'[**execution character set**](https://en.cppreference.com/w/cpp/language/charset.html#Execution_character_set) reste distinct et peut dépendre de l’environnement.
+> - **C++23** : Le standard définit désormais que les littéraux préfixés **``u8``**, **``u``** et **``U``** sont encodés respectivement en **UTF-8**, **UTF-16** et **UTF-32** ([**P2314R2**](https://wg21.link/p2314r2)). Cette clarification lève les ambiguïtés historiques sur leur encodage, tandis que l'[**execution character set**](https://en.cppreference.com/w/cpp/language/charset.html#Execution_character_set) reste distinct et peut dépendre de l'environnement.
 
 ### Caractères d'échappement
 
@@ -426,7 +426,7 @@ auto s = "é";
 // Si le fichier source est en Windows-1252 → E9
 
 // Avec un universal character name
-auto s = "\u00E9"; // // garantie de référencer le code point Unicode U+00E9
+auto s = "\u00E9"; // garantit de référencer le code point Unicode U+00E9
 {% endhighlight %}
 
 En revanche, **l'encodage final** du caractère dans le binaire **dépend du type de literal** ("", [u8""](#string-literal), [u""](#string-literal), [U""](#string-literal)).<br>
@@ -508,8 +508,8 @@ Une alternative plus granulaire consiste à utiliser une déclaration **``using`
 {% highlight cpp %}
 void process()
 {
-    using std::literals::string_view_literals::operator""sv;
-    auto sv = "hello"sv; 
+	using std::literals::string_view_literals::operator""sv;
+	auto sv = "hello"sv; 
 }
 {% endhighlight %}
 
@@ -518,8 +518,8 @@ Il est techniquement possible d'expliciter le namespace complet à chaque utilis
 {% highlight cpp %}
 void process()
 {
-    auto s = std::literals::string_literals::operator""s("hello", 5); 
-    auto sv = std::literals::string_view_literals::operator""sv("hello", 5); 
+	auto s = std::literals::string_literals::operator""s("hello", 5); 
+	auto sv = std::literals::string_view_literals::operator""sv("hello", 5); 
 }
 {% endhighlight %}
 
@@ -551,7 +551,6 @@ auto sv = u"hello"sv; // std::u16string_view
 
 > À noter que la plupart de ces littéraux sont devenus [**``constexpr``**](/articles/c++/compile-time_execution) à partir du C++20.
 
-
 Par nature, un ``std::string_view`` ne garantit pas la présence d'un ``\0`` final (il se contente d'un pointeur et d'une taille). Cependant, lorsqu'il est construit à partir d'un **literal** (``"..."sv``), il pointe vers le tableau statique du binaire qui, lui, possède bien cette sentinelle. Passer ``sv.data()`` à une fonction attendant un pointeur C est donc **techniquement sûr** dans ce cas précis, bien que risqué conceptuellement.
 
 ### String literal: lvalue ou prvalue ?
@@ -560,14 +559,14 @@ Prenons *un string literal* comme ``"hello"``, utilisé tel quel dans un code **
 
 Un *literal* étant une valeur **temporaire** dans la majorité des cas, dont la persistance en RAM est limitée à son scope d'utilisation, on pourrait penser avoir affaire ici à une **prvalue**.
 
-Le cas des chaines de caractères est un peu particulier. Pour des raisons de performances, sa persistance en RAM **n'est pas limitée à son scope d'utilisation**.
+Le cas des chaînes de caractères est un peu particulier. Pour des raisons de performances, sa persistance en RAM **n'est pas limitée à son scope d'utilisation**.
 
-Lors de la compilation en assembleur, les chaines de caractères préservées pendant la compilation sont stockés dans [la section ``.rodata`` ("read-only data")](https://en.wikipedia.org/wiki/Data_segment) du code assembleur.
+Lors de la compilation en assembleur, les chaînes de caractères préservées pendant la compilation sont stockés dans [la section ``.rodata`` ("read-only data")](https://en.wikipedia.org/wiki/Data_segment) du code assembleur.
 
 Elles ont donc leur adresse propre en RAM pendant toute l'exécution du programme.<br>
 On peut le vérifier avec:
 {% highlight cpp %}
-std::cout << &"hello"; // Affiche l'adresse en RAM de la chaine "hello"
+std::cout << &"hello"; // Affiche l'adresse en RAM de la chaîne "hello"
 {% endhighlight %}
 
 Ces literaux sont bien sûr constants. A la fois leurs caractères le sont, mais également leur adresse et leur taille.
@@ -579,7 +578,7 @@ char* string = const_cast<char*>(constString);
 string[1] = 'a'; // Undefined behavior
 {% endhighlight %}
 
-Une chaine comme ``"hello"`` aura le type ``const char[6]`` (et non ``const char*``). ``6`` étant le nombre de caractères de la chaine (5) auquel on ajoute 1 pour la valeur sentinelle ``'\0'``.
+Une chaîne comme ``"hello"`` aura le type ``const char[6]`` (et non ``const char*``). ``6`` étant le nombre de caractères de la chaîne (5) auquel on ajoute 1 pour la valeur sentinelle ``'\0'``.
 
 Pour récapituler, un *string literal*:
 - a une adresse en RAM
@@ -768,8 +767,8 @@ Décortiquons rigoureusement ce "monstre" syntaxique:
 
 1. **Préfixe ``0x``** : Indique que la valeur est exprimée en **hexadécimal**
 2. **[Mantisse](https://fr.wikipedia.org/wiki/Mantisse) ``14'2.e9'1'f``**:
-	- La partie entière est ``142`` (hex)
-	- La partie fractionnaire est ``e91f`` (hex). ``e`` et ``f`` sont ici des chiffres hexadécimaux et non des suffixes
+	- La partie entière est ``142`` (exprimée en hexadécimal)
+	- La partie fractionnaire est ``e91f`` (exprimée en hexadécimal). ``e`` et ``f`` sont ici des chiffres hexadécimaux et non des préfixe/suffixe
 	- Des **séparateurs de chiffres** (``'``) sont insérés arbitrairement pour la "lisibilité"
 3. **Exposant ``p-1'3``**:
 	- Le [**préfixe ``p``**](#hexadécimaux-à-virgule-flottante-c17) est **obligatoire pour les flottants hexadécimaux** et indique une **puissance de 2**
