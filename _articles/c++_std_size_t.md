@@ -240,11 +240,11 @@ Le standard a choisi **une fonction plutôt qu'un type**. [**``std::ssize()``**]
 
 Il est également possible d'obtenir l'équivalent signé d'un type via le trait de type [**``std::make_signed_t``**](https://en.cppreference.com/w/cpp/types/make_signed):
 {% highlight cpp %}
-using signed_size_t = std::make_signed_t<std::size_t>; // Équivalent à std::ptrdiff_t
+using signed_size_t = std::make_signed_t<std::size_t>; // équivalent à std::ptrdiff_t
 {% endhighlight %}
 
 {% highlight cpp %}
-// SUR: std::ssize renvoie un type signé
+// std::ssize renvoie un type signé
 for (auto i = std::ssize(v) - 1; i >= 0; --i) { ... }
 {% endhighlight %}
 
@@ -338,19 +338,12 @@ Avec l'arrivée du 64 bits, [le type int (32 bits) était **limité** à 2 Go](#
 [``qsizetype``](https://doc.qt.io/qt-6/qttypes.html#qsizetype-typedef) a été créé (dans Qt 5.10) pour répondre aux mêmes besoins que ``std::size_t`` et permettre l'usage de -1 comme valeur sentinelle ([QString::indexOf()](https://doc.qt.io/qt-6/qstring.html#indexOf) retourne -1 si non trouvé).
 ``qsizetype`` permet de monter à 64 bits tout en restant signé.
 
-Tout comme [``std::ptrdiff_t``](#les-alternatives-signées-en-c-stdssize-et-stdptrdiff_t) qui peut être défini comme:
-{% highlight cpp %}
-using ptrdiff_t = std::make_signed_t<std::size_t>;
-{% endhighlight %}
-
-[``qsizetype`` est lui-même défini de la même manière, par rapport à ``std::size_t``](https://qthub.com/static/doc/qt5/qtcore/qtglobal.html#qsizetype-alias)
+``qsizetype`` est défini comme étant [la version signée de ``std::size_t``](https://qthub.com/static/doc/qt5/qtcore/qtglobal.html#qsizetype-alias):
 {% highlight cpp %}
 using qsizetype = QIntegerForSizeof<std::size_t>::Signed;
 {% endhighlight %}
 
-On reconnait ``QIntegerForSizeof<T>::Signed``, l'équivalent *made in Qt* pour ``std::make_signed_t<T>``.
-
-[Type défini comme](https://codebrowser.dev/qt5/qtbase/src/corelib/global/qglobal.h.html#QIntegerForSize):
+On reconnait ``QIntegerForSizeof<T>::Signed``, l'équivalent *made in Qt* pour ``std::make_signed_t<T>``, [défini comme](https://codebrowser.dev/qt5/qtbase/src/corelib/global/qglobal.h.html#QIntegerForSize):
 {% highlight cpp highlight_lines="4 5 10" %}
 template <int> struct QIntegerForSize;
 template <>    struct QIntegerForSize<1> { typedef quint8  Unsigned; typedef qint8  Signed; };
@@ -367,16 +360,111 @@ using qsizetype = QIntegerForSizeof<std::size_t>::Signed;
 Si ``std::size_t`` fait 32 bits -> ``qsizetype`` est un ``qint32``.<br>
 Si ``std::size_t`` fait 64 bits -> ``qsizetype`` est un ``qint64``.
 
-Il s'agit de l'équivalent Qt de ``std::size_t``, mais avec une différence fondamentale: **il est signé**. C'est donc un équivalent à ``std::make_signed_t<std::size_t>``, c'est à dire équivalent à [**``std::ptrdiff_t``**](#stdptrdiff_t-le-type-des-distances).
+Il s'agit de l'équivalent Qt de ``std::size_t``, mais avec une différence fondamentale: **il est signé**.
+C'est donc un équivalent à [``std::make_signed_t<std::size_t>``](#les-alternatives-signées-en-c-stdssize-et-stdptrdiff_t), c'est à dire **équivalent à [``std::ptrdiff_t``](#stdptrdiff_t-le-type-des-distances)**.
 
-Il bénéficie donc par dépendance au type ``std::size_t`` des mêmes garanties (supporte la même largeur que ``std::ptrdiff_t``).
+Il bénéficie donc par dépendance au type ``std::size_t`` des mêmes garanties que ``std::ptrdiff_t`` (supporte la même largeur que ``std::ptrdiff_t``).
 
-### Faut-il l'utiliser ?
+Mais l'arrivée de ``qsizetype`` vient également avec une **série de problèmes** dont on aimerait bien se passer.
 
-- **Dans vos interfaces Qt**: **Oui**. Si vous manipulez des objets Qt, utilisez ``qsizetype`` pour éviter les warnings de compilation lors des comparaisons ou des itérations.
-- **Dans votre logique métier**: Si votre projet est fortement lié à Qt, propager ``qsizetype`` est cohérent. Si vous visez la portabilité ou l'indépendance vis-à-vis du framework, préférez ``std::size_t`` (non-signé) ou ``std::ptrdiff_t`` (signé).
+Face à ces **équivalences**, on pourrait utiliser ``qsizetype`` et ``std::diffptr_t`` de manière interchangeable (en décidant d'**ignorer les coûts** liés aux conversions si les types sous-jacents ne sont pas strictement identiques, ce qui en soit **est déjà un problème**).
 
-> A noter que [``auto`` est **idéal pour propager un type**](/articles/c++/auto) au travers d'un code sans se soucier des évolutions de ce type (comme ce que Qt a subi lors de l'arrivée du 64 bits).
+Mais ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**.
+
+Pour vous aider à y voir plus clair, détaillons ces points de friction pour **comprendre les coûts** que ça entraine et **prévenir les risques d'erreurs**:
+
+### La friction entre Qt et la STL
+
+L'existence de ``qsizetype`` crée une "frontière de types" permanente. Puisque Qt a fait le choix du **signé** pour ses conteneurs alors que la STL et le langage (``sizeof``) utilisent le **non-signé**, le développeur se retrouve à devoir arbitrer entre deux mondes incompatibles.
+
+Cela force souvent le développeur à jongler entre trois types pour manipuler des tailles:
+- ``std::size_t`` (non-signé standard)
+- ``std::ptrdiff_t`` (signé standard)
+- ``qsizetype`` (signé Qt).
+
+#### L'enfer des comparaisons mixtes
+
+Dès que vous comparez un index issu d'une recherche Qt avec une taille ou un index standard, le piège se referme.
+
+Le risque est **réel**: une valeur négative de ``qsizetype`` (``-1`` utilisé comme **sentinelle** si non trouvé) [sera interprétée comme une valeur positive gigantesque](#le-mélange-signé--non-signé) lors de la comparaison avec un ``std::size_t``.
+
+{% highlight cpp linenos highlight_lines="9" %}
+const auto text = "Hello World!"; // de type const char[7]
+const auto string = QString{text};
+
+// indexOf retourne -1 si le mot-clé n'est pas trouvé
+auto position = string.indexOf("Word");
+
+// Comparaison d'une valeur signée (qsizetype) avec une non-signée (std::size_t)
+// Si le pattern n'est pas trouvé (position = -1), la condition sera VRAIE car -1 > 7 en non-signé.
+if (position > std::size(text))
+{
+	...
+}
+{% endhighlight %}
+
+> **Activez** le warning ``-Wsign-compare`` pour être avertis de ce genre de problème.
+{: .block-warning }
+
+Nous avons détaillé le mécanisme à l'oeuvre [ici](#le-mélange-signé--non-signé).
+
+**Le langage** ayant lui-même **choisi ``std::size_t``** pour exprimer les tailles physiques (**``sizeof``**), cela force à des **conversions incessantes**, **même dans un projet "100% Qt"** (et jusque **dans l'implémentation même du framework**).
+
+#### Frictions avec les appels système et le langage
+
+Les appels système de Qt doivent systématiquement **convertir** leurs types signés **vers les types non-signés** attendus par le système (POSIX ou Windows).
+
+Le jonglage entre ces mondes génère un bruit de code permanent, obligeant à **choisir son camp** et à **caster systématiquement**.
+
+- **Entrées/Sorties (I/O)**: [``QFile::read``](https://doc.qt.io/qt-6/qiodevice.html#read) ou [``QIODevice::write``](https://doc.qt.io/qt-6/qiodevice.html#write) prennent un ``qint64`` (ou ``qsizetype``), alors que les appels système sous-jacents ([``read``](https://man7.org/linux/man-pages/man2/read.2.html), [``write``](https://man7.org/linux/man-pages/man2/write.2.html)) utilisent ``size_t`` (non-signé), impliquant une conversion.
+
+- **Manipulation mémoire**: Des fonctions comme [``QByteArray::fromRawData(const char *data, qsizetype size)``](https://doc.qt.io/qt-6/qbytearray.html#fromRawData) demandent un ``qsizetype``, mais les fonctions système de copie ([``memcpy``](https://man7.org/linux/man-pages/man3/memcpy.3.html)) appelées en interne attendent un ``size_t``.
+
+La documentation de Qt montre d'ailleurs souvent cette gymnastique, où un ``sizeof`` (non-signé) est passé directement à un paramètre ``qsizetype`` (signé).
+
+Par exemple ici, dans l'exemple donné par la documentation Qt sur l'utilisation de [``QByteArray::fromRawData(const char *data, qsizetype size)``](https://doc.qt.io/qt-6/qbytearray.html#fromRawData):
+{% highlight cpp highlight_lines="8" %}
+static const char mydata[] = {
+	'\x00', '\x00', '\x03', '\x84', '\x78', '\x9c', '\x3b', '\x76',
+	'\xec', '\x18', '\xc3', '\x31', '\x0a', '\xf1', '\xcc', '\x99',
+	...
+	'\x6d', '\x5b'
+};
+
+// sizeof(mydata) est un std::size_t, converti ici implicitement en qsizetype
+QByteArray data = QByteArray::fromRawData(mydata, sizeof(mydata));
+{% endhighlight %}
+
+Ceci change **deux fois** le domaine de signe de la valeur (non-signé -> signé -> non-signé en interne lors de l'appel système).
+
+N'est-ce pas absurde d'imposer un type signé pour des tailles, pour finir par le convertir systématiquement ? Introduisant au passage **des risques d'erreurs inutiles** (si on passe une valeur négative en argument) ou **des coûts supplémentaires** si la fonction Qt vérifie systématiquement que la valeur passée n'est pas négative.
+
+**En résumé:** Si vous utilisez Qt, le type ``qsizetype`` est un passage obligé, mais il agit comme un corps étranger dès que vous sollicitez les fonctions de la STL **ou des fonctions système**. L'utilisation de [**``std::ssize()``** (C++20)](https://en.cppreference.com/w/cpp/iterator/size.html) est souvent le meilleur moyen de "ramener" les conteneurs STL dans le monde signé de Qt pour éviter les frictions.
+
+{% highlight cpp %}
+QList<int> list = { ... };
+std::vector<int> vector = { ... };
+
+// On unifie tout en signé pour éviter les warnings et les bugs de sentinelles
+if (std::ssize(list) < std::ssize(vector)) { ... }
+{% endhighlight %}
+
+### Faut-il utiliser ``qsizetype``
+
+- **Lorsque vous manipulez des objets Qt**, utiliser les types attendus et retournés par Qt (comme ``qsizetype``) permet d'être sûr de ne pas avoir de conversions. Mais vous serez [parfois obligés de les faire interagir avec des ``std::size_t``](#lenfer-des-comparaisons-mixtes).
+
+- Si votre code n'est **pas fortement lié à Qt**, il est cohérent de confiner la propagation ``qsizetype`` aux strictes parties qui l'utilisent. Et d'utiliser les standards ``std::size_t`` et ``std::diffptr_t`` dans le reste de votre projet lorsque vous avez une **sémantique** de **taille**, de **quantité**, d'**index**, de **différence** ou de **distance**.
+
+Ce n'est **pas une question simple**. Utiliser ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**. Et ne pas l'utiliser introduit des conversions (**risques et coût**) entre les types qu'on manipule ``std::size_t``/``std::diffptr_t`` et le type attendu par les fonctions Qt ``qsizetype``.
+
+> **Aucun** des deux choix **n'est idéal et gratuit** (hormis se tourner vers **autre chose que Qt** ?<br>
+> A noter que ce n'est **pas le seul point de friction** entre Qt, la STL et le langage. On peut noter aussi le [*copy-on-write*](https://en.wikipedia.org/wiki/Copy-on-write) et les [iterateurs](https://wiki.qt.io/Iterators)).
+{: .block-warning }
+
+Une **3ème option** s'offre à nous, car **Qt fait quelques efforts** pour **se conformer au standard** et **se rendre compatible** avec la STL (mais il reste encore beaucoup de chemin):
+
+> Si votre **code est [suffisamment générique](/articles/c++/programmation_generique)**, que vous utilisez les [**customization point**](/articles/c++/customization_point_design) et [**auto**](/articles/c++/auto), la **propagation** de ``qsizetype`` ou de ``std::size_t`` sera **automatique**. Et il sera à vous de bien [utiliser ``std::ssize()``](#frictions-avec-les-appels-système-et-le-langage) lorsque les deux types risquent d'entrer en collision.<br>
+> Ceci permettant de **prévenir les risques d'erreur** tout en **délèguant** les questions de **coûts** (liées aux conversions) **à l'appelant** de vos fonctions. Ainsi, votre code deviendrait **agnostique** des types utilisés, **laissant à l'appelant la responsabilité de ces choix**.
 
 ---
 
