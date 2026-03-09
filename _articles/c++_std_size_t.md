@@ -130,21 +130,25 @@ Mélanger des types signés et ``std::size_t`` est une source majeure de bugs:
 int i = -1;
 std::size_t n = 10;
 
-if (i < n) { 
-    // On s'attend à 'true', mais ce sera 'false' !
+if (i < n)
+{
+	// On s'attend à true, mais ce sera false
 }
 {% endhighlight %}
 
 Lorsqu'un type signé et un type non signé sont utilisés dans une opération (ici i < n), C++ applique les [**usual arithmetic conversions**](https://en.cppreference.com/w/cpp/language/usual_arithmetic_conversions.html).<br>
 Le type signé (``int``) est converti vers le type non-signé (``std::size_t``). ``i = -1`` devient une valeur non-signée sur 64 bits, ``std::size_t{-1}``. La valeur ``-1`` devient alors la valeur maximale de ``std::size_t`` par overflow (``2⁶⁴-1``), ce qui est bien supérieur à 10.
 
+> C'est d'ailleurs ce que souligne la règle [**ES.100**](#ne-mélangez-pas-signé-et-non-signé-es100) des C++ Core Guidelines: **"Don't mix signed and unsigned arithmetic"**.
+
 Ca aura donc l'effet suivant:
 {% highlight cpp highlight_lines="4" %}
 int i = -1;
 std::size_t n = 10;
 
-if (static_cast<std::size_t>(i) < n) { 
-    // On s'attend à 'true', mais ce sera 'false' !
+if (static_cast<std::size_t>(i) < n)
+{
+	// On s'attend à true, mais ce sera false
 }
 {% endhighlight %}
 
@@ -361,17 +365,14 @@ Si ``std::size_t`` fait 32 bits -> ``qsizetype`` est un ``qint32``.<br>
 Si ``std::size_t`` fait 64 bits -> ``qsizetype`` est un ``qint64``.
 
 Il s'agit de l'équivalent Qt de ``std::size_t``, mais avec une différence fondamentale: **il est signé**.
-C'est donc un équivalent à [``std::make_signed_t<std::size_t>``](#les-alternatives-signées-en-c-stdssize-et-stdptrdiff_t), c'est à dire **équivalent à [``std::ptrdiff_t``](#stdptrdiff_t-le-type-des-distances)**.
 
-Il bénéficie donc par dépendance au type ``std::size_t`` des mêmes garanties que ``std::ptrdiff_t`` (supporte la même largeur que ``std::ptrdiff_t``).
+Dans la plupart des plateformes modernes, ``qsizetype`` est identique à ``std::ptrdiff_t``, mais cette équivalence n'est **pas garantie par le standard**. En revanche, ``qsizetype`` possède systématiquement la **même largeur** (nombre de bits) que ``std::size_t``, c'est donc un équivalent à [``std::make_signed_t<std::size_t>``](#les-alternatives-signées-en-c-stdssize-et-stdptrdiff_t).
 
-Mais l'arrivée de ``qsizetype`` vient également avec une **série de problèmes** dont on aimerait bien se passer.
+### Un choix de conception contestable
 
-Face à ces **équivalences**, on pourrait utiliser ``qsizetype`` et ``std::ptrdiff_t`` de manière interchangeable (en décidant d'**ignorer les coûts** liés aux conversions si les types sous-jacents ne sont pas strictement identiques, ce qui en soi **est déjà un problème**).
+Le choix de Qt d'utiliser un **type signé** pour des tailles est **souvent critiqué**. Bien que cela permette l'utilisation de valeurs sentinelles (comme ``-1``), cela autorise également des **états sémantiquement absurdes**: rien n'interdit techniquement d'écrire ``qsizetype n = -5;``, ce qui n'a **aucun sens** pour une mesure de taille physique.
 
-Mais ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**.
-
-Pour vous aider à y voir plus clair, détaillons ces points de friction pour **comprendre les coûts** que ça entraine et **prévenir les risques d'erreurs**:
+Ce choix de conception introduit une **dissonance sémantique** permanente dès que l'**on sort de l'écosystème de Qt**. Le développeur doit jongler entre **deux modèles mentaux opposés**: l'un où une **valeur négative** est une **erreur légitime** (**Qt**), et l'autre où une taille est par **définition une quantité absolue non-signée** (la **STL** et le langage (**``sizeof``**)). Cette ambiguïté rend chaque interaction propice aux bugs de signe.
 
 ### La friction entre Qt et la STL
 
@@ -382,33 +383,98 @@ Cela force souvent le développeur à jongler entre trois types pour manipuler d
 - ``std::ptrdiff_t`` (signé standard)
 - ``qsizetype`` (signé Qt).
 
-#### L'enfer des comparaisons mixtes
+#### Les comparaisons mixtes
 
 Dès que vous comparez un index issu d'une recherche Qt avec une taille ou un index standard, le piège se referme.
 
-Le risque est **réel**: une valeur négative de ``qsizetype`` (``-1`` utilisé comme **sentinelle** si non trouvé) [sera interprétée comme une valeur positive gigantesque](#le-mélange-signé--non-signé) lors de la comparaison avec un ``std::size_t``.
+Le risque est qu'une valeur "non trouvée" (``-1`` utilisé comme **sentinelle**) [soit interprétée comme une valeur positive gigantesque](#le-mélange-signé--non-signé) lors de la comparaison avec un ``std::size_t``.
 
-{% highlight cpp linenos highlight_lines="9" %}
-const auto text = "Hello World!"; // de type const char[13]
-const auto string = QString{text};
+{% highlight cpp linenos highlight_lines="8" %}
+QString url = "/api/v1/resource/data"; // Pas de paramètres '?' ici
+std::size_t MaxPathLength = 128;
 
-// indexOf retourne -1 si le mot-clé n'est pas trouvé
-auto position = string.indexOf("Word");
+auto queryStart = url.indexOf('?');
 
-// Comparaison d'une valeur signée (qsizetype) avec une non-signée (std::size_t)
-// Si "Word" n'est pas trouvé (position = -1), la condition sera VRAIE car -1 > 13 en non-signé.
-if (position > std::size(text))
+// Comparaison entre un qsizetype (signé) et un std::size_t (non-signé)
+// Si '?' n'est pas trouvé (queryStart = -1), la condition sera VRAIE car -1 > 128 en non-signé.
+if (queryStart > MaxPathLength)
 {
-	// ...
+	// On rejette l'URL car on croit que le chemin est trop long !
+	return Error::BadRequest;
 }
 {% endhighlight %}
 
-> **Activez** le warning ``-Wsign-compare`` pour être avertis de ce genre de problème.
+> **Activez** le warning ``-Wsign-compare`` pour être avertis de ce genre de problème, car c'est l'une des sources de bugs les plus fréquentes en C++.
 {: .block-warning }
 
 Nous avons détaillé le mécanisme à l'oeuvre [ici](#le-mélange-signé--non-signé).
 
 **Le langage** ayant lui-même **choisi ``std::size_t``** pour exprimer les tailles physiques (**``sizeof``**), cela force à des **conversions incessantes**, **même dans un projet "100% Qt"** (et jusque **dans l'implémentation même du framework**).
+
+#### Comparaisons sûres (C++20)
+
+Pour résoudre définitivement ce problème sans conversion manuelle risquée, le C++20 a introduit une famille de fonctions dans le header ``<utility>``:
+- [``std::cmp_equal``](http://en.cppreference.com/w/cpp/utility/intcmp.html)
+- [``std::cmp_not_equal``](http://en.cppreference.com/w/cpp/utility/intcmp.html)
+- [``std::cmp_less``](http://en.cppreference.com/w/cpp/utility/intcmp.html)
+- [``std::cmp_less_equal``](http://en.cppreference.com/w/cpp/utility/intcmp.html)
+- [``std::cmp_greater``](http://en.cppreference.com/w/cpp/utility/intcmp.html)
+- [``std::cmp_greater_equal``](http://en.cppreference.com/w/cpp/utility/intcmp.html)
+
+Ces fonctions appliquent une logique correcte selon le signe de chaque valeur, **empêchant les conversions implicites dangereuses**.
+
+{% highlight cpp %}
+QString url = "/api/v1/resource/data"; // Pas de paramètres '?' ici
+std::size_t maxPathLength = 128;
+
+// Solution moderne et sûre:
+if (std::cmp_greater(queryStart, maxPathLength))
+{
+	// La comparaison est mathématiquement correcte: -1 > 128 est FAUX.
+	return Error::BadRequest;
+}
+{% endhighlight %}
+
+#### L'asymétrie des conversions
+
+Le passage d'un type à l'autre n'est jamais neutre, car leurs capacités diffèrent.
+
+**Sens 1: De Qt vers le standard (``qsizetype`` => ``std::size_t``)**
+
+La conversion est techniquement sûre pour toutes les tailles car la plage positive de ``qsizetype`` tient toujours dans un ``std::size_t``. Cependant, elle **détruit la sémantique d'erreur**:
+{% highlight cpp %}
+qsizetype qtSize = -1; // En Qt, la sentinelle -1 signifie sémantiquement "non trouvé" ou "erreur"
+std::size_t stdSize = qtSize; 
+
+// stdSize vaut désormais 18 446 744 073 709 551 615.
+// L'erreur est devenue une taille gigantesque "valide"
+{% endhighlight %}
+
+**Sens 2: Du standard vers Qt (``std::size_t`` => ``qsizetype``)**
+
+C'est ici que le risque d'**overflow** est le plus critique. Si vous manipulez une donnée dépassant la moitié de la mémoire adressable (ex: un énorme fichier), la conversion produira une valeur négative:
+{% highlight cpp %}
+// Imaginons un buffer de 9 exaoctets sur un système très spécifique
+std::size_t hugeSize = 9'000'000'000'000'000'000uz;
+qsizetype qtSize = hugeSize;
+
+// qtSize devient négatif par overflow
+// Qt croira que votre buffer est une erreur ou une chaîne vide
+{% endhighlight %}
+
+#### Interopérabilité des conteneurs
+
+Ces frictions obligent à une vigilance constante lors de l'interaction entre les deux mondes. Tenter de réserver de la place dans une ``QList`` en se basant sur la taille d'un ``std::vector`` (ou inversement) génère systématiquement un warning.
+
+Par exemple, si nous voulons dimensionner un ``std::vector`` par rapport à la taille d'une ``QList``:
+{% highlight cpp %}
+std::vector<int> v = { ... };
+QList<int> list;
+
+// Warning: conversion de size_t vers qsizetype
+// Le compilateur avertit que v.size() pourrait ne pas tenir dans list
+list.reserve(v.size()); 
+{% endhighlight %}
 
 #### Frictions avec les appels système et le langage
 
@@ -420,9 +486,7 @@ Le jonglage entre ces mondes génère un bruit de code permanent, obligeant à *
 
 - **Manipulation mémoire**: Des fonctions comme [``QByteArray::fromRawData(const char *data, qsizetype size)``](https://doc.qt.io/qt-6/qbytearray.html#fromRawData) demandent un ``qsizetype``, mais les fonctions système de copie ([``memcpy``](https://man7.org/linux/man-pages/man3/memcpy.3.html)) appelées en interne attendent un ``size_t``.
 
-La documentation de Qt montre d'ailleurs souvent cette gymnastique, où un ``sizeof`` (non-signé) est passé directement à un paramètre ``qsizetype`` (signé).
-
-Par exemple ici, dans l'exemple donné par la documentation Qt sur l'utilisation de [``QByteArray::fromRawData(const char *data, qsizetype size)``](https://doc.qt.io/qt-6/qbytearray.html#fromRawData):
+La documentation de Qt montre d'ailleurs souvent cette gymnastique, où un ``sizeof`` (non-signé) est passé directement à un paramètre ``qsizetype`` (signé), comme dans l'exemple de [``QByteArray::fromRawData(const char *data, qsizetype size)``](https://doc.qt.io/qt-6/qbytearray.html#fromRawData):
 {% highlight cpp highlight_lines="8" %}
 static const char mydata[] = {
 	'\x00', '\x00', '\x03', '\x84', '\x78', '\x9c', '\x3b', '\x76',
@@ -439,7 +503,33 @@ Ceci change **deux fois** le domaine de signe de la valeur (non-signé -> signé
 
 N'est-ce pas absurde d'imposer un type signé pour des tailles, pour finir par le convertir systématiquement ? Introduisant au passage **des risques d'erreurs inutiles** (si on passe une valeur négative en argument) ou **des coûts supplémentaires** si la fonction Qt vérifie systématiquement que la valeur passée n'est pas négative.
 
-**En résumé:** Si vous utilisez Qt, le type ``qsizetype`` est un passage obligé, mais il agit comme un corps étranger dès que vous sollicitez les fonctions de la STL **ou des fonctions système**. L'utilisation de [**``std::ssize()``** (C++20)](https://en.cppreference.com/w/cpp/iterator/size.html) est souvent le meilleur moyen de "ramener" les conteneurs STL dans le monde signé de Qt pour éviter les frictions.
+## Les recommandations contradictoires de C++ Core Guidelines
+
+Les [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) reconnaissent ce conflit historique entre la STL et les besoins de calcul.
+
+### Ne mélangez pas signé et non signé (ES.100)
+
+Le principe est simple: [**Don't mix signed and unsigned arithmetic**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#res-mix). Le mélange provoque des **conversions silencieuses** et des bugs difficiles à tracer. Nous l'avons illustré avec les [frictions de Qt](#les-comparaisons-mixtes).
+
+### Préférez le signé pour les index (ES.107)
+
+Ces guidelines recommandent de [**préférer les types signés pour les indices de tableaux**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es107-dont-use-unsigned-for-subscripts-prefer-gslindex).
+
+Comme nous l'avons vu avec [les boucles décrémentales](#lunderflow-dans-les-boucles) qui peuvent provoquer un **underflow** si l'index est non-signé, cette guideline vise à prévenir ce genre d'erreur.
+
+### La position ambiguë sur ``size_t``
+
+Les guidelines se retrouvent ici dans une impasse: elles recommandent le signé pour les index (ES.107) tout en devant composer avec ``std::size_t`` imposé par la STL pour les tailles de conteneurs et le langage (``sizeof``).
+
+En effet, les index sont **très massivement** affectés ou comparés avec des **tailles**, qui sont **non-signées**. Causant un nombre considérable d'interactions entre des valeurs signées et non-signées dans un programme. Cette guideline rentre donc complètement en **contradiction** avec la 1ère ([ES.100](#ne-mélangez-pas-signé-et-non-signé-es100)).
+
+C'est exactement la **même dissonance** que celle rencontrée **avec Qt**, montrant que le débat entre signé et non-signé pour les tailles reste l'un des points **les plus clivants du C++**.
+
+De nombreux développeurs (dont vous aurez deviné, je fais partie) rangent les **index** et les **tailles** dans **la même arithmétique non-signée** (``std::size_t``). Réservant les index signés **uniquement aux boucles décrémentales** (en priorisant une autre forme d'écriture pour éviter d'y avoir recours).
+
+### Faut-il utiliser ``qsizetype`` ?
+
+Si vous utilisez Qt, le type ``qsizetype`` est un passage obligé, mais il agit comme un corps étranger dès que vous sollicitez les fonctions de la STL **ou des fonctions système**. L'utilisation de [**``std::ssize()``** (C++20)](https://en.cppreference.com/w/cpp/iterator/size.html) est souvent le meilleur moyen de "ramener" les conteneurs STL dans le monde signé de Qt pour éviter les frictions.
 
 {% highlight cpp %}
 QList<int> list = { ... };
@@ -449,22 +539,19 @@ std::vector<int> vector = { ... };
 if (std::ssize(list) < std::ssize(vector)) { ... }
 {% endhighlight %}
 
-### Faut-il utiliser ``qsizetype``
+**Si votre code n'est pas fortement lié à Qt**, confinez ``qsizetype`` aux strictes parties qui l'utilisent. Préférez les standards ``std::size_t`` et ``std::ptrdiff_t``.
 
-- **Lorsque vous manipulez des objets Qt**, utiliser les types attendus et retournés par Qt (comme ``qsizetype``) permet d'être sûr de ne pas avoir de conversions. Mais vous serez [parfois obligés de les faire interagir avec des ``std::size_t``](#lenfer-des-comparaisons-mixtes).
+Mais comme nous l'avons vu, ce n'est **pas une question simple**. Utiliser ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**. Mais ne pas l'utiliser introduit des conversions incessantes entre vos types standards et les types attendus par Qt.
 
-- Si votre code n'est **pas fortement lié à Qt**, il est cohérent de confiner la propagation ``qsizetype`` aux strictes parties qui l'utilisent. Et d'utiliser les standards ``std::size_t`` et ``std::ptrdiff_t`` dans le reste de votre projet lorsque vous avez une **sémantique** de **taille**, de **quantité**, d'**index**, de **différence** ou de **distance**.
-
-Ce n'est **pas une question simple**. Utiliser ``qsizetype`` introduit un grand nombre de **frictions** avec la **STL**, le **langage** et les **appels système**. Et ne pas l'utiliser introduit des conversions (**risques et coût**) entre les types qu'on manipule ``std::size_t``/``std::ptrdiff_t`` et le type attendu par les fonctions Qt ``qsizetype``.
-
-> **Aucun** des deux choix **n'est idéal et gratuit** (hormis se tourner vers **autre chose que Qt** ?<br>
-> A noter que ce n'est **pas le seul point de friction** entre Qt, la STL et le langage. On peut noter aussi le [*copy-on-write*](https://en.wikipedia.org/wiki/Copy-on-write) et les [iterateurs](https://wiki.qt.io/Iterators)).
+> **Aucun** des deux choix **n'est idéal et gratuit** (hormis se tourner vers **autre chose que Qt** ?).
+> A noter que ce n'est **pas le seul point de friction**. On peut noter aussi le [*copy-on-write*](https://en.wikipedia.org/wiki/Copy-on-write) et les [itérateurs](https://wiki.qt.io/Iterators) propres à Qt.
 {: .block-warning }
 
-Une **3ème option** s'offre à nous, car **Qt fait quelques efforts** pour **se conformer au standard** et **se rendre compatible** avec la STL (mais il reste encore beaucoup de chemin):
+Une **3ème option** s'offre à nous, car **Qt fait quelques efforts** pour **se conformer au standard** et **se rendre compatible** avec la STL (bien qu'il reste encore du chemin):
 
-> Si votre **code est [suffisamment générique](/articles/c++/programmation_generique)**, que vous utilisez les [**customization point**](/articles/c++/customization_point_design) et [**auto**](/articles/c++/auto), la **propagation** de ``qsizetype`` ou de ``std::size_t`` sera **automatique**. Et il sera à vous de bien [utiliser ``std::ssize()``](#frictions-avec-les-appels-système-et-le-langage) lorsque les deux types risquent d'entrer en collision.<br>
-> Ceci permettant de **prévenir les risques d'erreur** tout en **délèguant** les questions de **coûts** (liées aux conversions) **à l'appelant** de vos fonctions. Ainsi, votre code deviendrait **agnostique** des types utilisés, **laissant à l'appelant la responsabilité de ces choix**.
+> Si votre **code est [suffisamment générique](/articles/c++/programmation_generique)**, que vous utilisez les [**customization points**](/articles/c++/customization_point_design), [**auto**](/articles/c++/auto) et les [**comparaisons sûres**](#comparaisons-sûres-c20), la **propagation** du type correct sera **automatique** et ses manipulations seront **sûres**.
+> 
+> Cette approche permet de **prévenir les risques d'erreur** tout en **déléguant** la responsabilité du choix des types à l'appelant. Votre code devient ainsi **agnostique** et plus résilient.
 
 ---
 
