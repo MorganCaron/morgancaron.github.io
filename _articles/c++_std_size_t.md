@@ -30,7 +30,7 @@ for (unsigned int i = 0; i < largeVector.size(); ++i) { ... }
 
 ## Héritage du C: ``size_t``
 
-Avant le C++, le **langage C** a introduit [**``size_t``**](https://en.cppreference.com/w/c/types/size_t.html) (via [``<stddef.h>``](https://en.cppreference.com/w/c/header/stddef.html)) comme **type standard pour toute manipulation de mémoire**. Le standard **POSIX** (fondé sur le C) l'a ensuite intégré et imposé dans ses propres interfaces, notamment via le header système [``<sys/types.h>``](https://man7.org/linux/man-pages/man3/size_t.3type.html).
+Avant le C++, le **langage C** a introduit [**``size_t``**](https://en.cppreference.com/w/c/types/size_t.html) (via [``<stddef.h>``](https://en.cppreference.com/w/c/header/stddef.html)) comme **type standard pour toute manipulation de tailles mémoire**. Le standard **POSIX** (fondé sur le C) l'a ensuite intégré et intégré dans ses propres interfaces, notamment via le header système [``<sys/types.h>``](https://man7.org/linux/man-pages/man3/size_t.3type.html).
 
 Il est omniprésent dans la bibliothèque standard C:
 - **Allocation**: [``void* malloc(size_t size);``](https://man7.org/linux/man-pages/man3/malloc.3.html)
@@ -46,7 +46,7 @@ Selon la [**norme C (C99)**](https://en.cppreference.com/w/c/types/size_t.html):
 - C'est un **type entier non signé**
 - Sa largeur est d'au moins **16 bits** [selon la norme C99 ("The bit width of size_t is not less than 16. (since C99)")](https://en.cppreference.com/w/c/types/size_t.html)
 - Il est suffisant pour représenter la **taille maximale d'un objet** (typiquement un tableau) supporté par le système
-- C'est le type de retour des opérateurs [**``sizeof``**](https://en.cppreference.com/w/c/language/sizeof.html) et [**``_Alignof``**](https://en.cppreference.com/w/c/language/_Alignof.html) (C11, aujourd'hui obsolète) et [**``alignof``**](https://en.cppreference.com/w/c/language/alignof.html) (C23, son remplaçant)
+- C'est le type de retour des opérateurs [**``sizeof``**](https://en.cppreference.com/w/c/language/sizeof.html), [**``_Alignof``**](https://en.cppreference.com/w/c/language/_Alignof.html) (introduit en C11) et [**``alignof``**](https://en.cppreference.com/w/c/language/alignof.html) (mot-clé préféré depuis C23).
 
 La liberté est donc volontairement laissée **aux compilateurs de choisir le type sous-jacent** derrière ``size_t``. On dit qu'il est [*implementation-defined*](https://gcc.gnu.org/onlinedocs/gcc-6.2.0/cpp/Implementation-defined-behavior.html).
 
@@ -173,7 +173,7 @@ for (std::size_t i = v.size() - 1; i >= 0; --i) { ... }
 
 ``std::size_t`` est le type canonique pour les **tailles**, les **quantités** et les **index**, mais il ne doit pas être utilisé pour représenter une **différence** ou une [**distance**](https://en.cppreference.com/w/cpp/iterator/distance.html) (qui peuvent être négatives).
 
-Le type [**``ssize_t``**](https://man7.org/linux/man-pages/man3/size_t.3type.html) est un type historique des systèmes **POSIX** (Linux/Unix).
+Le type [**``ssize_t``**](https://man7.org/linux/man-pages/man3/size_t.3type.html) est un type historique des systèmes **POSIX** (Linux/Unix). Il est couramment utilisé dans les fonctions système (comme [``read``](https://man7.org/linux/man-pages/man2/read.2.html) ou [``write``](https://man7.org/linux/man-pages/man2/write.2.html)) pour retourner soit une taille, soit une erreur (via une valeur négative).
 
 | type      | type réel                | Portabilité                    |
 | --------- | :----------------------: | ------------------------------ |
@@ -193,9 +193,7 @@ Il peut être formellement défini en C via l'expression suivante:
 typedef typeof((int*)nullptr - (int*)nullptr) ptrdiff_t;
 {% endhighlight %}
 
-Sa taille est garantie de faire [au moins 17 bits avant C23, et au moins 16 bits à partir de C23](https://en.cppreference.com/w/c/types/ptrdiff_t.html).
-
-Comme le laisse penser son nom, c'est **sémantiquement** son sens premier. Mais il est **parfaitement adapté** pour représenter n'importe quelle soustraction entre deux ``size_t``.
+Comme le laisse penser son nom, c'est **sémantiquement** son sens premier. Mais il est également utilisé pour représenter une **différence entre deux index**, tant que celle-ci reste comprise entre [**``PTRDIFF_MIN`` et ``PTRDIFF_MAX``**](https://en.cppreference.com/w/c/types/limits.html).
 
 Exemple 1: **Restaurer un pointeur après réallocation**
 {% highlight c linenos %}
@@ -222,17 +220,13 @@ ptrdiff_t index = position - values; // index = 3
 ### Limitation de la plage de valeurs
 
 - ``size_t`` est [garanti de faire au moins 16 bits](https://en.cppreference.com/w/c/types/size_t.html).
-- ``ptrdiff_t`` est [garanti de faire au moins 17 bits (avant C23, maintenant 16 bits)](https://en.cppreference.com/w/c/types/ptrdiff_t.html)
-
-Cette différence laisse penser que le **bit supplémentaire** pour ``ptrdiff_t`` est **réservé au bit de signe**, pour permettre à tout ``size_t`` d'être compris dans ``ptrdiff_t``.
+- ``ptrdiff_t`` est [garanti de faire au moins **17 bits** avant C23, et au moins **16 bits** à partir de C23](https://en.cppreference.com/w/c/types/ptrdiff_t.html). Cette différence permet **historiquement** de garantir que **la différence entre deux adresses** peut être stockée dans un type signé **sans perte** de précision (en réservant un bit supplémentaire pour le signe). **Ce n'est plus garanti**.
 
 Mais concrètement sur les architectures 64 bits modernes, [``size_t``](#héritage-du-c-size_t) et [``ptrdiff_t``](#ptrdiff_t-le-type-des-distances) sont définis sur [64 bits](#dépendance-à-labi-et-au-modèle-de-données).
 
-Il n'est donc **pas garanti** que ``size_t`` tienne toujours dans ``ptrdiff_t``, même si sur 64 bits ça se vérifie.
-
-La garantie vient de la définition même de ``ptrdiff_t``:
+Il n'est donc **pas garanti** que tout ``size_t`` tienne toujours dans un ``ptrdiff_t``, même si ce n'est pas un problème car ``ptrdiff_t`` a les garanties suivantes:
 - Il est conçu pour contenir la différence entre deux pointeurs pointant **dans le même objet ou tableau**.
-- Le standard impose que ``ptrdiff_t`` soit **suffisamment grand** pour représenter **toutes ces différences**.
+- Le standard impose que ``ptrdiff_t`` soit **suffisamment grand** pour représenter **toutes ces différences** légales (n'excédant pas les capacités offertes par l'architecture).
 
 Même si ``size_t`` peut représenter des valeurs supérieures à ``PTRDIFF_MAX`` sur certaines plateformes, **aucune différence de pointeurs légale** dans le même objet **ne pourra dépasser ``PTRDIFF_MAX``**. Les différences de pointeurs sont **limitées par la taille maximale d’un objet contigu en mémoire**.
 
@@ -240,12 +234,13 @@ Même si ``size_t`` peut représenter des valeurs supérieures à ``PTRDIFF_MAX`
 
 Contrairement à une idée reçue, **il n'existe pas de type ``std::ssize_t``** dans le standard C++. Le comité C++ a jugé qu'un tel type **serait redondant** avec [``std::ptrdiff_t``](#stdptrdiff_t-le-type-des-distances).
 
-Le standard a choisi **une fonction plutôt qu'un type**. [**``std::ssize()``**](https://en.cppreference.com/w/cpp/iterator/size.html) ([**P1227R2**](https://wg21.link/p1227r2)) retourne l'**équivalent signé** de ``std::size_t``, **généralement** ``std::ptrdiff_t`` mais ce n'est **pas garanti** que ce soit exactement ce type.
+Le standard a choisi **une fonction plutôt qu'un type**. [**``std::ssize()``**](https://en.cppreference.com/w/cpp/iterator/size.html) ([**P1227R2**](https://wg21.link/p1227r2)) retourne l'**équivalent signé** de la taille du conteneur. Plus précisément, son type de retour est: ``std::common_type_t<std::ptrdiff_t, std::make_signed_t<typename C::size_type>>``.
 
 Il est également possible d'obtenir l'équivalent signé d'un type via le trait de type [**``std::make_signed_t``**](https://en.cppreference.com/w/cpp/types/make_signed):
 {% highlight cpp %}
-using signed_size_t = std::make_signed_t<std::size_t>; // équivalent à std::ptrdiff_t
+using signed_size_t = std::make_signed_t<std::size_t>;
 {% endhighlight %}
+Ce type ``signed_size_t`` peut (par abus de langage) être considéré comme un **équivalent à ``std::ptrdiff_t``** (bien qu'en pratique ce soit souvent le cas), ce n'est cependant pas garanti. ``std::ptrdiff_t`` étant défini par la norme selon une suite d'exigences, ça laisse une marge de manoeuvre aux compilateurs quant à la définition concrète du type sous-jacent.
 
 {% highlight cpp %}
 // std::ssize renvoie un type signé
@@ -254,7 +249,7 @@ for (auto i = std::ssize(v) - 1; i >= 0; --i) { ... }
 
 ### ``std::ptrdiff_t``: Le type des distances
 
-Comme [``ptrdiff_t``](#ptrdiff_t-le-type-des-distances) en C, le type [**``std::ptrdiff_t``**](https://en.cppreference.com/w/cpp/types/ptrdiff_t.html) est l'alias standard pour un type **entier signé** en C++. Type adapté pour représenter n'importe quelle soustraction entre deux ``std::size_t`` ou entre deux pointeurs (``ptr2 - ptr1``).
+Comme [``ptrdiff_t``](#ptrdiff_t-le-type-des-distances) en C, le type [**``std::ptrdiff_t``**](https://en.cppreference.com/w/cpp/types/ptrdiff_t.html) est l'alias standard pour un type **entier signé** en C++. Type adapté pour représenter n'importe quelle soustraction entre deux pointeurs (``ptr2 - ptr1``).
 
 Il peut être formellement défini via l'expression suivante:
 {% highlight cpp %}
@@ -269,7 +264,7 @@ using ptrdiff_t = decltype(static_cast<int*>(nullptr) - static_cast<int*>(nullpt
 Sa largeur est garantie de faire au moins **17 bits** ([The bit width of std::ptrdiff_t is not less than 17. (since C++11)](https://en.cppreference.com/w/cpp/types/ptrdiff_t.html))
 
 > Concernant les **plages de valeurs** de ``std::size_t`` et ``std::ptrdiff_t``, le standard C++ donne les mêmes garanties que le standard C.<br>
-> ``std::size_t`` n'est **pas formellement compris** dans ``std::ptrdiff_t``, mais ce n'est **pas un problème** pour autant. C'est plus compliqué que ça. Nous en avons parlé [**ici**](#limitation-de-la-plage-de-valeurs).
+> ``std::size_t`` n'est **pas formellement compris** dans ``std::ptrdiff_t``, mais ce n'est **pas un problème** pour autant. Nous en avons parlé [**ici**](#limitation-de-la-plage-de-valeurs).
 
 ## Dans la STL (Standard Template Library)
 
@@ -360,6 +355,8 @@ template <>    struct QIntegerForSize<16> { __extension__ typedef unsigned __int
 template <class T> struct QIntegerForSizeof: QIntegerForSize<sizeof(T)> { };
 using qsizetype = QIntegerForSizeof<std::size_t>::Signed;
 {% endhighlight %}
+
+La taille de ``qsizetype`` est directement définie sur celle de ``std::size_t`` (``sizeof(std::size_t)``).
 
 Si ``std::size_t`` fait 32 bits -> ``qsizetype`` est un ``qint32``.<br>
 Si ``std::size_t`` fait 64 bits -> ``qsizetype`` est un ``qint64``.
@@ -503,31 +500,7 @@ Ceci change **deux fois** le domaine de signe de la valeur (non-signé -> signé
 
 N'est-ce pas absurde d'imposer un type signé pour des tailles, pour finir par le convertir systématiquement ? Introduisant au passage **des risques d'erreurs inutiles** (si on passe une valeur négative en argument) ou **des coûts supplémentaires** si la fonction Qt vérifie systématiquement que la valeur passée n'est pas négative.
 
-## Les recommandations contradictoires de C++ Core Guidelines
-
-Les [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) reconnaissent ce conflit historique entre la STL et les besoins de calcul.
-
-### Ne mélangez pas signé et non signé (ES.100)
-
-Le principe est simple: [**Don't mix signed and unsigned arithmetic**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#res-mix). Le mélange provoque des **conversions silencieuses** et des bugs difficiles à tracer. Nous l'avons illustré avec les [frictions de Qt](#les-comparaisons-mixtes).
-
-### Préférez le signé pour les index (ES.107)
-
-Ces guidelines recommandent de [**préférer les types signés pour les indices de tableaux**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es107-dont-use-unsigned-for-subscripts-prefer-gslindex).
-
-Comme nous l'avons vu avec [les boucles décrémentales](#lunderflow-dans-les-boucles) qui peuvent provoquer un **underflow** si l'index est non-signé, cette guideline vise à prévenir ce genre d'erreur.
-
-### La position ambiguë sur ``size_t``
-
-Les guidelines se retrouvent ici dans une impasse: elles recommandent le signé pour les index (ES.107) tout en devant composer avec ``std::size_t`` imposé par la STL pour les tailles de conteneurs et le langage (``sizeof``).
-
-En effet, les index sont **très massivement** affectés ou comparés avec des **tailles**, qui sont **non-signées**. Causant un nombre considérable d'interactions entre des valeurs signées et non-signées dans un programme. Cette guideline rentre donc complètement en **contradiction** avec la 1ère ([ES.100](#ne-mélangez-pas-signé-et-non-signé-es100)).
-
-C'est exactement la **même dissonance** que celle rencontrée **avec Qt**, montrant que le débat entre signé et non-signé pour les tailles reste l'un des points **les plus clivants du C++**.
-
-De nombreux développeurs (dont vous aurez deviné, je fais partie) rangent les **index** et les **tailles** dans **la même arithmétique non-signée** (``std::size_t``). Réservant les index signés **uniquement aux boucles décrémentales** (en priorisant une autre forme d'écriture pour éviter d'y avoir recours).
-
-### Faut-il utiliser ``qsizetype`` ?
+### Faut-il utiliser ``qsizetype`` (Qt) ?
 
 Si vous utilisez Qt, le type ``qsizetype`` est un passage obligé, mais il agit comme un corps étranger dès que vous sollicitez les fonctions de la STL **ou des fonctions système**. L'utilisation de [**``std::ssize()``** (C++20)](https://en.cppreference.com/w/cpp/iterator/size.html) est souvent le meilleur moyen de "ramener" les conteneurs STL dans le monde signé de Qt pour éviter les frictions.
 
@@ -551,7 +524,31 @@ Une **3ème option** s'offre à nous, car **Qt fait quelques efforts** pour **se
 
 > Si votre **code est [suffisamment générique](/articles/c++/programmation_generique)**, que vous utilisez les [**customization points**](/articles/c++/customization_point_design), [**auto**](/articles/c++/auto) et les [**comparaisons sûres**](#comparaisons-sûres-c20), la **propagation** du type correct sera **automatique** et ses manipulations seront **sûres**.
 > 
-> Cette approche permet de **prévenir les risques d'erreur** tout en **déléguant** la responsabilité du choix des types à l'appelant. Votre code devient ainsi **agnostique** et plus résilient.
+> Cette approche permet de **prévenir les risques d'erreur** tout en **déléguant** la responsabilité du choix des types à l'appelant. Votre code devient ainsi **agnostique** et plus **résilient**.
+
+## Les recommandations contradictoires de C++ Core Guidelines
+
+Les [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) reconnaissent ce conflit historique entre la STL et les besoins de calcul.
+
+### Ne mélangez pas signé et non signé (ES.100)
+
+Le principe est simple: [**Don't mix signed and unsigned arithmetic**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#res-mix). Le mélange provoque des **conversions silencieuses** et des bugs difficiles à tracer. Nous l'avons illustré avec les [frictions de Qt](#les-comparaisons-mixtes).
+
+### Préférez le signé pour les index (ES.107)
+
+Ces guidelines recommandent de [**préférer les types signés pour les indices de tableaux**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es107-dont-use-unsigned-for-subscripts-prefer-gslindex).
+
+Comme nous l'avons vu avec [les boucles décrémentales](#lunderflow-dans-les-boucles) qui peuvent provoquer un **underflow** si l'index est non-signé, cette guideline vise à prévenir ce genre d'erreur.
+
+### La position ambiguë sur ``size_t``
+
+Les guidelines se retrouvent ici dans une impasse: elles recommandent le signé pour les index (ES.107) tout en devant composer avec ``std::size_t`` imposé par la STL pour les tailles de conteneurs et le langage (``sizeof``).
+
+En effet, les index sont **très massivement** affectés ou comparés avec des **tailles**, qui sont **non-signées**. Causant un nombre considérable d'interactions entre des valeurs signées et non-signées dans un programme. Cette guideline rentre donc complètement en **contradiction** avec la 1ère ([ES.100](#ne-mélangez-pas-signé-et-non-signé-es100)).
+
+C'est exactement la **même dissonance** que celle rencontrée [**avec Qt**](#le-cas-particulier-de-qt-qsizetype), montrant que le débat entre signé et non-signé pour les tailles reste l'un des points **les plus clivants du C++**.
+
+De nombreux développeurs (dont vous aurez deviné, je fais partie) rangent les **index** et les **tailles** dans **la même arithmétique non-signée** (``std::size_t``). Réservant les index signés **uniquement aux [boucles décrémentales](#lunderflow-dans-les-boucles)** (en priorisant une autre forme d'écriture pour éviter d'y avoir recours).
 
 ---
 

@@ -99,16 +99,15 @@
 	margin: 10px;
 }
 
-html,
-body {
+html {
 	scroll-padding-top: var(--navbar-height);
-}
-
-body {
 	--navbar-height: 12rem;
 	@media (min-width: 992px) {
 		--navbar-height: 5.5rem;
 	}
+}
+
+body {
 	background-color: var(--background-color);
 	color: var(--color);
 	font-family: 'Rajdhani', monospace;
