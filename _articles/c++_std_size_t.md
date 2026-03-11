@@ -30,7 +30,7 @@ for (unsigned int i = 0; i < largeVector.size(); ++i) { ... }
 
 ## Héritage du C: ``size_t``
 
-Avant le C++, le **langage C** a introduit [**``size_t``**](https://en.cppreference.com/w/c/types/size_t.html) (via [``<stddef.h>``](https://en.cppreference.com/w/c/header/stddef.html)) comme **type standard pour toute manipulation de tailles mémoire**. Le standard **POSIX** (fondé sur le C) l'a ensuite intégré et intégré dans ses propres interfaces, notamment via le header système [``<sys/types.h>``](https://man7.org/linux/man-pages/man3/size_t.3type.html).
+Avant le C++, le **langage C** a introduit [**``size_t``**](https://en.cppreference.com/w/c/types/size_t.html) (via [``<stddef.h>``](https://en.cppreference.com/w/c/header/stddef.html)) comme **type standard pour toute manipulation de tailles mémoire**. Le standard **POSIX** (fondé sur le C) l'utilise dans ses propres interfaces, notamment via le header système [``<sys/types.h>``](https://man7.org/linux/man-pages/man3/size_t.3type.html).
 
 Il est omniprésent dans la bibliothèque standard C:
 - **Allocation**: [``void* malloc(size_t size);``](https://man7.org/linux/man-pages/man3/malloc.3.html)
@@ -175,12 +175,12 @@ for (std::size_t i = v.size() - 1; i >= 0; --i) { ... }
 
 Le type [**``ssize_t``**](https://man7.org/linux/man-pages/man3/size_t.3type.html) est un type historique des systèmes **POSIX** (Linux/Unix). Il est couramment utilisé dans les fonctions système (comme [``read``](https://man7.org/linux/man-pages/man2/read.2.html) ou [``write``](https://man7.org/linux/man-pages/man2/write.2.html)) pour retourner soit une taille, soit une erreur (via une valeur négative).
 
-| type      | type réel                | Portabilité                    |
-| --------- | :----------------------: | ------------------------------ |
-| `size_t`  | *implementation-defined* | oui (standard, ISO C et POSIX) |
-| `ssize_t` | *implementation-defined* | non (POSIX uniquement)         |
-| `SIZE_T`  | ULONG_PTR                | non (API Windows)              |
-| `SSIZE_T` | ULONG_PTR                | non (API Windows)              |
+| type      | type réel                | Portabilité                         |
+| --------- | :----------------------: | ----------------------------------- |
+| `size_t`  | *implementation-defined* | oui (standard, ISO&nbsp;C et POSIX) |
+| `ssize_t` | *implementation-defined* | non (POSIX uniquement)              |
+| `SIZE_T`  | ULONG_PTR                | non (API Windows)                   |
+| `SSIZE_T` | ULONG_PTR                | non (API Windows)                   |
 
 ``ssize_t`` n'est donc **pas un bon candidat** pour représenter une **différence/distance** en C.
 
@@ -256,15 +256,26 @@ Il peut être formellement défini via l'expression suivante:
 using ptrdiff_t = decltype(static_cast<int*>(nullptr) - static_cast<int*>(nullptr));
 {% endhighlight %}
 
-| type | type réel | Portabilité |
-| :--- | :---: | :--- |
-| **``std::size_t``** | *implementation-defined* | oui (standard ISO C++) |
-| **``std::ptrdiff_t``** | *implementation-defined* | oui (standard ISO C++) |
+| type | type réel | Portabilité | Usage sémantique |
+| :--- | :---: | :--- | :--- |
+| **``std::size_t``** | *implementation-defined* | oui (standard ISO&nbsp;C++) | **Indexes**, **quantités** et **tailles** d'objets dans un conteneur ou tableau |
+| **``std::ptrdiff_t``** | *implementation-defined* | oui (standard ISO&nbsp;C++) | **Différences** entre **deux pointeurs** |
 
 Sa largeur est garantie de faire au moins **17 bits** ([The bit width of std::ptrdiff_t is not less than 17. (since C++11)](https://en.cppreference.com/w/cpp/types/ptrdiff_t.html))
 
 > Concernant les **plages de valeurs** de ``std::size_t`` et ``std::ptrdiff_t``, le standard C++ donne les mêmes garanties que le standard C.<br>
 > ``std::size_t`` n'est **pas formellement compris** dans ``std::ptrdiff_t``, mais ce n'est **pas un problème** pour autant. Nous en avons parlé [**ici**](#limitation-de-la-plage-de-valeurs).
+
+### ``std::uintptr_t`` et ``std::intptr_t``
+
+Bien que ``std::size_t`` soit souvent utilisé pour des **offset mémoire** au sein d'un même objet (comme avec la macro [``offsetof``](https://en.cppreference.com/w/cpp/types/offsetof.html) qui donne un ``std::size_t``), il n'est pas destiné à faire des calculs d'adresses complexes. Pour convertir un pointeur en entier afin d'effectuer de l'arithmétique bas niveau (masquage de bits, calcul d'alignement, etc), préférez [**``std::uintptr_t``**](https://en.cppreference.com/w/cpp/types/integer.html) ou [**``std::intptr_t``**](https://en.cppreference.com/w/cpp/types/integer.html), qui est garanti d'être assez large pour contenir un pointeur.
+
+| type | type réel | Portabilité | Usage sémantique |
+| :--- | :---: | :--- | :--- |
+| **``std::size_t``** | *implementation-defined* | oui (standard ISO&nbsp;C++) | **Indexes**, **quantités** et **tailles** d'objets dans un conteneur ou tableau |
+| **``std::ptrdiff_t``** | *implementation-defined* | oui (standard ISO&nbsp;C++) | **Différences** entre **deux pointeurs** |
+| **``std::uintptr_t``** | *implementation-defined* | oui (standard ISO&nbsp;C++) | **Arithmétique sur pointeurs** |
+| **``std::intptr_t``** | *implementation-defined* | oui (standard ISO&nbsp;C++) | **Arithmétique** sur pointeurs avec valeurs **négatives** |
 
 ## Dans la STL (Standard Template Library)
 
@@ -272,9 +283,9 @@ Les conteneurs de la STL (``vector``, ``list``, ``string``, etc) définissent de
 
 Ils sont **visibles en public** dans les classes, et dans presque toutes les **signatures de fonctions** membres:
 
-- **``T::size_type``**: Type non signé pour représenter le **nombre d'éléments stockés**. C'est notamment le type de retour de la méthode [**``std::vector<T>::size()``**](https://en.cppreference.com/w/cpp/container/vector/size) et le type attendu par l'opérateur [**``std::vector<T>::operator[]``**](https://en.cppreference.com/w/cpp/container/vector/operator_at).
+- **``T::size_type``**: Type non signé pour représenter le **nombre d'éléments stockés**. C'est notamment le type de retour de la méthode [**``std::vector<T>::size()``**](https://en.cppreference.com/w/cpp/container/vector/size) et le type attendu par l'opérateur [**``std::vector<T>::operator[]``**](https://en.cppreference.com/w/cpp/container/vector/operator_at). Ce type est très souvent ``std::size_t`` par défaut.
 
-- **``T::difference_type``**: Type signé pour les distances. C'est le type retourné par l'opérateur de **soustraction entre deux itérateurs** (``it2 - it1``) ou par la fonction [**``std::distance``**](https://en.cppreference.com/w/cpp/iterator/distance).
+- **``T::difference_type``**: Type signé pour les distances. C'est le type retourné par l'opérateur de **soustraction entre deux itérateurs** (``it2 - it1``) ou par la fonction [**``std::distance``**](https://en.cppreference.com/w/cpp/iterator/distance). Ce type est très souvent ``std::ptrdiff_t`` par défaut.
 
 {% highlight cpp %}
 std::vector<int> numbers = {10, 20, 30};
@@ -300,6 +311,37 @@ auto distance = numbers.end() - numbers.begin();
 {% endhighlight %}
 
 Il prend le type retourné par les fonctions, [**sans risque de conversion maladroite**](#auto-complique-la-lecture-du-code).
+
+### Valeur sentinelle de ``std::string``
+
+
+La fonction [``std::string::find``](https://en.cppreference.com/w/cpp/string/basic_string/find.html) retourne une valeur de type ``std::string::size_type``. Cet alias correspond à ``std::allocator_traits<Allocator>::size_type``, dont le type réel est **systématiquement [``std::size_t``](https://en.cppreference.com/w/cpp/memory/allocator.html)** pour [l'allocateur par défaut](https://en.cppreference.com/w/cpp/memory/allocator.html).
+
+> Pour être exact, ``std::string`` est un alias de la classe template [``std::basic_string<CharT, Traits, Allocator>``](https://en.cppreference.com/w/cpp/string/basic_string.html). Cette précision est utile car les types que nous allons manipuler en dépendent.
+
+Cette fonction [``std::string::find``](https://en.cppreference.com/w/cpp/string/basic_string/find.html) retourne la **position de l'élément trouvé**:
+
+{% highlight cpp %}
+auto string = std::string{"Hello World!"};
+std::size_t position = string.find("World"); // position vaut 5
+{% endhighlight %}
+
+La STL propose une **valeur sentinelle** pour indiquer que **la chaîne recherchée n'a pas été trouvée**:
+{% highlight cpp linenos highlight_lines="4" %}
+auto string = std::string{"Hello World!"};
+std::size_t position = string.find("Word"); // position vaut std::string::npos
+
+if (position == std::string::npos)
+{
+	std::println("Chaîne non trouvée");
+}
+{% endhighlight %}
+
+[**``std::string::npos``**](https://en.cppreference.com/w/cpp/string/basic_string/npos) est une constante de type **``std::size_t``**. Cette **valeur sentinelle** vaut **``-1``**.
+
+``-1`` dans un type non-signé ? C'est parfaitement légal: [dans l'**arithmétique non signée**, les **overflow/underflow** ont la **garantie de boucler**](#le-mélange-signé--non-signé). ``-1`` devient donc **la plus grande valeur possible** de ``std::size_t`` (qu'on ne peut pas formellement citer car le standard [ne garantit pas de largeur exacte pour ce type](#dépendance-à-labi-et-au-modèle-de-données)).
+
+Ce mécanisme, parfois source de bugs, est utilisé ici pour **garantir une valeur sentinelle impossible à atteindre** pour une taille réelle de chaîne.
 
 ## Literals (Depuis C++23)
 
@@ -532,7 +574,7 @@ Les [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuid
 
 ### Ne mélangez pas signé et non signé (ES.100)
 
-Le principe est simple: [**Don't mix signed and unsigned arithmetic**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#res-mix). Le mélange provoque des **conversions silencieuses** et des bugs difficiles à tracer. Nous l'avons illustré avec les [frictions de Qt](#les-comparaisons-mixtes).
+Le principe est simple: Ne mélangez pas l'arithmétique signée et non-signée ([**Don't mix signed and unsigned arithmetic**](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#res-mix)). Le mélange provoque des **conversions silencieuses** et des bugs difficiles à tracer. Nous l'avons illustré avec les [frictions de Qt](#les-comparaisons-mixtes).
 
 ### Préférez le signé pour les index (ES.107)
 
