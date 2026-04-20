@@ -32,7 +32,7 @@ Un literal est un **préfixe** et/ou un **suffixe** qui s'ajoutent autour d'une 
 Dans certains cas, cela peut aussi être un simple mot clef représentant une valeur ([``nullptr``](#pointer-literal-nullptr), [``true``/``false``](#boolean-literal-truefalse)).<br>
 [Certains literals](#raw-string-literals) sont particuliers car ils **ne changent pas le type** de la valeur, mais les rendent juste **plus lisibles** dans le code.
 
-Un literal est souvent une [prvalue](/articles/c++/value_categories/prvalue), mais nous allons voir qu'il existe [des exceptions](#string-literal-lvalue-ou-prvalue-).
+Un literal est souvent une [prvalue](/articles/c++/value_categories#prvalue), mais nous allons voir qu'il existe [des exceptions](#string-literal-lvalue-ou-prvalue-).
 
 ## Integer literal
 

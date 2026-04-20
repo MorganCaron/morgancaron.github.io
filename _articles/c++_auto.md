@@ -72,7 +72,8 @@ En C++, écrire ``auto a = 1;`` revient exactement à écrire ``int a = 1;``. Le
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-deduction.gif %}
 
-<br>
+> Bien qu'il semble être une nouveauté moderne, ce mécanisme d'inférence aurait dû faire partie du langage dès ses origines (et même avant C++98). Nous verrons [**pourquoi son introduction a été retardée de plus d'une décennie**](#petite-histoire-et-philosophie).
+
 > Le langage C a effectué le même changement au niveau de [son mot clef ``auto``](https://en.cppreference.com/w/c/language/auto) en [C23](https://en.cppreference.com/w/c/23) en lui donnant la même fonction qu'en C++11 pour faire de l'**inférence de types** ([proposal](https://open-std.org/JTC1/SC22/WG14/www/docs/n3007.htm)).
 
 ### Réduction de la verbosité
@@ -523,6 +524,19 @@ f({1, 2, 3}); // error: cannot deduce 'auto' from braced-init-list
 
 Cette différence vient du fait que l'**inférence de type pour les variables** ([**Placeholder type specifiers**](#placeholder-type-specifiers-depuis-c11)) a une **règle spéciale** pour les **listes entre accolades**, alors que la **déduction des templates** (utilisée pour les **paramètres ``auto`` de fonctions**) n'en a pas. Pour que cela fonctionne dans une fonction, il faut explicitement demander un **``std::initializer_list<T>``**.
 
+#### L'initialisation uniforme (C++17)
+
+Avant C++17, l'utilisation de l'initialisation uniforme avec ``auto`` pouvait mener à des surprises:
+
+{% highlight cpp %}
+auto x = {1}; // std::initializer_list<int>
+auto y{1}; // std::initializer_list<int> avant C++17
+{% endhighlight %}
+
+Depuis C++17, la règle a été simplifiée ([N3922](https://wg21.link/n3922)) pour rendre le comportement plus intuitif: ``auto y{1}`` déduit désormais un ``int`` grâce à l'**[initialisation uniforme](/articles/c++/uniform_initialization)**.
+
+L'écriture avec le signe égal (``auto x = {1}``) reste quant à elle dédiée à la création d'une ``std::initializer_list``.
+
 ### auto complique la lecture du code?
 
 Les développeurs réticents à utiliser ``auto`` soutiennent que de **ne pas écrire explicitement le type des variables ajoute en charge mentale** pour les développeurs. Forçant à **faire l'effort d'aller vérifier les types de retour des fonctions** pour connaitre le type des variables typées avec ``auto``.
@@ -662,6 +676,70 @@ std::cout << std::boolalpha << bits[0]; // Affiche "false"
 {% endhighlight %}
 
 > **L'absence de conversions implicites avec ``auto`` force à les expliciter.** Ce qui est une **bonne pratique** pour **éviter les comportements cachés**, **inattendus** et **indésirables**.
+
+Dans ces contextes spécifiques, il est impératif d'**expliciter la conversion** pour déclencher l'évaluation de l'expression.
+
+On retrouve ce même risque avec les **[expression templates](https://en.wikipedia.org/wiki/Expression_templates)** et leur **évaluation paresseuse** (**lazy evaluation**). Le compilateur ne retourne pas le résultat final mais un **proxy** intermédiaire qui stocke des références vers les opérandes pour **retarder le calcul** et **fusionner les opérations**.
+
+{% highlight cpp linenos highlight_lines="10 11 16" %}
+struct Number
+{
+	double value;
+	operator double() const { return value; }
+};
+
+template<class L, class R>
+struct SumProxy
+{
+	const L& lhs;
+	const R& rhs;
+	operator double() const { return static_cast<double>(lhs) + static_cast<double>(rhs); }
+};
+
+template<class Lhs, class Rhs>
+auto operator+(const Lhs& lhs, const Rhs& rhs) { return SumProxy<Lhs, Rhs>{lhs, rhs}; }
+
+int main()
+{
+	auto result = Number{1.0} + Number{2.0}; // result est un SumProxy
+	// Les temporaires sont détruits: result contient des dangling references!
+	double value = result; // Comportement indéfini (UB)
+}
+{% endhighlight %}
+
+Capturer ce proxy avec ``auto`` peut mener à des **dangling references** si les opérandes originaux (souvent temporaires) sont détruits. C'est un cas classique avec des bibliothèques comme [**Eigen**](https://eigen.tuxfamily.org/) ou [**Dlib**](http://dlib.net/):
+
+{% highlight cpp linenos %}
+// Erreur: capture un objet interne au lieu du résultat
+auto result = matrix1 + matrix2;
+
+// Ok: force l'évaluation via une conversion implicite
+MatrixXf result = matrix1 + matrix2;
+auto result = MatrixXf{matrix1 + matrix2}; // ou une conversion explicite
+{% endhighlight %}
+
+Sans ``auto``, **en laissant la conversion implicite se faire**, un développeur qui relit le code pourrait passer à côté de ce mécanisme primordial qui a lieu sous ses yeux. ``auto`` offre ici l'avantage de forcer ces mécanismes à être rendus explicites.
+
+### Petite histoire et philosophie
+
+Bien que **standardisé en 2011**, le **placeholder type specifier auto** est l'une des fonctionnalités les plus anciennes du langage. **Bjarne Stroustrup**(le créateur du C++) [l'avait déjà implémenté dans **Cfront en 1984**](https://www.stroustrup.com/C++11FAQ.html#auto). Il fut cependant **contraint de le retirer** à l'époque **pour des raisons de compatibilité** avec le langage C.
+
+> Le blocage venait d'une règle héritée du C nommée "**implicit int**": à l'époque, si vous ne précisiez pas de type d'une variable, le compilateur supposait par défaut qu'il s'agissait d'un ``int``. Ainsi, une déclaration comme ``auto x = 7;`` était systématiquement interprétée comme ``auto int x = 7;`` (en utilisant [l'ancien sens de ``auto``](#automatic-storage-duration-specifier-avant-c11-obsolète)), interdisant toute déduction de type à partir de la valeur. Il a fallu attendre que les standards C++98 et C99 interdisent le ``int`` implicite pour libérer la syntaxe.
+
+Selon Stroustrup, ``auto`` n'est pas seulement un outil de confort pour réduire la verbosité, il devient **indispensable** lorsque le type est difficile à connaître ou à écrire.
+
+C'est particulièrement vrai lorsque le type d'une variable dépend de paramètres de templates:
+{% highlight cpp %}
+template<class T, class U>
+void multiply(const std::vector<T>& vt, const std::vector<U>& vu)
+{
+	auto tmp = vt[i] * vu[i]; // Quel est le type de T * U ?
+}
+{% endhighlight %}
+
+Ici, le type de ``tmp`` est le résultat de la multiplication d'un ``T`` par un ``U``. Il peut être extrêmement complexe pour un humain de le déterminer (cela peut dépendre de nombreuses spécialisations ou surcharges d'opérateurs), mais le compilateur, lui, le connaît parfaitement dès qu'il instancie la fonction.
+
+> Notez que ``auto`` est avant tout une facilité syntaxique destinée à simplifier l'écriture du code, son introduction n'affecte pas les spécifications de la bibliothèque standard elle-même.
 
 ## Trailing return type (depuis C++11)
 
@@ -1052,6 +1130,13 @@ decltype(auto) k = (i); // int&
 L'utilisation de **parenthèses** autour de ``i`` **force la déduction en référence**.<br>
 Sans les parenthèses, le résultat est une copie.
 
+Il en va de même pour le retour d'une fonction:
+
+{% highlight cpp %}
+decltype(auto) getValue() { return m_value; } // Retourne une copie (T)
+decltype(auto) getReference() { return (m_value); } // Retourne une référence (T&)
+{% endhighlight %}
+
 ## Forwarding Reference (``auto&&``) (depuis C++11)
 
 Le terme "**forwarding reference**" (autrefois appelé *universal reference*) a été inventé par **Scott Meyers** pour désigner une référence qui peut se lier aussi bien à des [**lvalues**](/articles/c++/value_categories#lvalue) qu'à des [**rvalues**](/articles/c++/value_categories#rvalue), tout en préservant leur nature (const, rvalue, etc.).
@@ -1068,6 +1153,21 @@ auto&& variable = getValue(); // Placeholder type specifier (C++11)
 auto lambda = [](auto&& x) {}; // Paramètre template de lambda (C++14)
 void function(auto&& x); // Paramètre template de fonction (C++20)
 {% endhighlight %}
+
+## ``decltype(auto)`` (C++14) vs ``auto&&`` (C++11) en type de retour
+
+Lorsqu'il s'agit de retourner une valeur ou une référence de manière générique (notamment pour des accesseurs), deux approches aux philosophies différentes coexistent:
+
+- **``decltype(auto)`` est plus rigide**: il déduit le type exact de l'expression. Il nécessite des parenthèses autour du membre retourné (ex: ``return (m_value);``) pour retourner une référence et ne pas faire de **copie par accident**.
+- **``auto&&`` est plus flexible**: il se comporte comme une *forwarding reference* et déduit une référence si l'expression en est une (même sans parenthèses), ce qui en fait le compagnon idéal du [**Deducing This (C++23)**](/articles/c++/objects#deducing-this) pour les accesseurs génériques:
+
+{% highlight cpp %}
+decltype(auto) get(this auto&& self) { return (self.m_value); }
+// ou:
+auto&& get(this auto&& self) { return self.m_value; }
+{% endhighlight %}
+
+Si ``self`` est const, retourne ``const T&``. Sinon retourne ``T&``.
 
 ## Structured binding declaration (depuis C++17)
 
@@ -1369,12 +1469,12 @@ private:
 };
 
 // Spécialisation de std::tuple_size pour le type Person. Pour préciser qu'il contient 3 éléments.
-template <>
+template<>
 struct std::tuple_size<Person>: std::integral_constant<std::size_t, 3>
 {};
 
 // Spécialisation de std::tuple_element pour le type Person. Pour accéder aux éléments.
-template <std::size_t I>
+template<std::size_t I>
 struct std::tuple_element<I, Person>
 {
     using type = std::remove_cvref_t<decltype(std::declval<Person>().get<I>())>;

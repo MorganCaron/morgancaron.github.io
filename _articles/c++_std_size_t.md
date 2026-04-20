@@ -415,16 +415,16 @@ Ce choix de conception introduit une **dissonance sémantique** permanente dès 
 
 ### La friction entre Qt et la STL
 
-L'existence de ``qsizetype`` crée une "frontière de types" permanente. Puisque Qt a fait le choix du **signé** pour ses conteneurs alors que la STL et le langage (``sizeof``) utilisent le **non-signé**, le développeur se retrouve à devoir arbitrer entre deux mondes incompatibles.
+L'existence de ``qsizetype`` crée une "frontière de types" permanente. Puisque Qt a fait le choix du **signé** pour ses conteneurs alors que la STL et le langage (``sizeof``) utilisent le **non-signé**, le développeur se retrouve à devoir arbitrer entre **deux mondes incompatibles**.
 
-Cela force souvent le développeur à jongler entre trois types pour manipuler des tailles:
+Cela force souvent le développeur à **jongler entre trois types** pour manipuler des **tailles**:
 - ``std::size_t`` (non-signé standard)
 - ``std::ptrdiff_t`` (signé standard)
 - ``qsizetype`` (signé Qt).
 
 #### Les comparaisons mixtes
 
-Dès que vous comparez un index issu d'une recherche Qt avec une taille ou un index standard, le piège se referme.
+Dès que vous **comparez un index** issu d'une recherche **Qt** avec une taille ou un index **standard**, le piège se referme.
 
 Le risque est qu'une valeur "non trouvée" (``-1`` utilisé comme **sentinelle**) [soit interprétée comme une valeur positive gigantesque](#le-mélange-signé--non-signé) lors de la comparaison avec un ``std::size_t``.
 
@@ -435,7 +435,7 @@ std::size_t MaxPathLength = 128;
 auto queryStart = url.indexOf('?');
 
 // Comparaison entre un qsizetype (signé) et un std::size_t (non-signé)
-// Si '?' n'est pas trouvé (queryStart = -1), la condition sera VRAIE car -1 > 128 en non-signé.
+// Si '?' n'est pas trouvé (queryStart = -1), la condition sera VRAIE car -1 > 128 en non-signé
 if (queryStart > MaxPathLength)
 {
 	// On rejette l'URL car on croit que le chemin est trop long !
@@ -466,10 +466,12 @@ Ces fonctions appliquent une logique correcte selon le signe de chaque valeur, *
 QString url = "/api/v1/resource/data"; // Pas de paramètres '?' ici
 std::size_t maxPathLength = 128;
 
+auto queryStart = url.indexOf('?');
+
 // Solution moderne et sûre:
 if (std::cmp_greater(queryStart, maxPathLength))
 {
-	// La comparaison est mathématiquement correcte: -1 > 128 est FAUX.
+	// La comparaison est mathématiquement correcte: -1 > 128 est FAUX
 	return Error::BadRequest;
 }
 {% endhighlight %}
@@ -483,9 +485,9 @@ Le passage d'un type à l'autre n'est jamais neutre, car leurs capacités diffè
 La conversion est techniquement sûre pour toutes les tailles car la plage positive de ``qsizetype`` tient toujours dans un ``std::size_t``. Cependant, elle **détruit la sémantique d'erreur**:
 {% highlight cpp %}
 qsizetype qtSize = -1; // En Qt, la sentinelle -1 signifie sémantiquement "non trouvé" ou "erreur"
-std::size_t stdSize = qtSize; 
+std::size_t stdSize = qtSize;
 
-// stdSize vaut désormais 18 446 744 073 709 551 615.
+// stdSize vaut désormais la plus grande valeur stockable dans un std::size_t
 // L'erreur est devenue une taille gigantesque "valide"
 {% endhighlight %}
 
