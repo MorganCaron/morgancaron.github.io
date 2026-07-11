@@ -1119,3 +1119,61 @@ canvas#particles {
 	font-weight: bold;
 	text-align: center;
 }
+
+a.dead-link {
+	position: relative;
+	color: darkorange !important;
+	
+	&::after {
+		content: "Page en cours de rédaction";
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		z-index: 100;
+		opacity: 0;
+		transition: opacity .3s;
+		pointer-events: none;
+		transform: translateX(-50%);
+		white-space: nowrap;
+		background-color: rgba(10, 10, 10, .9);
+		border-radius: 5px;
+		border: 1px solid rgba(10, 10, 10, .95);
+		margin-top: .5rem;
+		padding: 1px .5rem;
+	}
+
+	&:hover {
+		&::after {
+			opacity: 1;
+		}
+	}
+}
+
+article a.external-link {
+	&::after {
+		content: "";
+		display: inline-block;
+		width: .7em;
+		height: .7em;
+		margin-left: .2rem;
+		vertical-align: super;
+		background-color: currentColor;
+		
+		-webkit-mask-image: url("../images/external-link.svg");
+		mask-image: url("../images/external-link.svg");
+		-webkit-mask-size: contain;
+		mask-size: contain;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		
+		opacity: .65;
+		transition: opacity 0.2s, transform 0.2s;
+	}
+
+	&:hover {
+		&::after {
+			opacity: 1;
+			transform: translate(1px, -1px);
+		}
+	}
+}

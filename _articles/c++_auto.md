@@ -722,7 +722,7 @@ Sans ``auto``, **en laissant la conversion implicite se faire**, un développeur
 
 ### Petite histoire et philosophie
 
-Bien que **standardisé en 2011**, le **placeholder type specifier auto** est l'une des fonctionnalités les plus anciennes du langage. **Bjarne Stroustrup**(le créateur du C++) [l'avait déjà implémenté dans **Cfront en 1984**](https://www.stroustrup.com/C++11FAQ.html#auto). Il fut cependant **contraint de le retirer** à l'époque **pour des raisons de compatibilité** avec le langage C.
+Bien que **standardisé en 2011**, le **placeholder type specifier auto** est l'une des fonctionnalités les plus anciennes du langage. **Bjarne Stroustrup** (le créateur du C++) [l'avait déjà implémenté dans **Cfront en 1984**](https://www.stroustrup.com/C++11FAQ.html#auto). Il fut cependant **contraint de le retirer** à l'époque **pour des raisons de compatibilité** avec le langage C.
 
 > Le blocage venait d'une règle héritée du C nommée "**implicit int**": à l'époque, si vous ne précisiez pas de type d'une variable, le compilateur supposait par défaut qu'il s'agissait d'un ``int``. Ainsi, une déclaration comme ``auto x = 7;`` était systématiquement interprétée comme ``auto int x = 7;`` (en utilisant [l'ancien sens de ``auto``](#automatic-storage-duration-specifier-avant-c11-obsolète)), interdisant toute déduction de type à partir de la valeur. Il a fallu attendre que les standards C++98 et C99 interdisent le ``int`` implicite pour libérer la syntaxe.
 

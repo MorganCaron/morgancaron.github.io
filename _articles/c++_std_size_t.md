@@ -546,7 +546,7 @@ N'est-ce pas absurde d'imposer un type signé pour des tailles, pour finir par l
 
 ### Faut-il utiliser ``qsizetype`` (Qt) ?
 
-Si vous utilisez Qt, le type ``qsizetype`` est un passage obligé, mais il agit comme un corps étranger dès que vous sollicitez les fonctions de la STL **ou des fonctions système**. L'utilisation de [**``std::ssize()``** (C++20)](https://en.cppreference.com/w/cpp/iterator/size.html) est souvent le meilleur moyen de "ramener" les conteneurs STL dans le monde signé de Qt pour éviter les frictions.
+Si vous utilisez Qt, le type [``qsizetype``](#le-cas-particulier-de-qt-qsizetype) est un passage obligé, mais il agit comme un corps étranger dès que vous sollicitez les fonctions de la STL **ou des fonctions système**. L'utilisation de [**``std::ssize()``** (C++20)](https://en.cppreference.com/w/cpp/iterator/size.html) est souvent le meilleur moyen de "ramener" les conteneurs STL dans le monde signé de Qt pour éviter les frictions.
 
 {% highlight cpp %}
 QList<int> list = { ... };
@@ -592,7 +592,9 @@ En effet, les index sont **très massivement** affectés ou comparés avec des *
 
 C'est exactement la **même dissonance** que celle rencontrée [**avec Qt**](#le-cas-particulier-de-qt-qsizetype), montrant que le débat entre signé et non-signé pour les tailles reste l'un des points **les plus clivants du C++**.
 
-De nombreux développeurs (dont vous aurez deviné, je fais partie) rangent les **index** et les **tailles** dans **la même arithmétique non-signée** (``std::size_t``). Réservant les index signés **uniquement aux [boucles décrémentales](#lunderflow-dans-les-boucles)** (en priorisant une autre forme d'écriture pour éviter d'y avoir recours).
+# Conclusion
+
+De nombreux développeurs (dont vous aurez deviné, je fais partie) rangent les **index** et les **tailles** dans **la même arithmétique non-signée** (``std::size_t``), en évitant les situations d'indexes signés (comme les [boucles décrémentales](#lunderflow-dans-les-boucles)), ou le cas échéant, en utilisant des [comparaisons sûres (C++20)](#comparaisons-sûres-c20) (par exemple en cas d'interaction avec [``qsizetype``](#faut-il-utiliser-qsizetype-qt-)).
 
 ---
 
