@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initBackButtons();
 	initTopButtons();
 	initParallax();
+	initExternalLinks();
 }, false);
 
 const initMouse = () => {
@@ -84,5 +85,16 @@ const updateParallax = () => {
 		const factor = 0.5;
 		const scrollY = -rectangle.top * factor;
 		parallax.style.setProperty('--scroll-y', `${scrollY}px`);
+	});
+};
+
+const initExternalLinks = () => {
+	document.querySelectorAll('article a').forEach(link => {
+		const href = link.getAttribute('href');
+		if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+			if (!href.startsWith(window.location.origin)) {
+				link.classList.add('external-link');
+			}
+		}
 	});
 };
