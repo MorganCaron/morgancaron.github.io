@@ -11,7 +11,7 @@ seo:
 published: true
 ---
 
-**Attention avec ``std::vector<bool>`` !**<br>
+**Attention à ``std::vector<bool>`` !**<br>
 Découverte des problèmes de ce type, son proxy et les alternatives.
 
 ## ``std::vector<T>``

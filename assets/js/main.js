@@ -3,13 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initBackButtons();
 	initTopButtons();
 	initParallax();
-	requestAnimationFrame(update);
 }, false);
-
-const update = () => {
-	updateParallax();
-	requestAnimationFrame(update);
-};
 
 const initMouse = () => {
 	document.body.style.setProperty('--mouse-x', `-1000px`);
@@ -42,6 +36,16 @@ const initTopButtons = () => {
 
 const initParallax = () => {
 	updateParallax();
+	let scrollScheduled = false;
+	window.addEventListener('scroll', () => {
+		if (!scrollScheduled) {
+			requestAnimationFrame(() => {
+				updateParallax();
+				scrollScheduled = false;
+			});
+			scrollScheduled = true;
+		}
+	}, { passive: true });
 };
 
 const onMouseMove = (event) => {

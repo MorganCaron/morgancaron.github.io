@@ -464,6 +464,12 @@ body:not(:hover) .mouse-oriented {
 		background-position: center;
 		background-size: 1000%;
 		filter: blur(100px);
+		will-change: transform, filter;
+		transform: translate3d(0, 0, 0);
+
+		@media (max-width: 768px) {
+			filter: blur(40px);
+		}
 	}
 
 	&::after {
