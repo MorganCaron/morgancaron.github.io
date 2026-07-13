@@ -24,7 +24,7 @@ Les literals apportent une syntaxe alternative qui répond à cet encombrement d
 
 ## LiteralType
 
-Un [LiteralType](https://en.cppreference.com/w/cpp/named_req/LiteralType) est un type [``constexpr``](/articles/c++/compile-time_execution) qui peut être construit, manipulé et retourné de manière ``constexpr``.
+Un [LiteralType](https://en.cppreference.com/cpp/named_req/LiteralType) est un type [``constexpr``](/articles/c++/compile-time_execution) qui peut être construit, manipulé et retourné de manière ``constexpr``.
 
 Ceci n'est qu'un concept théorique, pas un type présent dans le langage. Nous l'utiliserons pour désigner les types pouvant avoir un literal (dans la lib standard, ou [user-defined](#user-defined-literal)).
 
@@ -112,7 +112,7 @@ Les apostrophes (``'``) peuvent être placées librement dans le nombre. Elles n
 
 ### Déduction du type sans suffixe
 
-Lorsqu'aucun suffixe n'est fourni, le compilateur choisit le **premier type capable de contenir la valeur** dans une [**liste prédéfinie**](https://en.cppreference.com/w/cpp/language/integer_literal#The_type_of_the_literal).
+Lorsqu'aucun suffixe n'est fourni, le compilateur choisit le **premier type capable de contenir la valeur** dans une [**liste prédéfinie**](https://en.cppreference.com/cpp/language/integer_literal#The_type_of_the_literal).
 
 Cette liste varie selon la base utilisée:
 
@@ -177,7 +177,7 @@ auto number2 = 1.0E2f; // 1.0 * 10^2 = 100.0 (float)
 
 ### Hexadécimaux à virgule flottante (C++17)
 
-Depuis C++17, on peut écrire des [**nombres à virgule flottante en hexadécimal**](https://en.cppreference.com/w/cpp/language/floating_literal#Hexadecimal_floating_literals). L'exposant est **obligatoire** et utilise la lettre ``p`` ou ``P`` (exposant en **puissance de 2**):
+Depuis C++17, on peut écrire des [**nombres à virgule flottante en hexadécimal**](https://en.cppreference.com/cpp/language/floating_literal#Hexadecimal_floating_literals). L'exposant est **obligatoire** et utilise la lettre ``p`` ou ``P`` (exposant en **puissance de 2**):
 {% highlight cpp %}
 auto number0 = 0x1.fp3; // 1.9375 * 2^3 = 15.5 (double)
 auto number1 = 0x1p-2; // 1.0 * 2^-2 = 0.25 (double)
@@ -188,7 +188,7 @@ auto number2 = 0x1.Ap0; // 1.625 * 2^0 = 1.625 (double)
 
 ### Types flottants à largeur fixe (C++23)
 
-C++23 introduit des suffixes pour les [**nombres à virgule flottante à largeur fixe**](https://en.cppreference.com/w/cpp/language/floating_literal#The_type_of_the_literal). À noter qu'**aucun équivalent n'existe pour les entiers**, pour lesquels on utilise toujours les suffixes fondamentaux ([**``ll``, ``ull``**](#integer-literal)).
+C++23 introduit des suffixes pour les [**nombres à virgule flottante à largeur fixe**](https://en.cppreference.com/cpp/language/floating_literal#The_type_of_the_literal). À noter qu'**aucun équivalent n'existe pour les entiers**, pour lesquels on utilise toujours les suffixes fondamentaux ([**``ll``, ``ull``**](#integer-literal)).
 
 | Suffixe | Type déduit |
 | :--- | :--- |
@@ -287,7 +287,7 @@ C'est ce qu'il faut pour pouvoir stocker n'importe quelle adresse mémoire sans 
 Bien qu'utilisable en C++, la macro ``NULL`` pourrait être utilisée mais est une très mauvaise pratique comme nous venons de le voir.
 
 En C++, la macro ``NULL`` est définie comme valant ``#define NULL 0`` jusqu'en C++11.
-Elle reste présente [dans les includes de headers C portés en C++](https://en.cppreference.com/w/cpp/types/NULL).
+Elle reste présente [dans les includes de headers C portés en C++](https://en.cppreference.com/cpp/types/NULL).
 
 Le **C++11** se voit ajouter le **literal ``nullptr``** (oui, c'est bien un literal et pas une constante comme [``nullptr`` en C](#en-c-depuis-c23-nullptr)), version à partir de laquelle ``NULL`` est **redéfini en ``#define NULL nullptr``** pour bénéficier tout de même du **typage fort** sur les codes historiques.
 
@@ -302,7 +302,7 @@ Le **C++11** se voit ajouter le **literal ``nullptr``** (oui, c'est bien un lite
 
 Etant un literal, ``nullptr`` en C++11 est une [prvalue](/articles/c++/value_categories#prvalue).
 
-Le type ``std::nullptr_t`` est [défini comme étant ``using nullptr_t = decltype(nullptr);`` (C++11)](https://en.cppreference.com/w/cpp/language/types#std::nullptr_t) ([Source 2](https://en.cppreference.com/w/cpp/types/nullptr_t)).
+Le type ``std::nullptr_t`` est [défini comme étant ``using nullptr_t = decltype(nullptr);`` (C++11)](https://en.cppreference.com/cpp/language/types#std::nullptr_t) ([Source 2](https://en.cppreference.com/cpp/types/nullptr_t)).
 
 {% highlight cpp %}
 auto* pointer = nullptr; // error: variable 'pointer' with type 'auto *' has incompatible initializer of type 'std::nullptr_t'
@@ -339,7 +339,7 @@ Désormais, [``true`` et ``false``](https://en.cppreference.com/w/c/language/boo
 
 ### En C++
 
-En C++, ``bool`` est un **type fondamental** (distinct des entiers) et ``true``/``false`` sont des [**literals** de type ``bool``](https://en.cppreference.com/w/cpp/language/bool_literal.html).
+En C++, ``bool`` est un **type fondamental** (distinct des entiers) et ``true``/``false`` sont des [**literals** de type ``bool``](https://en.cppreference.com/cpp/language/bool_literal.html).
 
 Cette distinction est ce qui rend possible la **surcharge de fonctions** (overloading) en C++, fonctionnalité inexistante en C:
 {% highlight cpp %}
@@ -364,7 +364,7 @@ if (true)
 {}
 {% endhighlight %}
 
-A noter que, lorsqu'on écrit une valeur non booléenne dans une condition, [celle-ci est implicitement convertie en valeur booléenne](https://en.cppreference.com/w/cpp/language/implicit_conversion#Boolean_conversions). Les valeurs zéro, la valeur [``nullptr``](#pointer-literal-nullptr) et les pointeurs nuls sont converties en ``false``, tandis que toute autre valeur est convertie en ``true``.
+A noter que, lorsqu'on écrit une valeur non booléenne dans une condition, [celle-ci est implicitement convertie en valeur booléenne](https://en.cppreference.com/cpp/language/implicit_conversion#Boolean_conversions). Les valeurs zéro, la valeur [``nullptr``](#pointer-literal-nullptr) et les pointeurs nuls sont converties en ``false``, tandis que toute autre valeur est convertie en ``true``.
 
 {% highlight cpp %}
 if (42) // 42 est implicitement converti en true
@@ -373,7 +373,7 @@ if (42) // 42 est implicitement converti en true
 
 ## Character literal
 
-Un literal de caractère est entouré de guillemets simples (``'``). [Le type et l'encodage **dépendent du préfixe** utilisé](https://en.cppreference.com/w/cpp/language/character_literal):
+Un literal de caractère est entouré de guillemets simples (``'``). [Le type et l'encodage **dépendent du préfixe** utilisé](https://en.cppreference.com/cpp/language/character_literal):
 
 {% highlight cpp %}
 auto c0 = 'c'; // char
@@ -385,7 +385,7 @@ auto c4 = L'c'; // wchar_t (Wide character)
 
 > **Évolutions importantes** :
 > - **C++20** : ``u8'c'`` passe du type ``char`` au type [**``char8_t``**](/articles/c++/fundamental_types#le-cas-de-char8_t-c20).
-> - **C++23** : Le standard définit désormais que les littéraux préfixés **``u8``**, **``u``** et **``U``** sont encodés respectivement en **UTF-8**, **UTF-16** et **UTF-32** ([**P2314R2**](https://wg21.link/p2314r2)). Cette clarification lève les ambiguïtés historiques sur leur encodage, tandis que l'[**execution character set**](https://en.cppreference.com/w/cpp/language/charset.html#Execution_character_set) reste distinct et peut dépendre de l'environnement.
+> - **C++23** : Le standard définit désormais que les littéraux préfixés **``u8``**, **``u``** et **``U``** sont encodés respectivement en **UTF-8**, **UTF-16** et **UTF-32** ([**P2314R2**](https://wg21.link/p2314r2)). Cette clarification lève les ambiguïtés historiques sur leur encodage, tandis que l'[**execution character set**](https://en.cppreference.com/cpp/language/charset.html#Execution_character_set) reste distinct et peut dépendre de l'environnement.
 
 ### Caractères d'échappement
 
@@ -395,7 +395,7 @@ Ces séquences sont utilisables aussi bien dans les [**character literal**](#cha
 
 > Notez qu'il n'est pas nécessaire d'échapper un double guillemet à l'intérieur de guillemets simples (``'"'`` est valide), ni un guillemet simple à l'intérieur de guillemets doubles (``"'"`` est valide). L'échappement n'est requis que pour lever une ambiguïté.
 
-Voici la liste des [**séquences d'échappement simples**](https://en.cppreference.com/w/cpp/language/escape):
+Voici la liste des [**séquences d'échappement simples**](https://en.cppreference.com/cpp/language/escape):
 
 | Séquence | Signification |
 | :--- | :--- |
@@ -416,7 +416,7 @@ Voici la liste des [**séquences d'échappement simples**](https://en.cppreferen
 
 #### Codes numériques et Unicode
 
-Les [**universal character names**](https://en.cppreference.com/w/cpp/language/escape) (tableau ci-dessous) permettent de référencer un caractère par son [*code point*](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-2/#G25564) Unicode. Ils **évitent toute dépendance** à l'**encodage du fichier** source.
+Les [**universal character names**](https://en.cppreference.com/cpp/language/escape) (tableau ci-dessous) permettent de référencer un caractère par son [*code point*](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-2/#G25564) Unicode. Ils **évitent toute dépendance** à l'**encodage du fichier** source.
 
 Sans ces codes, un caractère écrit "**en dur**" peut être **interprété différemment selon la machine** qui compile:
 {% highlight cpp %}
@@ -463,15 +463,15 @@ Mettre plusieurs caractères entre guillemets simples est une pratique **forteme
 auto mc = 'AB'; // Type int, comportement défini par l'implémentation
 {% endhighlight %}
 
-Cette fonctionnalité, [**héritée du langage B**](https://en.cppreference.com/w/cpp/language/character_literal#Notes) (l'ancêtre du C), n'est pas spécifiée formellement par le standard C++.<br>
+Cette fonctionnalité, [**héritée du langage B**](https://en.cppreference.com/cpp/language/character_literal#Notes) (l'ancêtre du C), n'est pas spécifiée formellement par le standard C++.<br>
 Cependant, la plupart des compilateurs (sauf MSVC) l'implémentent **en remplissant les octets d'un entier dans l'ordre [big-endian](https://fr.wikipedia.org/wiki/Endianness)**.
 Ainsi, ``'ABCD'`` résultera souvent en la valeur hexadécimale ``0x41424344`` (où ``0x41`` est le code ASCII de 'A', ``0x42`` celui de 'B', etc).
 
 > **Différence majeure entre C et C++**:
 > - En **C**, un character literal (``'a'``) a le type [**``int``**](https://en.cppreference.com/w/c/language/character_constant).
-> - En **C++**, il a le type [**``char``**](https://en.cppreference.com/w/cpp/language/character_literal).
+> - En **C++**, il a le type [**``char``**](https://en.cppreference.com/cpp/language/character_literal).
 
-> **Changement C++23** : Jusqu'en C++20, les littéraux multi-caractères étaient autorisés avec des préfixes (ex: ``L'AB'``). Depuis le **C++23**, ces formes préfixées sont **interdites** (erreur de compilation). Seul le littéral simple ``'AB'`` (sans préfixe) reste autorisé pour des raisons historiques, avec un comportement qui reste [**défini par l'implémentation**](https://en.cppreference.com/w/cpp/language/character_literal#Multicharacter_literal).
+> **Changement C++23** : Jusqu'en C++20, les littéraux multi-caractères étaient autorisés avec des préfixes (ex: ``L'AB'``). Depuis le **C++23**, ces formes préfixées sont **interdites** (erreur de compilation). Seul le littéral simple ``'AB'`` (sans préfixe) reste autorisé pour des raisons historiques, avec un comportement qui reste [**défini par l'implémentation**](https://en.cppreference.com/cpp/language/character_literal#Multicharacter_literal).
 {: .block-warning }
 
 ## String literal
@@ -527,8 +527,8 @@ void process()
 
 Vous pouvez choisir d'activer tous les literals ou seulement certains:
 - ``using namespace std::literals;`` (Active **tous** les literals de la bibliothèque standard: [**string**](#stdstring-literal-c14-et-stdstring_view-literal-c17), [**chrono**](#chrono-literal-c14--c20) et [**complex**](#complex-literals-c14))
-- ``using namespace std::string_literals;`` (Active uniquement [**``""s``**](https://en.cppreference.com/w/cpp/string/basic_string/operator%22%22s))
-- ``using namespace std::string_view_literals;`` (Active uniquement [**``""sv``**](https://en.cppreference.com/w/cpp/string/basic_string_view/operator%22%22sv))
+- ``using namespace std::string_literals;`` (Active uniquement [**``""s``**](https://en.cppreference.com/cpp/string/basic_string/operator%22%22s))
+- ``using namespace std::string_view_literals;`` (Active uniquement [**``""sv``**](https://en.cppreference.com/cpp/string/basic_string_view/operator%22%22sv))
 
 ### Combinaison des préfixes et suffixes
 
@@ -588,7 +588,7 @@ Pour récapituler, un *string literal*:
 
 ## Raw string literal (C++11)
 
-Les [**raw string literals**](https://en.cppreference.com/w/cpp/language/string_literal.html#Raw_string_literals) permettent d'écrire des chaînes sans avoir à échapper les [**caractères spéciaux**](#caractères-déchappement) (comme ``\`` ou ``"``).
+Les [**raw string literals**](https://en.cppreference.com/cpp/language/string_literal.html#Raw_string_literals) permettent d'écrire des chaînes sans avoir à échapper les [**caractères spéciaux**](#caractères-déchappement) (comme ``\`` ou ``"``).
  Ils sont également le seul moyen naturel d'inclure des **retours à la ligne** directement dans le code source:
 
 {% highlight cpp %}
@@ -616,13 +616,13 @@ Pour résoudre ce conflit, on peut placer n'importe quelle chaîne de caractère
 auto code = R"cpp(std::println("Hello )" World");)cpp";
 {% endhighlight %}
 
-**Contraintes sur le délimiteur**: Un délimiteur peut contenir n'importe quel caractère sauf les **espaces**, les **parenthèses** (ouvrantes ou fermantes), les **antislashs** (``\``) et les **caractères de contrôle** (comme le retour à la ligne). Sa longueur maximale est de 16 caractères ([**voir le standard**](https://en.cppreference.com/w/cpp/language/string_literal#Raw_string_literals)).
+**Contraintes sur le délimiteur**: Un délimiteur peut contenir n'importe quel caractère sauf les **espaces**, les **parenthèses** (ouvrantes ou fermantes), les **antislashs** (``\``) et les **caractères de contrôle** (comme le retour à la ligne). Sa longueur maximale est de 16 caractères ([**voir le standard**](https://en.cppreference.com/cpp/language/string_literal#Raw_string_literals)).
 
 > Les raw strings sont combinables avec les préfixes d'encodage (``u8R"(...)"``) et les suffixes de type (``R"(...)"sv``).
 
 ## Chrono literal (C++14 / C++20)
 
-Les [**literals de la bibliothèque ``<chrono>``**](https://en.cppreference.com/w/cpp/symbol_index/chrono_literals) permettent de représenter des **durées** et des **dates** de manière lisible. 
+Les [**literals de la bibliothèque ``<chrono>``**](https://en.cppreference.com/cpp/symbol_index/chrono_literals) permettent de représenter des **durées** et des **dates** de manière lisible. 
 Ces literals sont activés par ``using namespace std::literals;``. Si vous souhaitez être plus sélectif, vous pouvez utiliser un namespace spécifique:
 
 {% highlight cpp %}
@@ -651,7 +651,7 @@ auto y = 2024y;  // std::chrono::year
 auto d = 15d;    // std::chrono::day
 {% endhighlight %}
 
-> **Note sur l'exhaustivité**: Seuls l'année (``y``) et le jour (``d``) possèdent des literals. Les mois ([**``January``, ``February``, etc**](https://en.cppreference.com/w/cpp/chrono/month)) ainsi que les jours de la semaine ([**``Monday``, ``Tuesday``, etc**](https://en.cppreference.com/w/cpp/chrono/weekday)) ne sont pas des literals mais des **constantes typées** fournies par la bibliothèque standard. Il n'existe aucun literal ni constante standard pour les **semaines** ou les **trimestres**.
+> **Note sur l'exhaustivité**: Seuls l'année (``y``) et le jour (``d``) possèdent des literals. Les mois ([**``January``, ``February``, etc**](https://en.cppreference.com/cpp/chrono/month)) ainsi que les jours de la semaine ([**``Monday``, ``Tuesday``, etc**](https://en.cppreference.com/cpp/chrono/weekday)) ne sont pas des literals mais des **constantes typées** fournies par la bibliothèque standard. Il n'existe aucun literal ni constante standard pour les **semaines** ou les **trimestres**.
 
 ## Complex literal (C++14)
 
@@ -678,14 +678,14 @@ auto z2 = 1.0il;  // std::complex<long double>
 
 ## User-defined literal (Depuis C++11)
 
-Le langage permet aux développeurs de **définir leurs propres suffixes** pour créer des **literals personnalisés**. On parle de [**User-defined literals (UDL)**](https://en.cppreference.com/w/cpp/language/user_literal). Ils sont généralement conçus pour produire des [**LiteralTypes**](#literaltype), mais [**ne sont pas obligés de retourner une valeur**](#effets-de-bord).
+Le langage permet aux développeurs de **définir leurs propres suffixes** pour créer des **literals personnalisés**. On parle de [**User-defined literals (UDL)**](https://en.cppreference.com/cpp/language/user_literal). Ils sont généralement conçus pour produire des [**LiteralTypes**](#literaltype), mais [**ne sont pas obligés de retourner une valeur**](#effets-de-bord).
 
 Pour définir un literal, on utilise la syntaxe suivante:
 {% highlight cpp %}
 Type operator ""_suffix(parameter);
 {% endhighlight %}
 
-> **Note sur la syntaxe**: L'espace entre les guillemets et l'identifiant (``operator "" _suffix``) était obligatoire en C++11. Cependant, cette écriture est désormais [**obsolète (deprecated)**](https://en.cppreference.com/w/cpp/language/user_literal#Literal_operators) car elle **peut entrer en conflit** avec des [**identifiants réservés**](https://en.cppreference.com/w/cpp/language/identifiers#Reserved_identifiers) (comme ceux commençant par un underscore suivi d'une majuscule, ex: [**``_Z``**](https://en.wikipedia.org/wiki/Name_mangling#C++)) (utilisé pour le [**mangling**](/articles/c++/scopes#name-mangling) dans l'écosystème GCC/Clang (ABI Itanium)).<br>
+> **Note sur la syntaxe**: L'espace entre les guillemets et l'identifiant (``operator "" _suffix``) était obligatoire en C++11. Cependant, cette écriture est désormais [**obsolète (deprecated)**](https://en.cppreference.com/cpp/language/user_literal#Literal_operators) car elle **peut entrer en conflit** avec des [**identifiants réservés**](https://en.cppreference.com/cpp/language/identifiers#Reserved_identifiers) (comme ceux commençant par un underscore suivi d'une majuscule, ex: [**``_Z``**](https://en.wikipedia.org/wiki/Name_mangling#C++)) (utilisé pour le [**mangling**](/articles/c++/scopes#name-mangling) dans l'écosystème GCC/Clang (ABI Itanium)).<br>
 > Il est donc vivement recommandé de coller le suffixe aux guillemets (``operator ""_suffix``) pour garantir la portabilité du code.
 
 ### Règle de l'underscore
@@ -694,7 +694,7 @@ Le standard impose que tous les literals définis par l'utilisateur commencent p
 
 ### Types de paramètres autorisés
 
-Les opérateurs de literals ne peuvent prendre [**que des types spécifiques**](https://en.cppreference.com/w/cpp/language/user_literal#Literal_operators) en paramètre:
+Les opérateurs de literals ne peuvent prendre [**que des types spécifiques**](https://en.cppreference.com/cpp/language/user_literal#Literal_operators) en paramètre:
 
 - **Nombres ([numeric literal operator](#numeric-literal-operator-vs-raw-literal-operator))** : ``unsigned long long int`` (entiers) ou ``long double`` (flottants).
 - **Nombres ([raw literal operator](#numeric-literal-operator-vs-raw-literal-operator))**: Un simple ``const char*`` (reçoit la chaîne brute du nombre).
@@ -739,7 +739,7 @@ void process()
 
 ### Numeric literal operator vs Raw literal operator
 
-Pour les littéraux numériques (entiers et flottants), il existe [**deux manières** de recevoir la valeur](https://en.cppreference.com/w/cpp/language/user_literal#Literal_operators):
+Pour les littéraux numériques (entiers et flottants), il existe [**deux manières** de recevoir la valeur](https://en.cppreference.com/cpp/language/user_literal#Literal_operators):
 
 1.  **Numeric literal operator** (souvent appelé **Cooked**): Le compilateur a déjà "digéré" la valeur pour vous en la convertissant en un type fondamental (``unsigned long long int`` ou ``long double``). C'est la forme la plus simple à utiliser pour des nombres.
 2.  **Raw literal operator** (souvent appelé **Raw**): Le compilateur vous passe la chaîne de caractères brute (``const char*``) telle qu'elle est écrite dans le code source. C'est plus complexe à gérer mais indispensable pour manipuler des nombres de taille arbitraire dépassant les capacités des types standards.

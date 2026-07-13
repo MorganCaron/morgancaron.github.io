@@ -1,6 +1,6 @@
 ---
 layout: article
-title: Attributs en C++
+title: Les attributs (C++11)
 permalink: articles/c++/attributes
 category: c++
 logo: c++.svg
@@ -23,7 +23,7 @@ En somme, il s'agit d'expliciter une intention qui **n'altère pas la logique** 
 
 ## Historique
 
-Avant l'arrivée des attributs (en C++11), chaque compilateur proposait sa propre manière de définir ces métadonnées, avec des syntaxes qui leur sont propres, **spécifiques** à chaque compilateur et **incompatibles** entre elles:
+Avant l'arrivée des attributs (**en C++11**), chaque compilateur proposait sa propre manière de définir ces métadonnées, avec des syntaxes qui leur sont propres, **spécifiques** à chaque compilateur et **incompatibles** entre elles:
 
 - **Microsoft (MSVC)** utilise le mot-clef [``__declspec(...)``](https://learn.microsoft.com/en-us/cpp/cpp/declspec).
   Exemples: [``align(N)``](https://learn.microsoft.com/en-us/cpp/cpp/align-cpp) (alignement), [``dllexport``/``dllimport``](https://learn.microsoft.com/en-us/cpp/cpp/dllexport-dllimport) (exportation/importation), [``novtable``](https://learn.microsoft.com/en-us/cpp/cpp/novtable) (optimisation désactivant la vtable).
@@ -81,7 +81,7 @@ C++17 introduit la syntaxe ``using`` au début de la liste d'attributs pour spé
 
 ### Positionnement dans les lambdas (Depuis C++11 / C++23)
 
-Le positionnement des attributs dans une lambda **dépend de la version du standard et de la cible de l'attribut** ([cppreference](https://en.cppreference.com/w/cpp/language/lambda)):
+Le positionnement des attributs dans une lambda **dépend de la version du standard et de la cible de l'attribut** ([cppreference](https://en.cppreference.com/cpp/language/lambda)):
 
 [captures] &lt;tparams&gt;<sup>(optional)</sup> t-requires<sup>(optional)</sup> **front-attr**<sup>(optional)</sup> (params) specs<sup>(optional)</sup> except<sup>(optional)</sup> **back-attr**<sup>(optional)</sup> trailing<sup>(optional)</sup> requires<sup>(optional)</sup> contract-specs<sup>(optional)</sup> { body }
 
@@ -254,7 +254,7 @@ Puisque le calcul de ``y`` nécessite la valeur de ``x``, le CPU et le compilate
 Sur [ARM](https://developer.arm.com/documentation/102336/latest/) et [PowerPC](https://www.kernel.org/doc/Documentation/memory-barriers.txt), cette garantie de dépendance de données s'applique au niveau matériel, y compris pour les accès mémoire via des pointeurs. Si vous lisez un pointeur puis lisez une valeur pointée par ce pointeur, le processeur garantit naturellement l'ordre des lectures sans barrière mémoire.
 
 Imaginons le scénario d'une liste chaînée partagée entre deux threads:
-{% highlight cpp %}
+{% highlight cpp linenos %}
 struct Node
 {
 	int value;
@@ -332,7 +332,7 @@ Grâce à cette déclaration, le compilateur sait qu'il peut compiler l'appel de
 
 En pratique, l'analyse statique des dépendances de données à travers les optimiseurs s'est révélée d'une complexité insurmontable pour les concepteurs de compilateurs. Suivre précisément le graphe d'instructions sans interrompre la dépendance (ce qui arrive par exemple si un pointeur est converti en entier puis restauré) s'est avéré trop instable.
 
-C'est pourquoi, depuis l'introduction de cette mécanique en C++11, la totalité des compilateurs modernes (GCC, Clang, MSVC) ont choisi de ne pas suivre ces chaînes de dépendances: le modèle ``consume`` y est silencieusement promu en [modèle mémoire ``acquire``](https://en.cppreference.com/w/cpp/atomic/memory_order), et l'attribut ``[[carries_dependency]]`` y est tout simplement [ignoré](https://en.cppreference.com/w/cpp/atomic/memory_order#Release-Consume_ordering).
+C'est pourquoi, depuis l'introduction de cette mécanique en C++11, la totalité des compilateurs modernes (GCC, Clang, MSVC) ont choisi de ne pas suivre ces chaînes de dépendances: le modèle ``consume`` y est silencieusement promu en [modèle mémoire ``acquire``](https://en.cppreference.com/cpp/atomic/memory_order), et l'attribut ``[[carries_dependency]]`` y est tout simplement [ignoré](https://en.cppreference.com/cpp/atomic/memory_order#Release-Consume_ordering).
 
 Puisque cet attribut n'était plus qu'une coquille vide jamais implémentée de manière effective, le comité du C++ a officiellement voté sa suppression de la norme C++26 ([**proposal**](https://wg21.link/p2738r1)).
 
@@ -811,7 +811,7 @@ En résumé: C'est la manière la plus propre de lier le retour non pas à "la f
 
 ### ``[[indeterminate]]`` (C++26)
 
-Avant C++26, les **variables locales [automatiques](/articles/c++/auto#automatic-storage-duration-specifier-avant-c11-obsolète)** (non ``static`` ni ``thread_local``) (comme les [**types fondamentaux**](/articles/c++/fundamental_types) ou les tableaux) déclarées **sans initialiseur** n'étaient [**pas initialisées par défaut**](/articles/c++/uniform_initialization#variable-déclarée-mais-pas-initialisée): elles contenaient des **valeurs arbitraires** (déchets de la stack) et leur **lecture accidentelle** provoquait un **[comportement indéfini (UB)](https://en.cppreference.com/w/cpp/language/ub#Uninitialized_scalar)**.
+Avant C++26, les **variables locales [automatiques](/articles/c++/auto#automatic-storage-duration-specifier-avant-c11-obsolète)** (non ``static`` ni ``thread_local``) (comme les [**types fondamentaux**](/articles/c++/fundamental_types) ou les tableaux) déclarées **sans initialiseur** n'étaient [**pas initialisées par défaut**](/articles/c++/uniform_initialization#variable-déclarée-mais-pas-initialisée): elles contenaient des **valeurs arbitraires** (déchets de la stack) et leur **lecture accidentelle** provoquait un **[comportement indéfini (UB)](https://en.cppreference.com/cpp/language/ub#Uninitialized_scalar)**.
 
 {% highlight cpp %}
 void crashOrVulnerability()
@@ -851,7 +851,7 @@ void process()
 
 > Le compilateur reste libre de l'ignorer et d'initialiser quand même la variable par sécurité, conformément à la [règle d'ignorabilité](#la-règle-dignorabilité) des attributs.
 
-Si l'exemption est prise en compte, la variable retrouve son comportement historique: son contenu est indéterminé, et toute lecture avant écriture redevient un **[comportement indéfini (UB)](https://en.cppreference.com/w/cpp/language/ub#Uninitialized_scalar)**.
+Si l'exemption est prise en compte, la variable retrouve son comportement historique: son contenu est indéterminé, et toute lecture avant écriture redevient un **[comportement indéfini (UB)](https://en.cppreference.com/cpp/language/ub#Uninitialized_scalar)**.
 
 ### ``[[optimize_for_synchronized]]`` (TM TS)
 
@@ -861,7 +861,7 @@ La mémoire transactionnelle permet d'exécuter des blocs de code de manière at
 
 #### Le mot clef experimental ``synchronized``
 
-Pour délimiter les zones critiques sans manipuler manuellement de verrous (comme ``std::mutex``), cette spécification introduit le mot clef expérimental [``synchronized``](https://en.cppreference.com/w/cpp/language/transactional_memory#Synchronized_blocks). Un bloc de code marqué ``synchronized { ... }`` s'exécute sous **exclusion mutuelle**: le résultat final est équivalent à une exécution séquentielle (un bloc ``synchronized`` après l'autre).
+Pour délimiter les zones critiques sans manipuler manuellement de verrous (comme ``std::mutex``), cette spécification introduit le mot clef expérimental [``synchronized``](https://en.cppreference.com/cpp/language/transactional_memory#Synchronized_blocks). Un bloc de code marqué ``synchronized { ... }`` s'exécute sous **exclusion mutuelle**: le résultat final est équivalent à une exécution séquentielle (un bloc ``synchronized`` après l'autre).
 
 {% highlight cpp %}
 void process(int value)
@@ -880,7 +880,7 @@ Lorsqu'un bloc ``synchronized`` appelle une fonction **non [inlinée](https://fr
 
 #### L'attribut experimental ``[[optimize_for_synchronized]]``
 
-L'attribut [``[[optimize_for_synchronized]]``](https://en.cppreference.com/w/cpp/language/attributes/optimize_for_synchronized) résout ce problème. Il est indispensable lorsque le corps de la fonction **n'est pas connu dans la [translation unit](/articles/c++/translation_unit) courante**: il indique au compilateur (si l'attribut est [honoré](#la-règle-dignorabilité)) qu'une version optimisée pour les transactions sera bien disponible lors de l'édition de liens.
+L'attribut [``[[optimize_for_synchronized]]``](https://en.cppreference.com/cpp/language/attributes/optimize_for_synchronized) résout ce problème. Il est indispensable lorsque le corps de la fonction **n'est pas connu dans la [translation unit](/articles/c++/translation_unit) courante**: il indique au compilateur (si l'attribut est [honoré](#la-règle-dignorabilité)) qu'une version optimisée pour les transactions sera bien disponible lors de l'édition de liens.
 
 {% highlight cpp %}
 // Indique au compilateur d'optimiser cette fonction pour l'appel transactionnel
@@ -895,7 +895,7 @@ void process()
 }
 {% endhighlight %}
 
-Grâce à cet attribut, le compilateur génère deux versions distinctes de la fonction dans le binaire (un mécanisme appelé [**transaction clone**](https://en.cppreference.com/w/cpp/language/transactional_memory) ou clonage transactionnel):
+Grâce à cet attribut, le compilateur génère deux versions distinctes de la fonction dans le binaire (un mécanisme appelé [**transaction clone**](https://en.cppreference.com/cpp/language/transactional_memory) ou clonage transactionnel):
 1. Une version standard pour les appels classiques hors transactions.
 2. Un **clone transactionnel** conçu pour optimiser les transactions. Dans cette version, **chaque accès mémoire est tracé** par le compilateur (injection de barrières logicielles de lecture/écriture). Le compilateur y **élimine les barrières de transaction redondantes** et **optimise le code** de manière à ce qu'il s'exécute **le plus rapidement possible**. Cela réduit la durée globale de la transaction, limitant ainsi la probabilité qu'un autre thread écrive en même temps et provoque un avortement de transaction (*transaction abort*).
 

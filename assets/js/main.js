@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 	initMouse();
+	initBackButtons();
 	initTopButtons();
 	initParallax();
 	requestAnimationFrame(update);
@@ -17,6 +18,17 @@ const initMouse = () => {
 		document.addEventListener('mousemove', onMouseMove);
 		document.body.addEventListener('mouseleave', onMouseLeave);
 	}
+};
+
+const initBackButtons = () => {
+	document.querySelectorAll(".back-button").forEach(button => {
+		button.onclick = (event) => {
+			if (document.referrer && document.referrer.indexOf(window.location.host) !== -1 && window.history.length > 1) {
+				event.preventDefault();
+				window.history.back();
+			}
+		};
+	});
 };
 
 const initTopButtons = () => {

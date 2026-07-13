@@ -180,7 +180,7 @@ C'est également le cas lorsqu'on appelle un opérateur. En C++, les opérateurs
 auto string2 = string1 + '!'; // std::string + char = std::string
 {% endhighlight %}
 
-Ici, le compilateur détermine [quel ``operator+``](https://en.cppreference.com/w/cpp/string/basic_string/operator%2B) est appelé en fonction du type des paramètres qui lui sont passés (``string1`` et ``'!'``). Il en déduit qu'il s'agit ici de l'opérateur suivant:
+Ici, le compilateur détermine [quel ``operator+``](https://en.cppreference.com/cpp/string/basic_string/operator%2B) est appelé en fonction du type des paramètres qui lui sont passés (``string1`` et ``'!'``). Il en déduit qu'il s'agit ici de l'opérateur suivant:
 {% highlight cpp %}
 template<class CharT, class Traits, class Alloc>
 std::basic_string<CharT,Traits,Alloc> std::basic_string<char>::operator+(const std::basic_string<CharT,Traits,Alloc>& lhs, CharT rhs);
@@ -1171,7 +1171,7 @@ Si ``self`` est const, retourne ``const T&``. Sinon retourne ``T&``.
 
 ## Structured binding declaration (depuis C++17)
 
-Les *[structured binding declaration](https://en.cppreference.com/w/cpp/language/structured_binding)* ([proposal](https://wg21.link/P1061R10)) permettent de décomposer des objets en plusieurs variables individuelles.
+Les *[structured binding declaration](https://en.cppreference.com/cpp/language/structured_binding)* ([proposal](https://wg21.link/P1061R10)) permettent de décomposer des objets en plusieurs variables individuelles.
 
 Cette fonctionnalité est compatible avec:
 - Les *C-like array* (tableaux de taille fixe)
@@ -1394,7 +1394,7 @@ int && x = std::get<0UL>(static_cast<std::pair<int, int> &&>(__p7));
 int && y = std::get<1UL>(static_cast<std::pair<int, int> &&>(__p7));
 {% endhighlight %}
 
-On remarque que lorsqu'on utilise une déstructuration sur un [tuple-like](/articles/c++/std_tuple#tuple-like), le compilateur transforme implicitement le code en appels à [``std::get``](https://en.cppreference.com/w/cpp/utility/tuple/get).
+On remarque que lorsqu'on utilise une déstructuration sur un [tuple-like](/articles/c++/std_tuple#tuple-like), le compilateur transforme implicitement le code en appels à [``std::get``](https://en.cppreference.com/cpp/utility/tuple/get).
 
 Pour les classes/structures n'ayant que des variables membres publiques, la déstructuration n'appelle pas ``std::get``. Le compilateur génère un accès direct aux membres dans l'ordre de leur déclaration.
 
@@ -1436,7 +1436,7 @@ Cette structure ``Person`` **ne répond plus aux exigences pour être déstructu
 Mais il est possible de **transformer cette structure** pour qu'elle puisse **satisfaire les critères d'un [tuple-like](/articles/c++/std_tuple#tuple-like)**.<br>
 Elle en deviendrait déstructurable.
 
-Pour cela il faut la rendre compatible avec [``std::get``](https://en.cppreference.com/w/cpp/utility/tuple/get).
+Pour cela il faut la rendre compatible avec [``std::get``](https://en.cppreference.com/cpp/utility/tuple/get).
 Ce qui implique d'ajouter:
 - Une spécialisation de ``std::tuple_size``
 - Une spécialisation de ``std::tuple_element``
@@ -1490,7 +1490,7 @@ auto main() -> int
 
 Si la classe/structure contenait d'autres variables publiques ou privées, elles ne seraient pas récupérables avec la *structured binding declaration* tant qu'elles ne sont pas supportées par ces éléments que nous venons d'ajouter.
 
-> A noter que c'est exactement par ce procédé, avec une implémentation personnalisée de ``std::tuple_size`` et de ``std::tuple_element``, que le support des *structured binding declaration* a été ajouté sur les types ``std::array`` ([ici](https://en.cppreference.com/w/cpp/container/array#Helper_classes)), ``std::pair`` ([ici](https://en.cppreference.com/w/cpp/utility/pair#Helper_classes)) et évidemment ``std::tuple`` ([ici](https://en.cppreference.com/w/cpp/utility/tuple#Helper_classes)).
+> A noter que c'est exactement par ce procédé, avec une implémentation personnalisée de ``std::tuple_size`` et de ``std::tuple_element``, que le support des *structured binding declaration* a été ajouté sur les types ``std::array`` ([ici](https://en.cppreference.com/cpp/container/array#Helper_classes)), ``std::pair`` ([ici](https://en.cppreference.com/cpp/utility/pair#Helper_classes)) et évidemment ``std::tuple`` ([ici](https://en.cppreference.com/cpp/utility/tuple#Helper_classes)).
 
 ### constexpr Structured Binding (depuis C++26)
 
@@ -1500,7 +1500,7 @@ constexpr auto [x, y] = std::pair{1, 2}; // error: structured binding declaratio
 {% endhighlight %}
 
 Depuis C++26 ([proposal](https://wg21.link/p2686r5), [approval](https://wg21.link/P2686r5/status)), les *structured binding declaration* supportent constexpr.<br>
-Ce n'est cependant [pas encore supporté par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
+Ce n'est cependant [pas encore supporté par les compilateurs](https://en.cppreference.com/cpp/26) à l'heure où j'écris.
 
 ### Attributs individuels (depuis C++26)
 
@@ -1593,11 +1593,11 @@ Cette structure contient 2 variables membres publiques **pouvant être décompos
 
 | Member name | Définition |
 | ``ptr`` | a pointer of type ``char*`` (public) |
-| ``ec`` | an error code of type [``std::errc``](https://en.cppreference.com/w/cpp/error/errc) (public) |
+| ``ec`` | an error code of type [``std::errc``](https://en.cppreference.com/cpp/error/errc) (public) |
 
-([Source: CppReference ``std::to_chars_result``](https://en.cppreference.com/w/cpp/utility/to_chars_result#Data_members))
+([Source: CppReference ``std::to_chars_result``](https://en.cppreference.com/cpp/utility/to_chars_result#Data_members))
 
-Cette structure a la particularité d'avoir un [``operator bool()``](https://en.cppreference.com/w/cpp/utility/to_chars_result#operator_bool) en C++26, lui permettant d'être **utilisable dans une condition**.<br>
+Cette structure a la particularité d'avoir un [``operator bool()``](https://en.cppreference.com/cpp/utility/to_chars_result#operator_bool) en C++26, lui permettant d'être **utilisable dans une condition**.<br>
 Cet opérateur vérifie que sa variable membre publique ``ec`` (error code) ne contient aucun code d'erreur (``std::errc{}``).
 
 Avant C++26, on utilise l'écriture:
@@ -1612,7 +1612,7 @@ else
 	// Gestion d'erreur
 }
 {% endhighlight %}
-([Pour la gestion d'erreur](https://en.cppreference.com/w/cpp/error/errc#Example))
+([Pour la gestion d'erreur](https://en.cppreference.com/cpp/error/errc#Example))
 
 > Dans le code précédent, remarquez l'utilisation de l'[*init-statement*](/articles/c++/control_flow#init-statement-depuis-c17) dans la condition pour restreindre la portée des variables ``pointer`` et ``errorCode`` au scope de cette condition.
 
@@ -1628,7 +1628,7 @@ else
 }
 {% endhighlight %}
 
-> La même chose pourrait être dite au sujet de la fonction [``std::from_chars``](https://en.cppreference.com/w/cpp/utility/from_chars), qui sert à **parser un nombre** dans une chaîne de caractères.
+> La même chose pourrait être dite au sujet de la fonction [``std::from_chars``](https://en.cppreference.com/cpp/utility/from_chars), qui sert à **parser un nombre** dans une chaîne de caractères.
 
 ## ``auto`` in template parameters (depuis C++17)
 
@@ -1828,10 +1828,10 @@ function(std::decay_t<decltype(expr)>{expr});
 
 Mais avec une syntaxe intégrée au langage.
 
-> On parle ici de faire une ["decay-copy"](https://en.cppreference.com/w/cpp/standard_library/decay-copy).<br>
-> A savoir aussi que ``auto(expr)``/``auto{expr}`` est une [no-op](https://en.wikipedia.org/wiki/NOP_(code)) si ``expr`` est déjà une *prvalue* ([Source](https://en.cppreference.com/w/cpp/standard_library/decay-copy)).
+> On parle ici de faire une ["decay-copy"](https://en.cppreference.com/cpp/standard_library/decay-copy).<br>
+> A savoir aussi que ``auto(expr)``/``auto{expr}`` est une [no-op](https://en.wikipedia.org/wiki/NOP_(code)) si ``expr`` est déjà une *prvalue* ([Source](https://en.cppreference.com/cpp/standard_library/decay-copy)).
 
-> Le fait qu'``auto(expr)``/``auto{expr}`` fasse un ["decay-copy"](https://en.cppreference.com/w/cpp/standard_library/decay-copy) signifie également que les tableaux (ex: ``int[N]``) sont convertis en pointeurs (ex: ``int*``) ([Documentation ``std::decay_t``](https://en.cppreference.com/w/cpp/types/decay)).<br>
+> Le fait qu'``auto(expr)``/``auto{expr}`` fasse un ["decay-copy"](https://en.cppreference.com/cpp/standard_library/decay-copy) signifie également que les tableaux (ex: ``int[N]``) sont convertis en pointeurs (ex: ``int*``) ([Documentation ``std::decay_t``](https://en.cppreference.com/cpp/types/decay)).<br>
 > Pour préserver le type tableau, il faut utiliser [``auto`` (Placeholder type specifiers)](#placeholder-type-specifiers-depuis-c11) ou [``decltype(auto)``](#decltypeauto-depuis-c14).
 {: .block-warning }
 
@@ -1858,7 +1858,7 @@ int main()
 {% endhighlight %}
 Les deux occurrences de ``"A"`` ont bien été supprimées, mais où sont passées les autres occurrences de ``"B"`` ?
 
-Regardons comment fonctionne la fonction [``std::erase``](https://en.cppreference.com/w/cpp/container/vector/erase2). Elle se présente comme suit:
+Regardons comment fonctionne la fonction [``std::erase``](https://en.cppreference.com/cpp/container/vector/erase2). Elle se présente comme suit:
 {% highlight cpp %}
 template<class T, class Alloc, class U>
 constexpr typename std::vector<T, Alloc>::size_type erase(std::vector<T, Alloc>& c, const U& value);
@@ -1866,14 +1866,14 @@ constexpr typename std::vector<T, Alloc>::size_type erase(std::vector<T, Alloc>&
 
 Elle prend une **référence** sur un ``std::vector`` ainsi qu'une **référence constante** sur l'élément à rechercher et **à supprimer** dans le conteneur.
 
-[La documentation](https://en.cppreference.com/w/cpp/container/vector/erase2) nous dit que la fonction [``std::erase``](https://en.cppreference.com/w/cpp/container/vector/erase2) supprime chaque élément du conteneur ``c`` égal à l'argument ``value`` de la manière suivante:
+[La documentation](https://en.cppreference.com/cpp/container/vector/erase2) nous dit que la fonction [``std::erase``](https://en.cppreference.com/cpp/container/vector/erase2) supprime chaque élément du conteneur ``c`` égal à l'argument ``value`` de la manière suivante:
 {% highlight cpp linenos %}
 auto it = std::remove(c.begin(), c.end(), value);
 auto r = c.end() - it;
 c.erase(it, c.end());
 return r;
 {% endhighlight %}
-Or, [``std::remove``](https://en.cppreference.com/w/cpp/algorithm/remove) ne supprime pas réellement d'éléments, mais [les réorganise](https://en.cppreference.com/w/cpp/algorithm/remove#Possible_implementation): il déplace vers le début du conteneur les éléments à conserver, **en écrasant les éléments à supprimer** par ces affectations.
+Or, [``std::remove``](https://en.cppreference.com/cpp/algorithm/remove) ne supprime pas réellement d'éléments, mais [les réorganise](https://en.cppreference.com/cpp/algorithm/remove#Possible_implementation): il déplace vers le début du conteneur les éléments à conserver, **en écrasant les éléments à supprimer** par ces affectations.
 
 Cela signifie que ``container.front()``, passé par référence constante à ``std::erase``, **peut être modifié pendant l'appel**, notamment si sa position est réutilisée pour stocker une autre valeur (comme ``"B"`` dans l'exemple).
 
@@ -1927,7 +1927,7 @@ C'est cette même philosophie qui est à l'origine du [**Most Vexing Parse**](#m
 
 Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité d'extraire des éléments d'un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
 
-Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/w/cpp/26) à l'heure où j'écris.
+Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/cpp/26) à l'heure où j'écris.
 On peut cependant la trouver en experimental [sur Clang](https://godbolt.org/z/ea45Wx5Wh).
 
 Ce n'est pas une nouvelle fonctionnalité à proprement parler, il s'agit en fait d'une extension des [structured binding declaration](#structured-binding-declaration-depuis-c17) leur permettant de supporter les [pack](/articles/c++/templates#pack).
@@ -2018,7 +2018,7 @@ auto main() -> int
 123soleil
 {% endhighlight %}
 
-> Ceci est un exemple, privilégiez la fonction [``std::print``](https://en.cppreference.com/w/cpp/io/print) dans vos projets.
+> Ceci est un exemple, privilégiez la fonction [``std::print``](https://en.cppreference.com/cpp/io/print) dans vos projets.
 
 Une fonction de print un peu plus poussée qui affiche les variables membres d'une structure passée en paramètre:
 {% highlight cpp linenos highlight_lines="10" %}
@@ -2079,7 +2079,7 @@ auto main() -> int
 Worker 101 is performing task: Compile code
 {% endhighlight %}
 
-> Ceci est un exemple, privilégiez la fonction [std::apply](https://en.cppreference.com/w/cpp/utility/apply) dans vos projets.
+> Ceci est un exemple, privilégiez la fonction [std::apply](https://en.cppreference.com/cpp/utility/apply) dans vos projets.
 
 Une fonction qui transforme une structure en tuple:
 {% highlight cpp linenos highlight_lines="10" %}
