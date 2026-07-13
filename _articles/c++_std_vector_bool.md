@@ -1,9 +1,9 @@
 ---
 layout: article
 title: std::vector&lt;bool&gt;
-permalink: articles/c++/std_vector_bool
-category: c++
-logo: c++.svg
+permalink: articles/cpp/std_vector_bool
+category: cpp
+logo: cpp.svg
 background: mountains5.webp
 seo:
   title: "std::vector<bool> en C++: Pièges, proxy et meilleures alternatives"
@@ -16,7 +16,7 @@ Découverte des problèmes de ce type, son proxy et les alternatives.
 
 ## ``std::vector<T>``
 
-``std::vector<T>`` est un type de la bibliothèque standard (STL) qui permet de créer un **tableau de taille variable alloué sur la [heap](/articles/c++/memory#heap)**.
+``std::vector<T>`` est un type de la bibliothèque standard (STL) qui permet de créer un **tableau de taille variable alloué sur la [heap](/articles/cpp/memory#heap)**.
 
 Son type template permet de renseigner le type qu'on souhaite stocker dans ce tableau.<br>
 Par exemple ``std::vector<int>`` permet de stocker des ``int``.
@@ -51,7 +51,7 @@ std::print("{}\n", sizeof(boolean));
 {% endrow %}
 
 **1** 👌<br>
-1 bit? Non, 1 [cellule mémoire](/articles/c++/memory#byte)!<br>
+1 bit? Non, 1 [cellule mémoire](/articles/cpp/memory#byte)!<br>
 Soit 8 bits, 16 bits, 32 bits ou 64 bits selon le système!<br>
 Si vous êtes sur un processeur 64 bits, les cellules mémoires font 64 bits.<br>
 Donc un ``std::vector<bool>`` utiliserait 64 bits pour stocker **chaque** booléen, ce qui gaspille beaucoup d'espace! 😱
@@ -165,7 +165,7 @@ false
 {% endrow %}
 
 > **Le piège d'``auto`` et des proxies**<br>
-> Ce comportement où la variable ``boolean`` **conserve un lien avec le vecteur d'origine** au lieu de copier la valeur provient de la **déduction du type proxy** (``std::_Bit_reference``) par le mot clef ``auto``. Ce **piège classique de déduction automatique** et ses risques associés (comme les **dangling references**) sont détaillés dans l'article: [**auto et l'oubli de conversion explicite**](/articles/c++/auto#oublier-une-conversion-explicite).
+> Ce comportement où la variable ``boolean`` **conserve un lien avec le vecteur d'origine** au lieu de copier la valeur provient de la **déduction du type proxy** (``std::_Bit_reference``) par le mot clef ``auto``. Ce **piège classique de déduction automatique** et ses risques associés (comme les **dangling references**) sont détaillés dans l'article: [**auto et l'oubli de conversion explicite**](/articles/cpp/auto#oublier-une-conversion-explicite).
 {: .block-warning }
 
 ``operator[]`` (non constant) retourne un **proxy**, mais attention, **ce n'est pas le cas de sa version constante**.<br>
@@ -470,8 +470,8 @@ enum class byte : unsigned char {};
 Par conséquent, il **interdit les opérations arithmétiques** directes (``+``, ``-``, ``*``), ce qui **évite les bugs de conversion implicite**.<br>
 Et supporte **uniquement les opérations binaires** (``&``, ``|``, ``^``, ``~``, ``<<``, ``>>``).
 
-> Etant calqué sur le type **``unsigned char``**, ``std::byte`` occupera toujours précisément **1 byte (1 [cellule mémoire](/articles/c++/memory#byte)**), le nombre de bits d'un byte (défini par ``CHAR_BIT``) peut être supérieur à 8 sur certaines architectures.<br>
-> C'est ce que nous voulons lorsque nous manipulons un **ensemble d'octets représentant une donnée**. On ne souhaite pas stocker **que 8 bits par [cellule mémoire](/articles/c++/memory#byte)** si celles-ci sont plus grandes sur le matériel cible. Autrement on aurait un **padding de bits inutilisés** dans chaque [cellule mémoire](/articles/c++/memory#byte).
+> Etant calqué sur le type **``unsigned char``**, ``std::byte`` occupera toujours précisément **1 byte (1 [cellule mémoire](/articles/cpp/memory#byte)**), le nombre de bits d'un byte (défini par ``CHAR_BIT``) peut être supérieur à 8 sur certaines architectures.<br>
+> C'est ce que nous voulons lorsque nous manipulons un **ensemble d'octets représentant une donnée**. On ne souhaite pas stocker **que 8 bits par [cellule mémoire](/articles/cpp/memory#byte)** si celles-ci sont plus grandes sur le matériel cible. Autrement on aurait un **padding de bits inutilisés** dans chaque [cellule mémoire](/articles/cpp/memory#byte).
 {: .block-warning }
 
 > C'est l'occasion de souligner qu'il fait une **bien meilleure alternative que** ``unsigned char``, ``char``, ``char8_t`` ou encore ``std::uint8_t`` pour **stocker ou manipuler des octets**.<br>
@@ -479,7 +479,7 @@ Et supporte **uniquement les opérations binaires** (``&``, ``|``, ``^``, ``~``,
 
 > **``std::vector<std::byte>``** vs **``std::unique_ptr<std::byte[]>``**:<br>
 >
-> Bien que l'un comme l'autre soient [**RAII**](/articles/c++/raii), ``std::unique_ptr<std::byte[]>`` ne dispose pas de **l'éventail de fonctions** utiles que proposent **``std::vector<T>``**, ni de mécanisme de **réallocation automatique** non plus (pour **réajuster la taille**). **``std::vector<std::byte>``** est donc définitivement **le meilleur choix** des deux pour un **buffer d'octets de taille dynamique**.
+> Bien que l'un comme l'autre soient [**RAII**](/articles/cpp/raii), ``std::unique_ptr<std::byte[]>`` ne dispose pas de **l'éventail de fonctions** utiles que proposent **``std::vector<T>``**, ni de mécanisme de **réallocation automatique** non plus (pour **réajuster la taille**). **``std::vector<std::byte>``** est donc définitivement **le meilleur choix** des deux pour un **buffer d'octets de taille dynamique**.
 >
 > Cependant, une **nuance** est à apporter pour **certaines situations**:<br>
 > Si le buffer a une **taille connue à l'exécution** (et **non à la compilation**, sinon **``std::array<std::byte, N>`` serait préférable**), mais qui **n'a plus besoin de varier après son allocation**, ``std::unique_ptr<std::byte[]>`` reste une **alternative très légère**. Il évite le surcoût des **3 pointeurs internes** du vecteur (*begin*, *end* et *capacity_end*. **micro-optimisation** pas forcément nécessaire) mais surtout permet (**depuis C++20** avec **``std::make_unique_for_overwrite``**) d'allouer la mémoire **sans forcer son initialisation** à zéro.
@@ -520,7 +520,7 @@ auto main() -> int
 }
 {% endhighlight %}
 
-> Plus d'infos sur [``std::data()`` et ``std::size()``](/articles/c++/customization_point_design).
+> Plus d'infos sur [``std::data()`` et ``std::size()``](/articles/cpp/customization_point_design).
 
 ## ``std::byte`` vs ``std::bitset<N>``
 
@@ -654,7 +654,7 @@ auto main() -> int
 En tant que simple vue **non propriétaire de la donnée**, [``std::span``](https://en.cppreference.com/cpp/container/span) contient simplement **un pointeur sur le début de la donnée** ainsi qu'**une taille**.
 
 > **Cette taille** n'est **pas obligée d'être la même que la donnée pointée**, elle **peut s'arrêter plus tôt**.<br>
-> Mais de ce fait, la **sous-donnée** représentée par le ``span`` **ne se terminera pas par une sentinelle** ([``nullptr``](/articles/c++/literals#pointer-literal-nullptr), ``\0``, ``0``). Cela présente un risque de *buffer overflow* si l'on extrait le pointeur brut via [``std::span<T>::data()``](https://en.cppreference.com/cpp/container/span/data) ou [``std::data()``](https://en.cppreference.com/cpp/iterator/data)[²](/articles/c++/customization_point_design) pour le passer à des fonctions s'attendant à une sentinelle de fin.
+> Mais de ce fait, la **sous-donnée** représentée par le ``span`` **ne se terminera pas par une sentinelle** ([``nullptr``](/articles/cpp/literals#pointer-literal-nullptr), ``\0``, ``0``). Cela présente un risque de *buffer overflow* si l'on extrait le pointeur brut via [``std::span<T>::data()``](https://en.cppreference.com/cpp/container/span/data) ou [``std::data()``](https://en.cppreference.com/cpp/iterator/data)[²](/articles/cpp/customization_point_design) pour le passer à des fonctions s'attendant à une sentinelle de fin.
 {: .block-warning }
 
 {% highlight cpp linenos highlight_lines="4" %}
@@ -668,7 +668,7 @@ std::puts(std::data(span));
 Hello World!
 {% endhighlight %}
 
-> Plus d'infos sur [``std::data()``](/articles/c++/customization_point_design).
+> Plus d'infos sur [``std::data()``](/articles/cpp/customization_point_design).
 
 ## Paramètres ``auto`` contraints par concepts (C++20)
 
@@ -677,7 +677,7 @@ Lorsque vous concevez **une bibliothèque ou une fonction générique**, vous vo
 Au lieu de restreindre vos signatures à [``std::span<T>``](#stdspanstdbyte-c20) (qui ajoute une légère couche d'abstraction), vous pouvez utiliser l'*inférence de type* pour obtenir un code **encore plus générique**.<br>
 Cela consiste à **laisser l'appelant proposer son propre type** et à ne l'accepter **que s'il est conforme aux exigences** de la fonction.
 
-Pour cela, il suffit de **déclarer les paramètres de nos fonctions [avec ``auto`` (C++20)](/articles/c++/auto#abbreviated-function-template-depuis-c20))** (équivalent de templates).
+Pour cela, il suffit de **déclarer les paramètres de nos fonctions [avec ``auto`` (C++20)](/articles/cpp/auto#abbreviated-function-template-depuis-c20))** (équivalent de templates).
 
 Si le code compile, c'est que **le type fourni par l'appelant dispose des méthodes nécessaires**. Cependant, pour être rigoureux, il est préférable de **contraindre ce type** à l'aide de *concepts* C++20, afin de **n'autoriser explicitement que les types conformes** tout en **documentant clairement nos exigences** pour l'appelant.
 
@@ -701,7 +701,7 @@ auto traiterBuffer(std::ranges::contiguous_range auto&& buffer) -> void
 }
 {% endhighlight %}
 
-> Si cette idée vous intéresse, je vous invite à passer lire l'article sur **la [programmation générique](/articles/c++/programmation_generique)** en C++.
+> Si cette idée vous intéresse, je vous invite à passer lire l'article sur **la [programmation générique](/articles/cpp/programmation_generique)** en C++.
 
 ## Conclusion et synthèse
 
@@ -723,5 +723,5 @@ Voici un **récapitulatif** pour vous aider à choisir l'outil **sémantiquement
 ---
 
 Aller plus loin:
-- [Auto](/articles/c++/auto)
-- [Casts](/articles/c++/casts)
+- [Auto](/articles/cpp/auto)
+- [Casts](/articles/cpp/casts)

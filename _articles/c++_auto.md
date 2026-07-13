@@ -1,9 +1,9 @@
 ---
 layout: article
 title: Évolutions du mot clef auto
-permalink: articles/c++/auto
-category: c++
-logo: c++.svg
+permalink: articles/cpp/auto
+category: cpp
+logo: cpp.svg
 background: corridor4.webp
 seo:
   title: "Maîtriser complètement auto en C++" # "Évolutions du mot clef auto du C++98 à C++26"
@@ -35,9 +35,9 @@ void print42()
 // La variable number n'existe pas en dehors de la fonction print42()
 {% endhighlight %}
 
-Dans les premières versions du langage C (Le ["C K&R"](/articles/c++/history_and_philosophy#c-kr)), il était obligatoire de déclarer explicitement les variables locales avec ``auto``.
+Dans les premières versions du langage C (Le ["C K&R"](/articles/cpp/history_and_philosophy#c-kr)), il était obligatoire de déclarer explicitement les variables locales avec ``auto``.
 
-Dès l'arrivée du [C ANSI (C89)](/articles/c++/history_and_philosophy#c-ansi-c89) en 1989, le comité de standardisation créé pour l'occasion décide de rendre les variables locales ``auto`` par défaut et le mot clef ``auto`` **optionnel**, le rendant par conséquent **redondant** et **inutile** à renseigner explicitement.<br>
+Dès l'arrivée du [C ANSI (C89)](/articles/cpp/history_and_philosophy#c-ansi-c89) en 1989, le comité de standardisation créé pour l'occasion décide de rendre les variables locales ``auto`` par défaut et le mot clef ``auto`` **optionnel**, le rendant par conséquent **redondant** et **inutile** à renseigner explicitement.<br>
 Il reste cependant supporté dans les versions suivantes du C pour des raisons de rétrocompatibilité.
 
 En C++, ``auto`` avait la même signification jusqu'au C++11.<br>
@@ -63,7 +63,7 @@ auto h = std::array{ 1, 2, 3 }; // std::array<int, 3>
 auto i = nullptr; // std::nullptr_t
 {% endhighlight %}
 
-> Les [literals](/articles/c++/literals) facilitent le typage lors de l'initialisation de variables.
+> Les [literals](/articles/cpp/literals) facilitent le typage lors de l'initialisation de variables.
 
 On parle ici d'**inférence de type**, un mécanisme permettant de **déduire le type à la compilation**.<br>
 Ici, ``auto`` prend le type de l'expression à droite du signe égal.<br>
@@ -92,7 +92,7 @@ std::vector<std::string> strings;
 auto it = strings.begin();
 {% endhighlight %}
 
-> Mais au-delà de ce confort, il est important de noter qu'en C++, l'utilisation de ``auto`` répond avant tout à des **besoins** techniques et de conception: [**forcer l'initialisation**](#auto-force-linitialisation) (obligatoire avec ``auto``), [**éliminer les conversions implicites**](#clarifie-les-appels-effectués) (en traquant le type exact), [**lever des ambiguïtés syntaxiques**](#most-vexing-parse) (via la syntaxe *left-to-right*), [**typer les lambdas**](#typer-une-lambda), [**décomposer des objets**](#structured-binding-declaration-depuis-c17), [**réduire la verbosité**](#réduction-de-la-verbosité) ou encore faciliter la [**programmation générique**](/articles/c++/programmation_generique) par la [**propagation des types**](#abbreviated-function-template-depuis-c20).
+> Mais au-delà de ce confort, il est important de noter qu'en C++, l'utilisation de ``auto`` répond avant tout à des **besoins** techniques et de conception: [**forcer l'initialisation**](#auto-force-linitialisation) (obligatoire avec ``auto``), [**éliminer les conversions implicites**](#clarifie-les-appels-effectués) (en traquant le type exact), [**lever des ambiguïtés syntaxiques**](#most-vexing-parse) (via la syntaxe *left-to-right*), [**typer les lambdas**](#typer-une-lambda), [**décomposer des objets**](#structured-binding-declaration-depuis-c17), [**réduire la verbosité**](#réduction-de-la-verbosité) ou encore faciliter la [**programmation générique**](/articles/cpp/programmation_generique) par la [**propagation des types**](#abbreviated-function-template-depuis-c20).
 
 ### Pointeurs et propriétés cvref
 
@@ -229,7 +229,7 @@ std::string string;
 MyClass object;
 {% endhighlight %}
 
-Ces déclarations sont problématiques car sur des types primitifs ou n'ayant pas de constructeur par défaut, **[elles provoquent des UB](/articles/c++/uniform_initialization#variable-déclarée-mais-pas-initialisée)**. Ca représente donc un **risque d'erreurs non négligeable**.
+Ces déclarations sont problématiques car sur des types primitifs ou n'ayant pas de constructeur par défaut, **[elles provoquent des UB](/articles/cpp/uniform_initialization#variable-déclarée-mais-pas-initialisée)**. Ca représente donc un **risque d'erreurs non négligeable**.
 
 En déclarant les variables avec ``auto``, il n'est **plus possible d'oublier une initialisation**.<br>
 Etant un des UB les plus fréquents en C++, ça représente un argument majeur pour l'adoption de cette syntaxe.
@@ -241,7 +241,7 @@ auto string = ""s;
 auto object = MyClass{};
 {% endhighlight %}
 
-Notez aussi que ``auto`` peut être facilement couplé avec **[l'uniform initialization](/articles/c++/uniform_initialization)** permettant là aussi d'**éviter des erreurs** en C++.
+Notez aussi que ``auto`` peut être facilement couplé avec **[l'uniform initialization](/articles/cpp/uniform_initialization)** permettant là aussi d'**éviter des erreurs** en C++.
 
 ### Clarifie les appels effectués
 
@@ -311,7 +311,7 @@ Face à cette ambiguïté, **le compilateur choisit toujours de considérer ces 
 
 Etant donné que c'est particulièrement **trompeur** et que ça peut induire des **bugs difficiles à identifier**, il est utile de **lever l'ambiguïté** en optant pour une autre écriture.
 
-Pour **forcer l'interprétation en variable**, on peut utiliser l'[uniform initialization](/articles/c++/uniform_initialization) qui se propose entre autres comme une manière de résoudre les situations de most vexing parse.
+Pour **forcer l'interprétation en variable**, on peut utiliser l'[uniform initialization](/articles/cpp/uniform_initialization) qui se propose entre autres comme une manière de résoudre les situations de most vexing parse.
 {% highlight cpp highlight_lines="4" %}
 void function()
 {
@@ -362,14 +362,14 @@ Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctio
 
 ### Common type deduction
 
-Lorsqu'un type dépend de plusieurs expressions, l'utilisation de ``auto`` permet au compilateur de déduire le [type commun](/articles/c++/type_traits#type_commun) entre les différentes expressions possibles.
+Lorsqu'un type dépend de plusieurs expressions, l'utilisation de ``auto`` permet au compilateur de déduire le [type commun](/articles/cpp/type_traits#type_commun) entre les différentes expressions possibles.
 
 Par exemple, dans le cas d'une ternaire où ``c`` peut se voir attribuer la valeur de ``a`` ou de ``b`` selon une condition:
 {% highlight cpp %}
 auto c = (a < b) ? a : b;
 {% endhighlight %}
 
-Si ``a`` et ``b`` sont de types différents, le mot clef ``auto`` permet de déduire automatiquement le [type commun](/articles/c++/type_traits#type_commun) de ces deux expressions.
+Si ``a`` et ``b`` sont de types différents, le mot clef ``auto`` permet de déduire automatiquement le [type commun](/articles/cpp/type_traits#type_commun) de ces deux expressions.
 
 {% highlight cpp %}
 auto a = 10; // int
@@ -533,7 +533,7 @@ auto x = {1}; // std::initializer_list<int>
 auto y{1}; // std::initializer_list<int> avant C++17
 {% endhighlight %}
 
-Depuis C++17, la règle a été simplifiée ([N3922](https://wg21.link/n3922)) pour rendre le comportement plus intuitif: ``auto y{1}`` déduit désormais un ``int`` grâce à l'**[initialisation uniforme](/articles/c++/uniform_initialization)**.
+Depuis C++17, la règle a été simplifiée ([N3922](https://wg21.link/n3922)) pour rendre le comportement plus intuitif: ``auto y{1}`` déduit désormais un ``int`` grâce à l'**[initialisation uniforme](/articles/cpp/uniform_initialization)**.
 
 L'écriture avec le signe égal (``auto x = {1}``) reste quant à elle dédiée à la création d'une ``std::initializer_list``.
 
@@ -657,7 +657,7 @@ Ici on est face à une particularité de la bibliothèque standard.<br>
 Le type ``std::vector<T>`` est spécialisé pour le type ``bool`` lui donnant un **comportement différent** de celui de base.<br>
 ``std::vector<bool>::operator[]`` **ne retourne pas un ``bool``**, mais un **proxy** permettant de modifier le bit stocké dans le conteneur. Et ce, malgré l'utilisation de ``auto`` sans référence.
 
-> Si ces problématiques autour de **``std::vector<bool>``** vous intéressent, [**un autre article**](/articles/c++/std_vector_bool#spécialisation-du-type-stdvectorbool) développe ses particularités et vous propose une bien **meilleure alternative** ([``std::bitset``](/articles/c++/std_vector_bool#stdbitsetn)).
+> Si ces problématiques autour de **``std::vector<bool>``** vous intéressent, [**un autre article**](/articles/cpp/std_vector_bool#spécialisation-du-type-stdvectorbool) développe ses particularités et vous propose une bien **meilleure alternative** ([``std::bitset``](/articles/cpp/std_vector_bool#stdbitsetn)).
 
 Un moyen d'éviter ce problème consiste à rendre explicite la conversion:
 
@@ -807,8 +807,8 @@ auto sum(Lhs lhs, Rhs rhs) -> decltype(lhs + rhs)
 }
 {% endhighlight %}
 
-> Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/c++/templates).
-> Et pour ``decltype(expression)``, c'est [ici](/articles/c++/value_categories#decltype).
+> Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/cpp/templates).
+> Et pour ``decltype(expression)``, c'est [ici](/articles/cpp/value_categories#decltype).
 
 Cela n'est pas possible avec l'ancienne écriture des fonctions:
 
@@ -922,7 +922,7 @@ Quelques avantages notables à utiliser ``auto`` :
 - [**Forcer l'initialisation des variables**](#auto-force-linitialisation), évitant au développeur un oubli d'initialisation (``int i;``) et donc des erreurs
 - [**Éviter les conversions implicites**](#clarifie-les-appels-effectués) lors de l'initialisation (ex: ``float f = 1;``: conversion implicite de int vers float)
 - [**Réduire la verbosité**](#réduction-de-la-verbosité) pour les types longs (notamment les **itérateurs**)
-- Couplé à l'[initialisation uniforme](/articles/c++/uniform_initialization), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
+- Couplé à l'[initialisation uniforme](/articles/cpp/uniform_initialization), il contribue à réduire la charge mentale causée par les multiples façons d'écrire la même chose. Le C++ devient un langage beaucoup plus lisible et abordable.
 - Le type est déjà renseigné (ou déduit) à droite du signe égal, **pas de redondance** en l'écrivant aussi à gauche.
 - Les **templates** deviennent beaucoup [**plus lisibles**](#abbreviated-function-template-depuis-c20) (depuis C++20)
 - ``auto`` est le seul moyen de [**typer une lambda**](#typer-une-lambda)
@@ -941,7 +941,7 @@ Ce surcoût est généralement considéré comme négligeable, sauf dans certain
 auto array = std::array{1, 2, 3, 4, 5};
 {% endhighlight %}
 
-``std::array`` étant un [type trivial](/articles/c++/move_semantic#type-trivial), **son déplacement fait une copie**, représentant là aussi un surcoût.<br>
+``std::array`` étant un [type trivial](/articles/cpp/move_semantic#type-trivial), **son déplacement fait une copie**, représentant là aussi un surcoût.<br>
 Ici aussi, on peut décider de ne pas utiliser ``auto`` pour éviter ce surcoût.
 
 {% gif /assets/images/articles/c++/almost_always_auto/person-of-interest-please-stop.gif %}
@@ -1025,7 +1025,7 @@ auto getText(int value)
 }
 {% endhighlight %}
 
-Ceci provoque une erreur de compilation, bien qu'un [type commun](/articles/c++/type_traits#type_commun) existe (``std::string_view``)
+Ceci provoque une erreur de compilation, bien qu'un [type commun](/articles/cpp/type_traits#type_commun) existe (``std::string_view``)
 
 > \<source\>:9:29: **error**: inconsistent deduction for auto return type: 'const char*' and then 'std::basic_string_view<char>'
 
@@ -1139,13 +1139,13 @@ decltype(auto) getReference() { return (m_value); } // Retourne une référence 
 
 ## Forwarding Reference (``auto&&``) (depuis C++11)
 
-Le terme "**forwarding reference**" (autrefois appelé *universal reference*) a été inventé par **Scott Meyers** pour désigner une référence qui peut se lier aussi bien à des [**lvalues**](/articles/c++/value_categories#lvalue) qu'à des [**rvalues**](/articles/c++/value_categories#rvalue), tout en préservant leur nature (const, rvalue, etc.).
+Le terme "**forwarding reference**" (autrefois appelé *universal reference*) a été inventé par **Scott Meyers** pour désigner une référence qui peut se lier aussi bien à des [**lvalues**](/articles/cpp/value_categories#lvalue) qu'à des [**rvalues**](/articles/cpp/value_categories#rvalue), tout en préservant leur nature (const, rvalue, etc.).
 
 Dans un contexte de template:
 - ``T&&`` est une **forwarding reference** (ou ``auto&&`` dans une [**abbreviated function template**](#abbreviated-function-template-depuis-c20)).
 - ``T&&`` hors template (ex: ``void f(int&&)``) est une **rvalue reference**.
 
-Le mot-clef ``auto&&`` est **toujours une forwarding reference**, car ``auto`` est déduit selon les mêmes règles qu'un paramètre de template. C'est l'outil idéal pour manipuler des objets de manière générique sans savoir à l'avance s'il s'agit d'une [**lvalue**](/articles/c++/value_categories#lvalue) ou d'une [**rvalue**](/articles/c++/value_categories#rvalue).
+Le mot-clef ``auto&&`` est **toujours une forwarding reference**, car ``auto`` est déduit selon les mêmes règles qu'un paramètre de template. C'est l'outil idéal pour manipuler des objets de manière générique sans savoir à l'avance s'il s'agit d'une [**lvalue**](/articles/cpp/value_categories#lvalue) ou d'une [**rvalue**](/articles/cpp/value_categories#rvalue).
 
 {% highlight cpp %}
 // auto&& sera une lvalue ou rvalue reference selon la valeur reçue:
@@ -1159,7 +1159,7 @@ void function(auto&& x); // Paramètre template de fonction (C++20)
 Lorsqu'il s'agit de retourner une valeur ou une référence de manière générique (notamment pour des accesseurs), deux approches aux philosophies différentes coexistent:
 
 - **``decltype(auto)`` est plus rigide**: il déduit le type exact de l'expression. Il nécessite des parenthèses autour du membre retourné (ex: ``return (m_value);``) pour retourner une référence et ne pas faire de **copie par accident**.
-- **``auto&&`` est plus flexible**: il se comporte comme une *forwarding reference* et déduit une référence si l'expression en est une (même sans parenthèses), ce qui en fait le compagnon idéal du [**Deducing This (C++23)**](/articles/c++/objects#deducing-this) pour les accesseurs génériques:
+- **``auto&&`` est plus flexible**: il se comporte comme une *forwarding reference* et déduit une référence si l'expression en est une (même sans parenthèses), ce qui en fait le compagnon idéal du [**Deducing This (C++23)**](/articles/cpp/objects#deducing-this) pour les accesseurs génériques:
 
 {% highlight cpp %}
 decltype(auto) get(this auto&& self) { return (self.m_value); }
@@ -1175,7 +1175,7 @@ Les *[structured binding declaration](https://en.cppreference.com/cpp/language/s
 
 Cette fonctionnalité est compatible avec:
 - Les *C-like array* (tableaux de taille fixe)
-- Les [tuple-like](/articles/c++/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
+- Les [tuple-like](/articles/cpp/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
 - Les classes/structures ayant toutes leurs variables membres publiques
 
 Leur écriture est conçue comme une variante des déclarations de variables.
@@ -1379,7 +1379,7 @@ const int & y = __array7[1];
 
 Les propriétés cvref sont appliquées à ``__array7`` et répercutées sur ``x`` et ``y``.
 
-Testons maintenant avec un *[tuple-like](/articles/c++/std_tuple#tuple-like)*:
+Testons maintenant avec un *[tuple-like](/articles/cpp/std_tuple#tuple-like)*:
 
 {% highlight cpp %}
 auto p = std::pair{1, 2};
@@ -1394,7 +1394,7 @@ int && x = std::get<0UL>(static_cast<std::pair<int, int> &&>(__p7));
 int && y = std::get<1UL>(static_cast<std::pair<int, int> &&>(__p7));
 {% endhighlight %}
 
-On remarque que lorsqu'on utilise une déstructuration sur un [tuple-like](/articles/c++/std_tuple#tuple-like), le compilateur transforme implicitement le code en appels à [``std::get``](https://en.cppreference.com/cpp/utility/tuple/get).
+On remarque que lorsqu'on utilise une déstructuration sur un [tuple-like](/articles/cpp/std_tuple#tuple-like), le compilateur transforme implicitement le code en appels à [``std::get``](https://en.cppreference.com/cpp/utility/tuple/get).
 
 Pour les classes/structures n'ayant que des variables membres publiques, la déstructuration n'appelle pas ``std::get``. Le compilateur génère un accès direct aux membres dans l'ordre de leur déclaration.
 
@@ -1404,7 +1404,7 @@ Pour les classes/structures n'ayant que des variables membres publiques, la dés
 
 [Pour rappel](#structured-binding-declaration-depuis-c17), les types compatibles avec les *structured binding declaration* sont:
 - Les *C-like array* (tableaux de taille fixe)
-- Les [tuple-like](/articles/c++/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
+- Les [tuple-like](/articles/cpp/std_tuple#tuple-like) (``std::array``, ``std::tuple``, ``std::pair``)
 - Les classes/structures ayant toutes leurs variables membres publiques
 
 Si une classe/structure contient des variables membres privées, il n'est pas possible de les ignorer dans une *structured binding declaration*.
@@ -1433,7 +1433,7 @@ auto main() -> int
 {% endhighlight %}
 
 Cette structure ``Person`` **ne répond plus aux exigences pour être déstructurable** (qui est "**avoir toutes ses variables membres publiques**").<br>
-Mais il est possible de **transformer cette structure** pour qu'elle puisse **satisfaire les critères d'un [tuple-like](/articles/c++/std_tuple#tuple-like)**.<br>
+Mais il est possible de **transformer cette structure** pour qu'elle puisse **satisfaire les critères d'un [tuple-like](/articles/cpp/std_tuple#tuple-like)**.<br>
 Elle en deviendrait déstructurable.
 
 Pour cela il faut la rendre compatible avec [``std::get``](https://en.cppreference.com/cpp/utility/tuple/get).
@@ -1504,7 +1504,7 @@ Ce n'est cependant [pas encore supporté par les compilateurs](https://en.cppref
 
 ### Attributs individuels (depuis C++26)
 
-Les *structured binding declaration* ne supportent pas les [attributs](/articles/c++/attributes) individuels avant C++26:
+Les *structured binding declaration* ne supportent pas les [attributs](/articles/cpp/attributes) individuels avant C++26:
 {% highlight cpp %}
 int i = 0, j [[maybe_unused]] = 0; // Ok, individual attributes
 auto [k, l [[maybe_unused]] ] = std::pair{1, 2}; // warning: an attribute specifier sequence attached to a structured binding declaration is a C++2c extension [-Wc++26-extensions]
@@ -1528,7 +1528,7 @@ Avant C++26, les *structured binding declaration* ne sont pas autorisées dans l
 if (auto [x, y] = std::pair{1, 2}) {} // warning: ISO C++17 does not permit structured binding declaration in a condition [-Wbinding-in-condition]
 {% endhighlight %}
 
-Il est cependant possible de les utiliser dans la partie initialisation des conditions ([init-statement (C++17)](/articles/c++/control_flow#init-statement-depuis-c17)), dans laquelle elles se comportent comme n'importe quelle déclaration écrite à cet endroit:
+Il est cependant possible de les utiliser dans la partie initialisation des conditions ([init-statement (C++17)](/articles/cpp/control_flow#init-statement-depuis-c17)), dans laquelle elles se comportent comme n'importe quelle déclaration écrite à cet endroit:
 {% highlight cpp %}
 if (auto [x, y] = std::pair{1, 2}; x == y) {} // Ok
 {% endhighlight %}
@@ -1539,7 +1539,7 @@ Depuis C++26, il est possible d'écrire directement une *structured binding decl
 if (auto [x, y] = std::pair{1, 2}) {} // Ok depuis C++26
 {% endhighlight %}
 
-Cette écriture n'est pas sans rappeler les [*range-based for loop*](/articles/c++/control_flow#range-based-for-loop-depuis-c11) dans lesquelles il est également possible d'utiliser une *structured binding declaration* pour décomposer l'objet pointé par l'iterateur.
+Cette écriture n'est pas sans rappeler les [*range-based for loop*](/articles/cpp/control_flow#range-based-for-loop-depuis-c11) dans lesquelles il est également possible d'utiliser une *structured binding declaration* pour décomposer l'objet pointé par l'iterateur.
 
 {% highlight cpp %}
 for (auto [x, y] : container) {}
@@ -1614,7 +1614,7 @@ else
 {% endhighlight %}
 ([Pour la gestion d'erreur](https://en.cppreference.com/cpp/error/errc#Example))
 
-> Dans le code précédent, remarquez l'utilisation de l'[*init-statement*](/articles/c++/control_flow#init-statement-depuis-c17) dans la condition pour restreindre la portée des variables ``pointer`` et ``errorCode`` au scope de cette condition.
+> Dans le code précédent, remarquez l'utilisation de l'[*init-statement*](/articles/cpp/control_flow#init-statement-depuis-c17) dans la condition pour restreindre la portée des variables ``pointer`` et ``errorCode`` au scope de cette condition.
 
 Depuis C++26, on peut écrire:
 {% highlight cpp linenos highlight_lines="3" %}
@@ -1632,7 +1632,7 @@ else
 
 ## ``auto`` in template parameters (depuis C++17)
 
-> Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/c++/templates).
+> Si vous n'êtes pas familiers avec les templates, passez faire un tour [ici](/articles/cpp/templates).
 
 Vous avez sûrement remarqué que certains templates prennent des valeurs, au lieu de prendre des types.
 
@@ -1699,9 +1699,9 @@ std::println("3 * 4 = {}", apply.operator()<multiply>(3, 4)); // 12
 
 ## AA (Always Auto) (depuis C++17)
 
-En C++17, le langage garantit la [copy elision](/articles/c++/copy_elision), faisant disparaitre les surcoûts que nous avons vus [à la fin de la partie sur "Almost Always Auto"](#aaa-almost-always-auto-avant-c17), rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
+En C++17, le langage garantit la [copy elision](/articles/cpp/copy_elision), faisant disparaitre les surcoûts que nous avons vus [à la fin de la partie sur "Almost Always Auto"](#aaa-almost-always-auto-avant-c17), rendant l'utilisation de ``auto`` possible même sur des types qui ne sont ni copyables, ni movables.
 
-La [copy elision](/articles/c++/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/c++/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
+La [copy elision](/articles/cpp/copy_elision) est une optimisation qui élimine la création et la copie d'objets temporaires ([prvalue](/articles/cpp/value_categories#prvalue)). Au lieu de créer une copie intermédiaire, l'objet est directement construit à l'emplacement final.
 
 Suite à ce changement dans le langage, Herb Sutter soutient le passage de AAA à AA.
 
@@ -1753,7 +1753,7 @@ auto sum(auto lhs, auto rhs) -> auto
 }
 {% endhighlight %}
 
-Cette syntaxe rend l'écriture **concise** et **lisible**, notamment lorsqu'on adopte une [**programmation générique sans types explicites**](/articles/c++/programmation_generique).
+Cette syntaxe rend l'écriture **concise** et **lisible**, notamment lorsqu'on adopte une [**programmation générique sans types explicites**](/articles/cpp/programmation_generique).
 
 > Attention, derrière ses airs de [placeholder type specifiers](#placeholder-type-specifiers-depuis-c11), il s'agit ici bien de **types templatés**.<br>
 > Une template n'est **pas toujours souhaitable**. Dans cette situation il faut n'utiliser ``auto`` que si une template est souhaitée.
@@ -1808,9 +1808,9 @@ auto sum(auto... types) -> auto
 
 ## auto cast (depuis C++23)
 
-Une manière **générique** d'obtenir la copie d'un objet en C++ est ``auto variable = x;``, mais une telle copie est une [lvalue](/articles/c++/value_categories#lvalue).
+Une manière **générique** d'obtenir la copie d'un objet en C++ est ``auto variable = x;``, mais une telle copie est une [lvalue](/articles/cpp/value_categories#lvalue).
 
-``auto(a)`` (ou ``auto{x}``) permet d'obtenir une copie sous forme de [prvalue](/articles/c++/value_categories#prvalue), ce qui peut être utile pour transmettre cet objet en paramètre à une fonction.
+``auto(a)`` (ou ``auto{x}``) permet d'obtenir une copie sous forme de [prvalue](/articles/cpp/value_categories#prvalue), ce qui peut être utile pour transmettre cet objet en paramètre à une fonction.
 
 {% highlight cpp %}
 function(auto(expr));
@@ -1925,12 +1925,12 @@ C'est cette même philosophie qui est à l'origine du [**Most Vexing Parse**](#m
 
 ## Structured binding pack (depuis C++26)
 
-Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité d'extraire des éléments d'un [pack](/articles/c++/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
+Dans la continuité des [structured binding declaration](#structured-binding-declaration-depuis-c17), le C++26 ajoute la possibilité d'extraire des éléments d'un [pack](/articles/cpp/templates#pack) ([proposal](https://wg21.link/P1061R10), [approval](https://wg21.link/P1061R9/status)).
 
 Cette fonctionnalité n'est [pas encore supportée par les compilateurs](https://en.cppreference.com/cpp/26) à l'heure où j'écris.
 On peut cependant la trouver en experimental [sur Clang](https://godbolt.org/z/ea45Wx5Wh).
 
-Ce n'est pas une nouvelle fonctionnalité à proprement parler, il s'agit en fait d'une extension des [structured binding declaration](#structured-binding-declaration-depuis-c17) leur permettant de supporter les [pack](/articles/c++/templates#pack).
+Ce n'est pas une nouvelle fonctionnalité à proprement parler, il s'agit en fait d'une extension des [structured binding declaration](#structured-binding-declaration-depuis-c17) leur permettant de supporter les [pack](/articles/cpp/templates#pack).
 
 {% highlight cpp linenos highlight_lines="4" %}
 auto container = std::tuple{1, 2, 3};
@@ -1939,7 +1939,7 @@ auto [x, y, z] = container;
 auto [...values] = container; // values contient les valeurs 1, 2 et 3
 {% endhighlight %}
 
-Pour [rappel](/articles/c++/templates#pack), un pack est un outil de **metaprogrammation** fonctionnant dans le **contexte d'une template**.<br>
+Pour [rappel](/articles/cpp/templates#pack), un pack est un outil de **metaprogrammation** fonctionnant dans le **contexte d'une template**.<br>
 Les *structured binding pack* sont donc utilisables **uniquement dans des fonctions templatées** (dans une "templated region"):
 
 {% highlight cpp linenos highlight_lines="6" %}
@@ -2118,6 +2118,6 @@ A titre personnel, je recommande une approche pragmatique: adopter ``auto`` **pa
 ---
 
 Aller plus loin:
-- [Literals](/articles/c++/literals)
-- [Initialisation uniforme](/articles/c++/uniform_initialization)
-- [Templates](/articles/c++/templates)
+- [Literals](/articles/cpp/literals)
+- [Initialisation uniforme](/articles/cpp/uniform_initialization)
+- [Templates](/articles/cpp/templates)

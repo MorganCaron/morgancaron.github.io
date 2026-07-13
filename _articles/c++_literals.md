@@ -1,9 +1,9 @@
 ---
 layout: article
 title: Les Literals en C++
-permalink: articles/c++/literals
-category: c++
-logo: c++.svg
+permalink: articles/cpp/literals
+category: cpp
+logo: cpp.svg
 background: mountains0.jpg
 seo:
   title: "Tout sur les Literals en C++"
@@ -13,7 +13,7 @@ published: true
 
 Les literals, une manière **simple**, **concise** et **lisible** d'initialiser des valeurs.
 
-Si vous avez lu les articles sur [auto](/articles/c++/auto#placeholder-type-specifiers-depuis-c11) et l'[initialisation uniforme](/articles/c++/uniform_initialization), vous trouvez peut-être inutile de devoir préciser le mot clef ``auto`` en plus de déjà préciser le type des variables après le signe égal:
+Si vous avez lu les articles sur [auto](/articles/cpp/auto#placeholder-type-specifiers-depuis-c11) et l'[initialisation uniforme](/articles/cpp/uniform_initialization), vous trouvez peut-être inutile de devoir préciser le mot clef ``auto`` en plus de déjà préciser le type des variables après le signe égal:
 
 {% highlight cpp %}
 unsigned int number = 0; // Le type, le nom de la variable, puis la valeur
@@ -24,7 +24,7 @@ Les literals apportent une syntaxe alternative qui répond à cet encombrement d
 
 ## LiteralType
 
-Un [LiteralType](https://en.cppreference.com/cpp/named_req/LiteralType) est un type [``constexpr``](/articles/c++/compile-time_execution) qui peut être construit, manipulé et retourné de manière ``constexpr``.
+Un [LiteralType](https://en.cppreference.com/cpp/named_req/LiteralType) est un type [``constexpr``](/articles/cpp/compile-time_execution) qui peut être construit, manipulé et retourné de manière ``constexpr``.
 
 Ceci n'est qu'un concept théorique, pas un type présent dans le langage. Nous l'utiliserons pour désigner les types pouvant avoir un literal (dans la lib standard, ou [user-defined](#user-defined-literal)).
 
@@ -32,7 +32,7 @@ Un literal est un **préfixe** et/ou un **suffixe** qui s'ajoutent autour d'une 
 Dans certains cas, cela peut aussi être un simple mot clef représentant une valeur ([``nullptr``](#pointer-literal-nullptr), [``true``/``false``](#boolean-literal-truefalse)).<br>
 [Certains literals](#raw-string-literals) sont particuliers car ils **ne changent pas le type** de la valeur, mais les rendent juste **plus lisibles** dans le code.
 
-Un literal est souvent une [prvalue](/articles/c++/value_categories#prvalue), mais nous allons voir qu'il existe [des exceptions](#string-literal-lvalue-ou-prvalue-).
+Un literal est souvent une [prvalue](/articles/cpp/value_categories#prvalue), mais nous allons voir qu'il existe [des exceptions](#string-literal-lvalue-ou-prvalue-).
 
 ## Integer literal
 
@@ -66,7 +66,7 @@ auto number4 = 0ul; // unsigned long int
 auto number5 = 0ull; // unsigned long long int (Depuis C++11)
 {% endhighlight %}
 
-Dans certains cas, des types sont préférables à ceux-ci pour représenter des nombres entiers. Notamment pour représenter des [tailles (std::size_t)](/articles/c++/std_size_t).
+Dans certains cas, des types sont préférables à ceux-ci pour représenter des nombres entiers. Notamment pour représenter des [tailles (std::size_t)](/articles/cpp/std_size_t).
 Il existe aussi des literals pour ces types:
 {% highlight cpp %}
 auto number0 = 0uz; // std::size_t
@@ -129,12 +129,12 @@ Le C++23 a introduit des suffixes spécifiques pour faciliter la manipulation de
 
 | Suffixe | Type déduit | Description |
 | :--- | :--- | :--- |
-| **``uz``** (et variantes) | [**``std::size_t``**](/articles/c++/std_size_t) | Type non signé pour les tailles d'objets. |
+| **``uz``** (et variantes) | [**``std::size_t``**](/articles/cpp/std_size_t) | Type non signé pour les tailles d'objets. |
 | **``z``**, **``Z``** | ``std::make_signed_t<std::size_t>`` | Version signée de ``std::size_t`` (souvent identique à ``std::ptrdiff_t``). |
 
 Pour ``std::size_t``, n'importe quelle combinaison de **``z``** (ou ``Z``) et de **``u``** (ou ``U``) est valide : ``zu``, ``zU``, ``Zu``, ``ZU``, ``uz``, ``uZ``, ``Uz`` ou ``UZ``.
 
-Le type signé produit par **``z``** est l'[**équivalent standard**](/articles/c++/size#les-alternatives-signées--ptrdiff_t-et-stdssize) du type [**``ssize_t`` (POSIX)**](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html). Il est très utile pour les boucles décrémentales afin d'éviter les débordements (underflow) des types non signés.
+Le type signé produit par **``z``** est l'[**équivalent standard**](/articles/cpp/size#les-alternatives-signées--ptrdiff_t-et-stdssize) du type [**``ssize_t`` (POSIX)**](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html). Il est très utile pour les boucles décrémentales afin d'éviter les débordements (underflow) des types non signés.
 
 En revanche, il n'existe toujours pas de literal pour les types à **largeur fixe** stricte (comme ``std::int64_t`` ou ``std::int32_t``). On continue d'utiliser les literals des types fondamentaux correspondants:
 {% highlight cpp %}
@@ -143,7 +143,7 @@ auto u64 = 42ull; // Type unsigned long long int (au moins 64 bits)
 {% endhighlight %}
 
 
-> Pour comprendre **comment la taille de ces types varie selon votre architecture**, consultez **l'article sur les [types fondamentaux](/articles/c++/fundamental_types)**.
+> Pour comprendre **comment la taille de ces types varie selon votre architecture**, consultez **l'article sur les [types fondamentaux](/articles/cpp/fundamental_types)**.
 
 ## Floating-point literal
 
@@ -300,7 +300,7 @@ Le **C++11** se voit ajouter le **literal ``nullptr``** (oui, c'est bien un lite
 > Ceci requiert l'utilisation de ``extern "C"``.
 {: .block-warning }
 
-Etant un literal, ``nullptr`` en C++11 est une [prvalue](/articles/c++/value_categories#prvalue).
+Etant un literal, ``nullptr`` en C++11 est une [prvalue](/articles/cpp/value_categories#prvalue).
 
 Le type ``std::nullptr_t`` est [défini comme étant ``using nullptr_t = decltype(nullptr);`` (C++11)](https://en.cppreference.com/cpp/language/types#std::nullptr_t) ([Source 2](https://en.cppreference.com/cpp/types/nullptr_t)).
 
@@ -384,7 +384,7 @@ auto c4 = L'c'; // wchar_t (Wide character)
 {% endhighlight %}
 
 > **Évolutions importantes** :
-> - **C++20** : ``u8'c'`` passe du type ``char`` au type [**``char8_t``**](/articles/c++/fundamental_types#le-cas-de-char8_t-c20).
+> - **C++20** : ``u8'c'`` passe du type ``char`` au type [**``char8_t``**](/articles/cpp/fundamental_types#le-cas-de-char8_t-c20).
 > - **C++23** : Le standard définit désormais que les littéraux préfixés **``u8``**, **``u``** et **``U``** sont encodés respectivement en **UTF-8**, **UTF-16** et **UTF-32** ([**P2314R2**](https://wg21.link/p2314r2)). Cette clarification lève les ambiguïtés historiques sur leur encodage, tandis que l'[**execution character set**](https://en.cppreference.com/cpp/language/charset.html#Execution_character_set) reste distinct et peut dépendre de l'environnement.
 
 ### Caractères d'échappement
@@ -501,7 +501,7 @@ void process()
 }
 {% endhighlight %}
 
-Pour que ces suffixes soient reconnus, vous devez écrire un **``using namespace``**. Bien que cette pratique soit généralement déconseillée car elle [**pollue le namespace**](/articles/c++/scopes#using-namespace) dans lequel elle se trouve, elle est ici **recommandée et acceptée** car elle constitue la **seule manière** de conserver l'intérêt esthétique et la concision des literals.
+Pour que ces suffixes soient reconnus, vous devez écrire un **``using namespace``**. Bien que cette pratique soit généralement déconseillée car elle [**pollue le namespace**](/articles/cpp/scopes#using-namespace) dans lequel elle se trouve, elle est ici **recommandée et acceptée** car elle constitue la **seule manière** de conserver l'intérêt esthétique et la concision des literals.
 
 Une alternative plus granulaire consiste à utiliser une déclaration **``using``** sur un opérateur spécifique (ex: ``using std::literals::string_view_literals::operator""sv;``), mais cela devient vite fastidieux si vous utilisez plusieurs types de literals.
 
@@ -549,7 +549,7 @@ auto s = u8"hello"s; // std::u8string
 auto sv = u"hello"sv; // std::u16string_view
 {% endhighlight %}
 
-> À noter que la plupart de ces littéraux sont devenus [**``constexpr``**](/articles/c++/compile-time_execution) à partir du C++20.
+> À noter que la plupart de ces littéraux sont devenus [**``constexpr``**](/articles/cpp/compile-time_execution) à partir du C++20.
 
 Par nature, un ``std::string_view`` ne garantit pas la présence d'un ``\0`` final (il se contente d'un pointeur et d'une taille). Cependant, lorsqu'il est construit à partir d'un **literal** (``"..."sv``), il pointe vers le tableau statique du binaire qui, lui, possède bien cette sentinelle. Passer ``sv.data()`` à une fonction attendant un pointeur C est donc **techniquement sûr** dans ce cas précis, bien que risqué conceptuellement.
 
@@ -633,7 +633,7 @@ using namespace std::chrono_literals;
 using namespace std::literals::chrono_literals;
 {% endhighlight %}
 
-> **Pourquoi ça fonctionne ?** La bibliothèque standard définit ces opérateurs dans des [**inline namespaces**](/articles/c++/scopes#inline-namespace) imbriqués. Ainsi, ``std::chrono_literals`` est techniquement un alias de ``std::literals::chrono_literals``, et les deux sont automatiquement "remontés" dans ``std::literals``.
+> **Pourquoi ça fonctionne ?** La bibliothèque standard définit ces opérateurs dans des [**inline namespaces**](/articles/cpp/scopes#inline-namespace) imbriqués. Ainsi, ``std::chrono_literals`` est techniquement un alias de ``std::literals::chrono_literals``, et les deux sont automatiquement "remontés" dans ``std::literals``.
 
 {% highlight cpp %}
 using namespace std::chrono_literals;
@@ -655,7 +655,7 @@ auto d = 15d;    // std::chrono::day
 
 ## Complex literal (C++14)
 
-Les literals complexes permettent d'initialiser des **nombres complexes** (``std::complex``). Ils sont accessibles via trois namespaces équivalents grâce au mécanisme des [inline namespaces](/articles/c++/scopes#inline-namespace):
+Les literals complexes permettent d'initialiser des **nombres complexes** (``std::complex``). Ils sont accessibles via trois namespaces équivalents grâce au mécanisme des [inline namespaces](/articles/cpp/scopes#inline-namespace):
 
 {% highlight cpp %}
 using namespace std::literals;
@@ -685,7 +685,7 @@ Pour définir un literal, on utilise la syntaxe suivante:
 Type operator ""_suffix(parameter);
 {% endhighlight %}
 
-> **Note sur la syntaxe**: L'espace entre les guillemets et l'identifiant (``operator "" _suffix``) était obligatoire en C++11. Cependant, cette écriture est désormais [**obsolète (deprecated)**](https://en.cppreference.com/cpp/language/user_literal#Literal_operators) car elle **peut entrer en conflit** avec des [**identifiants réservés**](https://en.cppreference.com/cpp/language/identifiers#Reserved_identifiers) (comme ceux commençant par un underscore suivi d'une majuscule, ex: [**``_Z``**](https://en.wikipedia.org/wiki/Name_mangling#C++)) (utilisé pour le [**mangling**](/articles/c++/scopes#name-mangling) dans l'écosystème GCC/Clang (ABI Itanium)).<br>
+> **Note sur la syntaxe**: L'espace entre les guillemets et l'identifiant (``operator "" _suffix``) était obligatoire en C++11. Cependant, cette écriture est désormais [**obsolète (deprecated)**](https://en.cppreference.com/cpp/language/user_literal#Literal_operators) car elle **peut entrer en conflit** avec des [**identifiants réservés**](https://en.cppreference.com/cpp/language/identifiers#Reserved_identifiers) (comme ceux commençant par un underscore suivi d'une majuscule, ex: [**``_Z``**](https://en.wikipedia.org/wiki/Name_mangling#C++)) (utilisé pour le [**mangling**](/articles/cpp/scopes#name-mangling) dans l'écosystème GCC/Clang (ABI Itanium)).<br>
 > Il est donc vivement recommandé de coller le suffixe aux guillemets (``operator ""_suffix``) pour garantir la portabilité du code.
 
 ### Règle de l'underscore
@@ -784,7 +784,7 @@ Décortiquons rigoureusement ce "monstre" syntaxique:
 ---
 
 Aller plus loin:
-- [Auto](/articles/c++/auto)
-- [Encodages](/articles/c++/encoding)
-- [Types Fondamentaux](/articles/c++/fundamental_types)
-- [Les tailles en C++ (std::size_t)](/articles/c++/std_size_t)
+- [Auto](/articles/cpp/auto)
+- [Encodages](/articles/cpp/encoding)
+- [Types Fondamentaux](/articles/cpp/fundamental_types)
+- [Les tailles en C++ (std::size_t)](/articles/cpp/std_size_t)

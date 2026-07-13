@@ -1,9 +1,9 @@
 ---
 layout: article
 title: Les attributs (C++11)
-permalink: articles/c++/attributes
-category: c++
-logo: c++.svg
+permalink: articles/cpp/attributes
+category: cpp
+logo: cpp.svg
 background: mountains1.jpg
 seo:
   title: "Les attributs en C++"
@@ -43,7 +43,7 @@ La syntaxe standardisée utilise les doubles crochets: [``[[attribute]]``](https
 - **Sur une structure de contrôle**: ``if (condition) [[attribute]]``.
 - **Sur un bloc**: ``[[attribute]] { ... }``.
 
-> Les attributs ne doivent **pas être confondus avec les annotations** de métadonnées (comme ``[[=serialisable]]``), introduites en C++26 pour la réflexion statique. Bien que partageant **la même syntaxe de doubles crochets**, les annotations ne guident pas le compilateur et sont traitées séparément. Pour plus de détails, consultez l'article sur la [reflection et les metaclasses](/articles/c++/metaclasses).
+> Les attributs ne doivent **pas être confondus avec les annotations** de métadonnées (comme ``[[=serialisable]]``), introduites en C++26 pour la réflexion statique. Bien que partageant **la même syntaxe de doubles crochets**, les annotations ne guident pas le compilateur et sont traitées séparément. Pour plus de détails, consultez l'article sur la [reflection et les metaclasses](/articles/cpp/metaclasses).
 {: .block-warning }
 
 ### Namespaces (Depuis C++11)
@@ -53,7 +53,7 @@ Le standard (depuis C++11) permet d'organiser les attributs au sein de **namespa
 - **Les attributs standards** (comme `[[nodiscard]]` ou `[[deprecated]]`) sont placés dans le namespace global et **s'écrivent sans préfixe**.
 - **Les attributs spécifiques** à un compilateur ou à un outil (comme `[[gnu::always_inline]]`, `[[msvc::no_unique_address]]` ou `[[clang::fallthrough]]`) sont préfixés par le namespace correspondant au fournisseur.
 
-> **Attention à la confusion**: Ces namespaces, bien qu'ayant une **syntaxe** (``::``) et un **rôle similaire** aux [**namespaces classiques du C++**](/articles/c++/scopes#namespace), ces namespaces sont **totalement indépendants** et n'ont **rien à voir** l'un avec l'autre. Ils sont traités à part par le compilateur et n'interviennent pas dans la résolution de portée de vos variables ou fonctions.
+> **Attention à la confusion**: Ces namespaces, bien qu'ayant une **syntaxe** (``::``) et un **rôle similaire** aux [**namespaces classiques du C++**](/articles/cpp/scopes#namespace), ces namespaces sont **totalement indépendants** et n'ont **rien à voir** l'un avec l'autre. Ils sont traités à part par le compilateur et n'interviennent pas dans la résolution de portée de vos variables ou fonctions.
 {: .block-warning }
 
 > Cet article n'a **pas vocation à détailler** l'intégralité des **attributs non-standards** (à l'exception de quelques extensions majeures comme `[[clang::lifetimebound]]` abordé en fin d'article). Je vous laisse vous référer aux liens [ci-dessus](#historique) et faire **vos propres recherches** pour le reste. En revanche, nous aborderons bien **l'ensemble des attributs standards**.
@@ -145,7 +145,7 @@ Pour gérer finement la compatibilité et éviter les warnings sur les compilate
 
 Introduite formellement dans le standard en C++20 ([**proposal**](https://wg21.link/p0941r2)), elle faisait déjà l'objet de recommandations depuis 2014 ([**SD-6** (*Standing Document 6*)](https://wg21.link/n4200)), ce qui explique sa présence et son support par Clang, GCC et MSVC bien avant C++20.
 
-Elle renvoie une valeur entière non nulle (généralement la date de standardisation sous la forme ``AAAAMML``, avec "AAAA" pour l'année et "MM" pour le mois [suivi du literal ``L``](/articles/c++/literals#integer-literal)) si l'attribut est supporté, ou ``0`` s'il ne l'est pas:
+Elle renvoie une valeur entière non nulle (généralement la date de standardisation sous la forme ``AAAAMML``, avec "AAAA" pour l'année et "MM" pour le mois [suivi du literal ``L``](/articles/cpp/literals#integer-literal)) si l'attribut est supporté, ou ``0`` s'il ne l'est pas:
 
 {% highlight cpp %}
 #if __has_cpp_attribute(nodiscard)
@@ -159,7 +159,7 @@ NODISCARD int* getData();
 
 > Cela fonctionne également pour tester le support des attributs propriétaires en incluant leur namespace (ex: ``__has_cpp_attribute(gnu::always_inline)``).
 
-> Cette approche par macros présente toutefois des **inconvénients notables**. En C++, l'usage de **macros préprocesseur** est généralement considéré comme une **solution inélégante** (les macros étant **globales** et **dépourvues de typage**). Elles obligent à déclarer et importer ces définitions **presque partout** dans votre base de code. Cette mécanique est d'autant plus indésirable et "sale" dans un projet moderne exploitant [les modules (C++20)](/articles/c++/modules).
+> Cette approche par macros présente toutefois des **inconvénients notables**. En C++, l'usage de **macros préprocesseur** est généralement considéré comme une **solution inélégante** (les macros étant **globales** et **dépourvues de typage**). Elles obligent à déclarer et importer ces définitions **presque partout** dans votre base de code. Cette mécanique est d'autant plus indésirable et "sale" dans un projet moderne exploitant [les modules (C++20)](/articles/cpp/modules).
 >
 > C'est pourquoi **je recommande** plutôt de s'affranchir de cette tuyauterie de macros en privilégiant [l'approche par **désactivation spécifique du warning**](#-werror-et-warnings-dattributs-inconnus) au niveau de votre compilateur.
 {: .block-warning }
@@ -811,7 +811,7 @@ En résumé: C'est la manière la plus propre de lier le retour non pas à "la f
 
 ### ``[[indeterminate]]`` (C++26)
 
-Avant C++26, les **variables locales [automatiques](/articles/c++/auto#automatic-storage-duration-specifier-avant-c11-obsolète)** (non ``static`` ni ``thread_local``) (comme les [**types fondamentaux**](/articles/c++/fundamental_types) ou les tableaux) déclarées **sans initialiseur** n'étaient [**pas initialisées par défaut**](/articles/c++/uniform_initialization#variable-déclarée-mais-pas-initialisée): elles contenaient des **valeurs arbitraires** (déchets de la stack) et leur **lecture accidentelle** provoquait un **[comportement indéfini (UB)](https://en.cppreference.com/cpp/language/ub#Uninitialized_scalar)**.
+Avant C++26, les **variables locales [automatiques](/articles/cpp/auto#automatic-storage-duration-specifier-avant-c11-obsolète)** (non ``static`` ni ``thread_local``) (comme les [**types fondamentaux**](/articles/cpp/fundamental_types) ou les tableaux) déclarées **sans initialiseur** n'étaient [**pas initialisées par défaut**](/articles/cpp/uniform_initialization#variable-déclarée-mais-pas-initialisée): elles contenaient des **valeurs arbitraires** (déchets de la stack) et leur **lecture accidentelle** provoquait un **[comportement indéfini (UB)](https://en.cppreference.com/cpp/language/ub#Uninitialized_scalar)**.
 
 {% highlight cpp %}
 void crashOrVulnerability()
@@ -823,7 +823,7 @@ void crashOrVulnerability()
 
 Pour éradiquer ce **problème de sécurité** majeur, C++26 introduit le concept de **[comportement erroné (erroneous behavior)](https://wg21.link/p2795r5)** (un comportement **officiellement incorrect** dans la logique du programme, mais dont l'effet reste [**déterministe** et sécurisé](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2795r5.html#proposal) pour **éliminer les failles mémoire**, contrairement aux optimisations agressives et imprévisibles du **comportement indéfini** (UB)).
 
-Désormais, le compilateur [**initialise automatiquement à une valeur** fixe définie par l'implémentation (généralement zéro, mais les compilateurs peuvent choisir des valeurs de "poisoning" différentes selon le mode de build)](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2795r5.html#proposal) toutes les variables locales non initialisées explicitement, y compris les [types fondamentaux](/articles/c++/fundamental_types) et les tableaux. Si le programme lit cette variable avant d'y avoir écrit, le comportement reste déterministe (il utilise cette valeur d'initialisation par défaut) mais est classifié comme une erreur de programmation (le *comportement erroné*), permettant aux compilateurs et aux outils d'analyse (comme [MemorySanitizer / MSAN](https://clang.llvm.org/docs/MemorySanitizer.html)) de le signaler de manière fiable.
+Désormais, le compilateur [**initialise automatiquement à une valeur** fixe définie par l'implémentation (généralement zéro, mais les compilateurs peuvent choisir des valeurs de "poisoning" différentes selon le mode de build)](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2795r5.html#proposal) toutes les variables locales non initialisées explicitement, y compris les [types fondamentaux](/articles/cpp/fundamental_types) et les tableaux. Si le programme lit cette variable avant d'y avoir écrit, le comportement reste déterministe (il utilise cette valeur d'initialisation par défaut) mais est classifié comme une erreur de programmation (le *comportement erroné*), permettant aux compilateurs et aux outils d'analyse (comme [MemorySanitizer / MSAN](https://clang.llvm.org/docs/MemorySanitizer.html)) de le signaler de manière fiable.
 
 {% highlight cpp %}
 void secureBehavior()
@@ -846,7 +846,7 @@ void process()
 }
 {% endhighlight %}
 
-> Notez **l'absence d'initialisation avec ``auto``** ici (``auto buffer = std::array<char, 4096>{};``), syntaxe qui aurait [empêché de déclarer la variable sans l'initialiser](/articles/c++/auto#auto-force-linitialisation) (ce que nous recherchons ici pour des raisons de **performances**).
+> Notez **l'absence d'initialisation avec ``auto``** ici (``auto buffer = std::array<char, 4096>{};``), syntaxe qui aurait [empêché de déclarer la variable sans l'initialiser](/articles/cpp/auto#auto-force-linitialisation) (ce que nous recherchons ici pour des raisons de **performances**).
 {: .block-warning }
 
 > Le compilateur reste libre de l'ignorer et d'initialiser quand même la variable par sécurité, conformément à la [règle d'ignorabilité](#la-règle-dignorabilité) des attributs.
@@ -880,7 +880,7 @@ Lorsqu'un bloc ``synchronized`` appelle une fonction **non [inlinée](https://fr
 
 #### L'attribut experimental ``[[optimize_for_synchronized]]``
 
-L'attribut [``[[optimize_for_synchronized]]``](https://en.cppreference.com/cpp/language/attributes/optimize_for_synchronized) résout ce problème. Il est indispensable lorsque le corps de la fonction **n'est pas connu dans la [translation unit](/articles/c++/translation_unit) courante**: il indique au compilateur (si l'attribut est [honoré](#la-règle-dignorabilité)) qu'une version optimisée pour les transactions sera bien disponible lors de l'édition de liens.
+L'attribut [``[[optimize_for_synchronized]]``](https://en.cppreference.com/cpp/language/attributes/optimize_for_synchronized) résout ce problème. Il est indispensable lorsque le corps de la fonction **n'est pas connu dans la [translation unit](/articles/cpp/translation_unit) courante**: il indique au compilateur (si l'attribut est [honoré](#la-règle-dignorabilité)) qu'une version optimisée pour les transactions sera bien disponible lors de l'édition de liens.
 
 {% highlight cpp %}
 // Indique au compilateur d'optimiser cette fonction pour l'appel transactionnel
@@ -906,5 +906,5 @@ Les spécifications de mémoire transactionnelle n'ayant encore jamais été int
 ---
 
 Aller plus loin:
-- [RAII](/articles/c++/raii)
-- [Gestion d'erreurs](/articles/c++/error_handling)
+- [RAII](/articles/cpp/raii)
+- [Gestion d'erreurs](/articles/cpp/error_handling)

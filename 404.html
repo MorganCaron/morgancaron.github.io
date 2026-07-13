@@ -3,6 +3,19 @@ permalink: /404.html
 layout: default
 ---
 
+<script type="text/javascript">
+	// Script temporaire pour la migration des url /c++/ vers /cpp/
+	(function() {
+		const path = window.location.pathname;
+		// Détecte les variations de /c++/ mal décodées (ex: /c  /, /c%20%20/, /c+/)
+		const regex = /\/articles\/(?:c(?:%20|\s|\+){1,2})\//i;
+		if (regex.test(path)) {
+			const newPath = path.replace(regex, '/articles/cpp/');
+			window.location.replace(window.location.origin + newPath + window.location.search + window.location.hash);
+		}
+	})();
+</script>
+
 <style type="text/css" media="screen">
 	.container {
 		margin: 10px auto;

@@ -18,8 +18,9 @@
 	<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="google-site-verification" content="nC62xmWcEPfHav4tLcQ6H-ahkag6BfxbtsfH_pRZVpo" />
-	{% if page.category == "c++" %}
-	<link rel="icon" href="/assets/images/logos/c++.svg" type="image/x-icon">
+	<link rel="canonical" href="{{ page.url | absolute_url }}">
+	{% if page.category == "cpp" %}
+	<link rel="icon" href="/assets/images/logos/cpp.svg" type="image/x-icon">
 	{% elsif page.category == "css" %}
 	<link rel="icon" href="/assets/images/logos/css.svg" type="image/x-icon">
 	{% elsif page.category == "git" %}

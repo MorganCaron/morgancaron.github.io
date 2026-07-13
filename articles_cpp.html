@@ -1,8 +1,8 @@
 ---
 layout: page
-permalink: /articles/c++/
-category: c++
-logo: c++.svg
+permalink: /articles/cpp/
+category: cpp
+logo: cpp.svg
 background: cavern2.webp
 ---
 
@@ -14,7 +14,7 @@ background: cavern2.webp
 			<a href="/articles" class="button nier highlight-hover bullet triangle-left">Back</a>
 		</span>
 	</div>
-{% assign articles = site.articles | where: "category", "c++" %}
+{% assign articles = site.articles | where: "category", "cpp" %}
 {% if articles.size == 0 %}
 	{% wip %}
 	<p>Aucun article disponible pour le moment. Ils sont bien en cours de rédaction mais aucun n'est encore publié. Merci de repasser ultérieurement.</p>

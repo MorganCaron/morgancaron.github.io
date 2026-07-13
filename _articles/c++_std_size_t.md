@@ -1,9 +1,9 @@
 ---
 layout: article
 title: Les tailles en C++ (std::size_t)
-permalink: articles/c++/size
-category: c++
-logo: c++.svg
+permalink: articles/cpp/size
+category: cpp
+logo: cpp.svg
 background: sea5.webp
 seo:
   title: "Maîtriser std::size_t en C++: Tailles, types signés et bonnes pratiques"
@@ -301,7 +301,7 @@ std::size_t size = numbers.size();
 std::ptrdiff_t distance = numbers.end() - numbers.begin();
 {% endhighlight %}
 
-Ou si vous avez **peur de mal typer** vos variables, je vous encourage vivement à utiliser [**``auto``**](/articles/c++/auto):
+Ou si vous avez **peur de mal typer** vos variables, je vous encourage vivement à utiliser [**``auto``**](/articles/cpp/auto):
 
 {% highlight cpp %}
 auto numbers = {10, 20, 30};
@@ -345,7 +345,7 @@ Ce mécanisme, parfois source de bugs, est utilisé ici pour **garantir une vale
 
 ## Literals (Depuis C++23)
 
-Le C++23 introduit des [**literals**](/articles/c++/literals#size-literal-c23) pour manipuler ces types sans conversion implicite:
+Le C++23 introduit des [**literals**](/articles/cpp/literals#size-literal-c23) pour manipuler ces types sans conversion implicite:
 
 | Suffixe | Type |
 | :--- | :--- |
@@ -566,7 +566,7 @@ Mais comme nous l'avons vu, ce n'est **pas une question simple**. Utiliser ``qsi
 
 Une **3ème option** s'offre à nous, car **Qt fait quelques efforts** pour **se conformer au standard** et **se rendre compatible** avec la STL (bien qu'il reste encore du chemin):
 
-> Si votre **code est [suffisamment générique](/articles/c++/programmation_generique)**, que vous utilisez les [**customization points**](/articles/c++/customization_point_design), [**auto**](/articles/c++/auto) et les [**comparaisons sûres**](#comparaisons-sûres-c20), la **propagation** du type correct sera **automatique** et ses manipulations seront **sûres**.
+> Si votre **code est [suffisamment générique](/articles/cpp/programmation_generique)**, que vous utilisez les [**customization points**](/articles/cpp/customization_point_design), [**auto**](/articles/cpp/auto) et les [**comparaisons sûres**](#comparaisons-sûres-c20), la **propagation** du type correct sera **automatique** et ses manipulations seront **sûres**.
 > 
 > Cette approche permet de **prévenir les risques d'erreur** tout en **déléguant** la responsabilité du choix des types à l'appelant. Votre code devient ainsi **agnostique** et plus **résilient**.
 
@@ -599,7 +599,7 @@ De nombreux développeurs (dont vous aurez deviné, je fais partie) rangent les 
 ---
 
 Aller plus loin:
-- [Types Fondamentaux](/articles/c++/fundamental_types)
-- [Les Literals](/articles/c++/literals)
-- [Pointeurs et références](/articles/c++/pointers_references)
-- [Itérateurs](/articles/c++/iterators)
+- [Types Fondamentaux](/articles/cpp/fundamental_types)
+- [Les Literals](/articles/cpp/literals)
+- [Pointeurs et références](/articles/cpp/pointers_references)
+- [Itérateurs](/articles/cpp/iterators)
