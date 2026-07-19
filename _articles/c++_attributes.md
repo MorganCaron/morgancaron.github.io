@@ -94,10 +94,10 @@ Le positionnement des attributs dans une lambda **dépend de la version du stand
 
 {% highlight cpp %}
 // Avant C++23: Aucun moyen standard de marquer une lambda comme [[nodiscard]]
-auto lambda0 = [] (int valeur) [[nodiscard]] { return valeur * 2; }; // Erreur de syntaxe
+auto lambda0 = [] (int value) [[nodiscard]] { return value * 2; }; // Erreur de syntaxe
 
 // Depuis C++23 (placement en front-attr, avant les paramètres)
-auto lambda1 = [] [[nodiscard]] (int valeur) { return valeur * 2; };
+auto lambda1 = [] [[nodiscard]] (int value) { return value * 2; };
 
 // Depuis C++23 (placement de [[noreturn]] en front-attr):
 auto lambda2 = [] [[noreturn]] () { throw std::runtime_error("Erreur"); };
@@ -340,7 +340,19 @@ Bien que cet attribut ait été supprimé, son étude reste intéressante pour c
 
 ### ``[[deprecated]]`` et ``[[deprecated("explanation")]]`` (C++14)
 
-Marque une entité comme obsolète. L'impact est un warning lors de chaque utilisation.
+Au fil du cycle de vie d'un projet, **les APIs évoluent: certaines fonctions, classes ou variables deviennent obsolètes**.
+
+Le concepteur de la bibliothèque fait alors face à un dilemme:
+- Supprimer immédiatement l'ancienne API, **cassant la compilation** de tous les projets en dépendants.
+- Laisser l'ancienne API intacte, **laissant les développeurs continuer d'utiliser des éléments obsolètes** sans savoir qu'ils doivent entâmer une migration.
+
+Avant C++14, il n'existait aucun moyen standard d'avertir les utilisateurs à la compilation. On devait recourir à des **commentaires**, des précisions dans la **documentation** ou des **macros préprocesseurs** spécifiques à chaque compilateur (comme ``#pragma message``).
+
+Les commentaires et la documentation n'étant pas optimaux, car ils sont **passifs** et **espèrent que les développeurs les lisent** et relisent entre chaque version, il fallait trouver **une approche active** dans laquelle **le compilateur averti lui-même** de la **future suppression des éléments obsolètes**.
+
+L'attribut ``[[deprecated]]`` a été ajouté en C++14 en tant qu'outil pratique pour ces situations, permettant de **marquer officiellement** une entité comme **obsolète**.
+
+Le compilateur émettra un **warning** (ou une erreur de compilation, si ``-Werror`` est activé) à chaque fois que cette entité est utilisée. Un message peut être ajouté dans l'attribut pour accompagner le warning d'un **message explicatif pour guider la migration**. Par exemple en **orientant les développeurs** vers la nouvelle fonction à utiliser à la place.
 
 {% highlight cpp linenos %}
 // Sur une fonction ou méthode
@@ -366,7 +378,7 @@ namespace [[deprecated("Use NewNamespace instead.")]] OldNamespace
 using OldAlias [[deprecated("Use NewAlias instead.")]] = int;
 
 // Sur une valeur d'enum
-enum class Statut
+enum class Status
 {
 	Ok,
 	Ko,
@@ -576,7 +588,22 @@ Ce n'est donc **pas** "le symbole ``_`` qui est spécial en C++26", mais plutôt
 
 ### ``[[maybe_unused]]`` (C++17)
 
-Supprime les warnings liés aux entités déclarées mais non exploitées. Cet attribut peut être placé sur un objet, une fonction, une variable ou une lambda.
+Par défaut, les compilateurs modernes émettent des warnings (``-Wunused-variable`` ou ``-Wunused-parameter``) lorsqu'une variable, une fonction ou un paramètre est déclaré mais n'est pas utilisé dans le code. C'est utile d'en être averti **pour repérer du code mort ou des erreurs de logique**.
+
+Cependant, il existe des situations légitimes où une entité peut (d'où le ``maybe``) rester inutilisée. Parmi ces situations:
+- **Le développement de bibliothèques (APIs)**: Une bibliothèque peut exposer des fonctions destinés à ses utilisateurs, mais sans qu'elle-même n'ai besoin de les utiliser en interne.
+- **La programmation générique (héritage ou template)**: Dans une fonction surchargée (*override*, par héritage) ou templatée, certains paramètres peuvent être ignorés, car **inutiles dans certaines surcharges ou instantiations**, mais utilisés pour d'autres.
+
+**Avant C++17**, pour faire taire ces warnings, les développeurs devaient utiliser des **solutions de contournement inélégantes** comme un [cast vers ``void``](#ignorer-un-nodiscard):
+
+{% highlight cpp %}
+void process(int option)
+{
+	static_cast<void>(option); // Ancienne méthode pour supprimer le warning
+}
+{% endhighlight %}
+
+L'attribut ``[[maybe_unused]]`` résout ce problème de manière propre et standardisée en indiquant **explicitement** au compilateur (**et aux autres développeurs**) que cette absence d'utilisation est **intentionnelle**. Il peut être placé sur un objet, une classe, une fonction, une variable ou un argument.
 
 {% highlight cpp linenos %}
 // Sur une classe ou structure
@@ -601,7 +628,7 @@ void process([[maybe_unused]] int option)
 [[maybe_unused]] auto debugMode = true;
 {% endhighlight %}
 
-Il est particulièrement utile dans du code générique (templates) où certains paramètres peuvent ne pas servir selon les cas d'utilisation.
+Il s'avère particulièrement utile dans les templates:
 
 {% highlight cpp %}
 template<class ReturnType, class... Args, std::size_t... I>
@@ -612,91 +639,203 @@ template<class ReturnType, class... Args, std::size_t... I>
 }
 {% endhighlight %}
 
-Avant C++17, on utilisait souvent le cast ``static_cast<void>(variable);`` pour faire taire le compilateur. Ou ``(void)variable;`` en C (avant C23, qui ajoute [``[[maybe_unused]]`` au langage C](https://en.cppreference.com/c/language/attributes/maybe_unused))
-
 Depuis C++26, [**déclarer une variable avec le wildcard ``_``**](#name-independent-declaration) la rend implicitement ``[[maybe_unused]]``.
 
 > **C++26 et le wildcard ``_``**: Depuis C++26, nommer une variable ``_`` (underscore seul) la rend implicitement ``[[maybe_unused]]``.
 {% highlight cpp %}
-auto [valeur, _] = obtenir_paire(); // Le second élément est ignoré sans warning
+auto [value, _] = getPair(); // Le second élément est ignoré sans warning
 {% endhighlight %}
 
 ### ``[[fallthrough]]`` (C++17)
 
-Indique qu'une chute intentionnelle entre deux étiquettes de ``switch`` est volontaire. Il doit être placé juste avant le ``case`` suivant sur un énoncé vide.
+Dans un ``switch``, chaque ``case`` est généralement terminé par une instruction ``break;``, sans quoi le code du ``case`` suivant est également exécuté, et ainsi de suite.
 
-**Pourquoi l'utiliser ?** Outre le silence du warning ``-Wimplicit-fallthrough``, il documente explicitement l'intention pour les autres développeurs (et les outils d'analyse statique) afin qu'ils ne pensent pas qu'un ``break`` a été oublié par erreur.
+Il arrive qu'un ``break;`` soit oublié par inadvertance, mais il peut aussi être omis volontairement pour enchaîner l'exécution sur le ``case`` suivant.
 
 {% highlight cpp %}
-switch (statut)
+switch (status)
 {
-	case Statut::Initialisation:
-		prepare();
-		[[fallthrough]]; // Chute voulue: les autres développeurs savent que c'est intentionnel.
-	case Statut::Traitement:
-		execute();
-		break;
+case Status::Initialization:
+	prepare();
+	// Pas de break; ? Est-ce intentionnel ?
+case Status::Processing:
+	execute();
+	break;
+}
+{% endhighlight %}
+
+Cela pose un problème pour les relecteurs du code qui ne savent pas s'il s'agit d'une intention ou d'un oubli.
+
+L'attribut ``[[fallthrough]]`` permet de rendre cette intention explicite. Couplé avec le flag de compilation ``-Wimplicit-fallthrough``, le compilateur signalera tout oubli de ``break;`` non annoté avec ``[[fallthrough]]``.
+
+L'attribut ``[[fallthrough]]`` doit être placé à la fin du ``case`` concerné, juste avant le ``case`` suivant:
+{% highlight cpp %}
+switch (status)
+{
+case Status::Initialization:
+	prepare();
+	[[fallthrough]]; // Débordement (sur le "case" suivant) voulu: les autres développeurs savent que c'est intentionnel.
+case Status::Processing:
+	execute();
+	break;
 }
 {% endhighlight %}
 
 ### ``[[likely]]`` et ``[[unlikely]]`` (C++20)
 
-Indices pour l'optimiseur afin de favoriser la localité du cache d'instructions et la prédiction de branches. Ils peuvent être utilisés sur des structures de contrôle (``if``, ``else``, ``for``, ``while``) ou des labels de ``switch`` (``case``, ``default``).
-
-#### Exemple: Chemin d'erreur rare
+Intuitivement, lorsqu'on est face à une portion de code, on imagine son exécution se faire séquentiellement:
 {% highlight cpp %}
-if (pointeur == nullptr) [[unlikely]]
+void process(Data* pointer)
 {
-	return; // Branche rarement prise
+	if (pointer == nullptr) // 1: vérifier le pointeur
+	{
+		return; // 2: Quitter la fonction
+	}
+
+	calculate(pointer); // 2: Lancer un calcul
+}
+{% endhighlight %}
+
+Dans ce code, chaque exécution de cette fonction impose au processeur d'évaluer la condition: il doit charger l'adresse contenue dans ``pointer``, vérifier si elle est nulle, puis décider de sauter ou non à l'instruction suivante.<br>
+On voit que quelle que soit la branche empruntée, le processeur fera séquentiellement deux actions.
+
+Or, ce n'est pas forcément le cas. Le compilateur dispose d'une multitude de règles pour s'autoriser des exécutions parallèles ou [réordonner](#optimize_for_synchronized-tm-ts) les instructions comme bon lui semble, afin de [**maximiser les performances sans altérer le comportement**](https://en.cppreference.com/w/cpp/language/as_if) du code par rapport à une exécution séquentielle.
+
+Même si cette vérification semble insignifiante, elle représente des instructions processeur supplémentaires. Répété des millions de fois par seconde dans une boucle, ce test génère un surcoût systématique.
+
+{% highlight cpp %}
+void process(Data* pointer)
+{
+	if (pointer == nullptr)
+	{
+		return; // Chemin d'erreur (très rare)
+	}
+
+	calculate(pointer); // Chemin nominal (ultra-fréquent)
+}
+{% endhighlight %}
+
+Parmi ces optimisations, la [**prédiction de branches**](https://en.wikipedia.org/wiki/Branch_predictor) permet au processeur de deviner à l'avance quelle branche empruntera le code lors de son exécution. Ainsi, il pré-charge spéculativement les instructions du chemin deviné dans son *pipeline* d'exécution pour commencer à les traiter.
+
+Si la conjecture est correcte, l'exécution est presque gratuite. Mais si le processeur se trompe (un *branch misprediction*), le coût est très lourd: le processeur doit vider tout son pipeline d'instructions pré-chargées, annuler les calculs spéculatifs entamés, et charger le bon bloc d'instructions depuis la mémoire vive.
+
+**Le compilateur fait déjà ces prédictions** sans qu'on ait à s'en soucier. Mais **pour l'aider à prédire les branches souvent ou rarement empruntées**, C++20 a introduit les attributs ``[[likely]]`` et ``[[unlikely]]``.
+
+Ces attributs permettent d'indiquer au compilateur la probabilité statistique de chaque chemin. Le compilateur réorganise alors le code machine (l'assembleur généré) pour placer les instructions du chemin le plus fréquent directement dans la continuité linéaire du test (en [*fall-through*](#fallthrough-c17)), évitant ainsi un saut d'instruction (jump) pour le cas nominal et maximisant la localité du cache d'instructions.
+
+**Un seul attribut suffit généralement.** Le compilateur comprend la probabilité relative: si vous marquez une condition comme ``[[unlikely]]``, le chemin alternatif est implicitement traité comme ``[[likely]]``, et inversement.
+
+Voici comment optimiser notre exemple précédent:
+{% highlight cpp %}
+void process(Data* pointer)
+{
+	if (pointer == nullptr) [[unlikely]]
+	{
+		return; // Le compilateur sait que cette branche est rare
+	}
+
+	calculate(pointer); // Chemin nominal (implicitement traité comme probable)
+}
+{% endhighlight %}
+
+Si l'on écrit un bloc ``if``/``else`` complet, on peut utiliser ``[[likely]]`` et ``[[unlikely]]`` de cette façon (ou ne renseigner qu'un seul sur les deux):
+
+{% highlight cpp %}
+if (pointer == nullptr) [[unlikely]]
+{
+	return;
 }
 else [[likely]]
 {
-	traiter(*pointeur); // Branche nominale très fréquentée
+	calculate(pointer);
 }
 {% endhighlight %}
 
-Même code, avec la branche *likely* implicite:
-{% highlight cpp %}
-if (pointeur == nullptr) [[unlikely]]
-{
-	return; // Branche rarement prise
-}
+> Les compilateurs modernes et les processeurs **sont déjà extrêmement intelligents pour prédire les branchements**.<br>
+> N'utilisez ces attributs que dans des zones où la différence de fréquence entre les branches est écrasante (par exemple 99% contre 1%).<br>
+> En abuser peut fausser les analyses de l'optimiseur et réduire les performances globales.
+>
+> Dans notre exemple précédent, ``[[unlikely]]`` était utilisé pour de la gestion d'erreur, qui en principe devrait s'exécuter très rarement. C'est donc une situation où son utilisation est pertinente. Ca peut également l'être dans certaines boucles de recherche dans lesquelles les performances sont critiques.
 
-traiter(*pointeur); // Branche nominale très fréquentée
-{% endhighlight %}
-
-> ⚠️ **Note sur ``if constexpr``**: Ces attributs ne s'appliquent pas aux ``if constexpr``. Un ``if constexpr`` est résolu à la compilation: le chemin non pris n'existe tout simplement pas dans le binaire final. La prédiction de branchement n'a donc aucun sens.
+> Ces attributs ne s'appliquent pas aux ``if constexpr``.<br>
+> Un ``if constexpr`` étant évalué à la compilation, la branche non prise est purement supprimée du binaire final. La notion de prédiction de branchement n'a donc aucun sens ici.
+{: .block-warning }
 
 ### ``[[no_unique_address]]`` (C++20)
 
-Indique au compilateur que si le type d'un membre de classe est vide (sans données), il peut l'optimiser en ne lui allouant aucun octet unique et en le superposant avec d'autres membres (**Empty Member Optimization**).
+En C++, chaque objet en mémoire doit avoir un emplacement unique. Afin de s'assurer que deux variables possèdent des adresses mémoire distinctes, **tout objet doit avoir une taille minimale d'au moins 1 octet**.
+
+Ainsi, même une classe ou structure complètement vide ne fait pas 0 octet:
+{% highlight cpp %}
+struct Empty {};
+// sizeof(Empty) vaut 1 (1 octet)
+{% endhighlight %}
+
+Le problème apparaît lorsqu'on intègre ces classes vides comme membres d'autres classes. C'est un cas fréquent dans les bibliothèques templatées (comme la STL: *Standard Template Library*) qui stockent des classes [*policies*](https://en.cppreference.com/cpp/algorithm/execution_policy_tag_t)[²](https://en.cppreference.com/cpp/named_req/AccessorPolicy), des [allocateurs](https://en.cppreference.com/cpp/named_req/Allocator) ou des [comparateurs sans état](https://fr.cppreference.com/cpp/utility/functional/less):
 
 {% highlight cpp %}
-struct ObjetVide {}; // sizeof == 1 (tout objet C++ a une taille d'au moins 1 octet)
-
-struct Conteneur
+struct Container
 {
-	int valeur;
-	[[no_unique_address]] ObjetVide instanceVide;
+	int value; // 4 octets
+	Empty empty; // 1 octet
 };
-// sizeof(Conteneur) est égal à sizeof(int) car 'instanceVide' ne consomme plus d'espace.
+// sizeof(Container) vaut 8 octets (à cause de l'alignement et du padding)
+{% endhighlight %}
+
+Ici, 4 octets sont gaspillés en mémoire uniquement pour réserver une adresse à ``empty``.
+
+> Avant C++20, la seule manière d'éviter ce gaspillage de place consistait à utiliser l'[**Empty Base Optimization** (**EBO**)](https://en.cppreference.com/cpp/language/ebo), en faisant **hériter** ``Container`` de la classe ``Empty`` plutôt que de la stocker comme un membre. C'était une technique lourde et inélégante.
+
+L'attribut ``[[no_unique_address]]`` résout ce problème proprement. Il indique au compilateur qu'un membre vide n'a pas besoin d'avoir une adresse unique par rapport aux autres membres de la classe, ce qui lui permet d'occuper **0 octet**:
+
+{% highlight cpp %}
+struct Empty {};
+
+struct Container
+{
+	int value;
+	[[no_unique_address]] Empty empty;
+};
+// sizeof(Container) est égal à sizeof(int), soit 4 octets. L'objet vide ne consomme plus d'espace.
 {% endhighlight %}
 
 > ⚠️ **Piège de compatibilité avec MSVC**: Pour des raisons de compatibilité d'ABI, l'implémentation MSVC de Microsoft **ignore silencieusement** l'attribut standard ``[[no_unique_address]]``. Si vous compilez sous MSVC, vous devez obligatoirement utiliser l'attribut propriétaire ``[[msvc::no_unique_address]]`` à la place pour obtenir l'optimisation de taille.
 
 ### ``[[assume(expression)]]`` (C++23)
 
-Fournit une vérité axiomatique à l'optimiseur. L'expression est garantie d'être toujours vraie **sans être évaluée au runtime**. Le compilateur l'utilise pour supprimer agressivement des tests de sécurité ou des calculs qu'il sait désormais impossibles.
+Le compilateur fait son maximum pour optimiser votre code machine, mais il est contraint de générer des instructions pour gérer **tous les cas possibles**, même ceux qui ne se produiront jamais en pratique selon la logique de votre application.
+
+Par exemple, considérons cette division par 4:
 
 {% highlight cpp %}
-void optimiser(int valeur)
+auto divideByFour(int value) -> int
 {
-	[[assume(valeur > 0)]];
-	// L'optimiseur peut supprimer silencieusement toutes les branches gérant les nombres négatifs ou nuls.
+	return value / 4;
 }
 {% endhighlight %}
 
-> ⚠️ **Danger**: Si l'expression s'avère fausse à l'exécution, le comportement est **immédiatement indéfini (UB)**.
+> Une division entière (``/``) est une opération très coûteuse en cycles d'horloge CPU ([**souvent entre 10 et 40 cycles selon l'architecture**](https://www.agner.org/optimize/instruction_tables.pdf)[²](https://www.agner.org/optimize/)), tandis qu'un décalage de bits (``>>``) est extrêmement économique (généralement 1 seul cycle CPU).<br>
+> En C++, **diviser un entier** signé par une **puissance de 2** (2<sup>n</sup>) **équivaut parfaitement à un décalage de bits vers la droite** de *n* positions (``value >> n``) **pour les nombres positifs** (ex: ``8 / 4`` = ``2``, soit ``0b1000 >> 2`` = ``0b10`` = ``2``).<br>
+> Cependant, **ce n'est pas le cas pour les nombres négatifs**, car la division entière arrondit vers zéro (``-1 / 4 = 0``) tandis que le décalage de bits arrondit vers l'infini négatif (``-1 >> 2 = -1``).<br>
+> Sans l'attribut ``[[assume]]``, le compilateur est donc obligé de générer des instructions machines d'ajustement arithmétique supplémentaires pour corriger le signe et l'arrondi dans le cas où ``value`` serait négatif.<br>
+> En insérant ``[[assume(value >= 0)]];``, on garantit au compilateur que la valeur sera positive. Il supprime instantanément ce code correctif pour ne conserver qu'une unique instruction CPU de décalage binaire ([``sar`` (*Shift Arithmetic Right*)](https://www.felixcloutier.com/x86/sal:sar:shl:shr)), optimisant le code final.
+
+Avant C++23, pour forcer le compilateur à optimiser le code en fonction de ces [**invariants**](https://en.wikipedia.org/wiki/Invariant_(computer_science)), les développeurs devaient utiliser des fonctions intrinsèques non portables et propriétaires (comme [``__builtin_assume``](https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume) sur Clang, [``__builtin_unreachable``](https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#index-_005f_005fbuiltin_005funreachable) sur GCC ou [``__assume``](https://learn.microsoft.com/en-us/cpp/intrinsics/assume) sur MSVC).
+
+L'attribut ``[[assume(expression)]]`` introduit un moyen **standard et portable** de fournir une vérité axiomatique à l'optimiseur. L'expression passée en argument est garantie d'être toujours vraie **sans jamais être évaluée au runtime**. Le compilateur peut alors s'appuyer sur cette hypothèse pour **supprimer agressivement des vérifications de sécurité redondantes** ou des calculs qu'il sait désormais impossibles.
+
+{% highlight cpp %}
+auto divideByFour(int value) -> int
+{
+	[[assume(value >= 0)]];
+	return value / 4;
+}
+{% endhighlight %}
+
+L'optimiseur sait que value est positif. Il peut donc optimiser la division par un simple et rapide décalage de bits vers la droite (``value >> 2``).
+
+> ⚠️ **Attention**: Si l'expression s'avère fausse à l'exécution, le comportement est **immédiatement indéfini (UB: Undefined Behavior)**.
+{: .block-warning }
 
 > **Ne pas confondre avec les Contrats**: Vous avez peut-être croisé dans d'anciennes documentations ou articles les syntaxes ``[[expects: expression]]`` (préconditions) ou ``[[ensures: expression]]`` (postconditions). Ces attributs faisaient partie d'une [proposition](https://wg21.link/p0542) acceptée pour le C++20 puis [avortée](https://www.open-std.org/JTC1/SC22/WG21/docs/papers/2019/p1823r0.pdf) juste avant finalisation. Pour C++26, le standard a adopté un nouveau modèle de contrats ([proposal](https://wg21.link/p2900)) qui abandonne totalement la syntaxe sous forme d'attributs au profit de mots-clés dédiés: ``pre(expression)``, ``post(expression)`` et ``contract_assert(expression)``.
 {: .block-warning }

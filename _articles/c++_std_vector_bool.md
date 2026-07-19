@@ -6,8 +6,8 @@ category: cpp
 logo: cpp.svg
 background: mountains5.webp
 seo:
-  title: "std::vector<bool> en C++: Pièges, proxy et meilleures alternatives"
-  description: "Pourquoi std::vector<bool> est considéré comme une erreur de conception historique en C++ et comment choisir la bonne alternative."
+  title: "std::vector&lt;bool&gt; en C++: Pièges, proxy et meilleures alternatives"
+  description: "Pourquoi std::vector&lt;bool&gt; est considéré comme une erreur de conception historique en C++ et comment choisir la bonne alternative."
 published: true
 ---
 
@@ -68,6 +68,9 @@ Pour remédier à ce problème, il a été décidé de **mutualiser les cellules
 Ainsi, une cellule mémoire de 64 bits peut contenir **jusqu'à** 64 booléens. Cette technique s'appelle le "bit-packing".<br>
 Cela semble idiot de simplicité, mais faire ceci entraine un certain nombre de **conséquences indésirables**.
 
+> ``std::vector<bool>`` ne stocke pas des ``bool`` mais des **bits**.
+{: .block-warning }
+
 Prenons un exemple:
 {% row %}
 {% highlight cpp %}
@@ -127,7 +130,7 @@ Que se passe-t-il avec [``std::vector<bool>::operator[]``](https://en.cppreferen
 
 On touche du doigt le piège: **Le proxy**
 
-Ce proxy contient un pointeur vers la cellule mémoire contenant le bit cible, ainsi qu'un masque binaire pour l'isoler.
+Ce proxy contient un pointeur vers la cellule mémoire contenant le bit cible, ainsi qu'un masque binaire pour l'isoler en mémoire.
 
 Son but consiste à émuler le comportement d'une référence standard grâce à la surcharge de ses opérateurs:
 - L'**opérateur d'affectation** (``operator=``) : permet de modifier directement la valeur du bit dans le tableau sous-jacent.
@@ -195,7 +198,27 @@ for (auto boolean : booleans) // Ok
 	std::cout << std::boolalpha << boolean << '\n';
 {% endhighlight %}
 
+On en conclut donc que cette spécialisation de ``std::vector<bool>`` brise le contrat de l'interface générique de ``std::vector<T>``.
+
 Vous comprenez maintenant pourquoi cette spécialisation ([``std::vector<bool>``](https://en.cppreference.com/cpp/container/vector_bool)) est considérée comme une **erreur de design** dans la communauté C++, et apporte **plus de problèmes qu'elle ne permet d'en résoudre**. C'est pourquoi il est **très encouragé de l'éviter**.
+
+### Le choix de conception (C++98): Erreur de nom, pas de structure
+
+Lors de la standardisation du C++98, le comité a voulu faire de ``std::vector<bool>`` une démonstration de force pour prouver deux concepts:
+1. Que la STL pouvait être extrêmement économe en mémoire grâce au *bit-packing* (compacter 8 booléens dans un seul octet).
+2. Que les *allocateurs* et les objets *proxys* (comme ``std::vector<bool>::reference``) permettaient de masquer cette complexité matérielle sous une interface identique à celle d'un vecteur classique.
+
+Comme [le souligne *Howard Hinnant*](https://isocpp.org/blog/2012/11/on-vectorbool) ([auteur principal de la bibliothèque standard ``libc++`` de LLVM](https://howardhinnant.github.io/HowardHinnant.html)), **la structure de données elle-même (le tableau de bits dynamique) est excellente et extrêmement utile**. Le regret ne porte pas sur l'existence de cette structure, mais sur **son nom**: l'avoir nommée ``std::vector<bool>`` en l'imposant comme une spécialisation automatique de ``std::vector`` a brisé l'uniformité sémantique des conteneurs (qui doivent pouvoir retourner de vraies références ``T&``). **Un type distinct** comme ``std::dynamic_bitset`` (ou ``std::bit_vector``) aurait été une **bien meilleure approche**, évitant de **perturber le code générique** via une spécialisation de ``std::vector<T>``.
+
+### Performances de ``std::vector<bool>``
+
+On lit souvent que ``std::vector<bool>`` est lent. En réalité, **les performances dépendent entièrement de l'implémentation de la bibliothèque standard et de la façon dont vous traitez les données**:
+
+**Les boucles utilisateur naïves sont très lentes**: A cause du proxy (``std::vector<bool>::reference``), le compilateur est incapable d'[**auto-vectoriser**](https://fr.wikipedia.org/wiki/Auto-vectorisation) ou d'optimiser les boucles ``for`` classiques écrites à la main. Lire ou écrire les bits un par un nécessite des opérations de masquage et de décalage répétées, rendant l'accès individuel extrêmement lourd. Pour cette raison, ``std::vector<bool>`` peut s'avérer [**30 à 40 fois plus lent**](https://isocpp.org/blog/2012/11/on-vectorbool) qu'un simple vecteur d'octets.
+
+**Les algorithmes standards peuvent être incroyablement rapides (si optimisés)**. Pour cela, les concepteurs des principales implémentations de la bibliothèque standard comme LLVM (avec [``libc++``](https://github.com/llvm/llvm-project/blob/main/libcxx/include/__bit_reference)), GCC (avec [``libstdc++``](https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/bits/stl_bvector.h)) ou Microsoft (avec [``MSVC STL``](https://github.com/microsoft/STL/blob/main/stl/inc/vector)) écrivent des surcharges spécifiques de certains algorithmes (comme [``std::find``](https://github.com/llvm/llvm-project/blob/main/libcxx/include/__bit_reference), [``std::count``](https://github.com/llvm/llvm-project/blob/main/libcxx/include/__bit_reference), [``std::copy``](https://github.com/llvm/llvm-project/blob/main/libcxx/include/__bit_reference) ou [``std::equal``](https://github.com/llvm/llvm-project/blob/main/libcxx/include/__bit_reference)) pour les itérateurs de bits. Ces versions optimisées traitent les données par **mots machine entiers** (32 ou 64 bits à la fois) en utilisant des opérations logiques globales (comme [``popcount``](#optimisation-matérielle-de-count) ou des masques binaires). Dans ce cas, grâce à la réduction drastique de la bande passante mémoire et des échecs de cache (*cache misses*), ``std::vector<bool>`` devient [**2 à 70 fois plus rapide**](https://isocpp.org/blog/2012/11/on-vectorbool) qu'un tableau de booléens classiques.
+
+Mais le problème réside dans le fait que **la norme C++ n'impose pas ces optimisations** d'algorithmes aux concepteurs de compilateurs. Par conséquent, en dehors des implémentations très travaillées (comme *libc++*, *libstdc++* ou *MSVC*), ou dès que vous écrivez **vos propres boucles** de traitement, ``std::vector<bool>`` s'avère souvent être **une pénalité majeure en vitesse**.
 
 ## Contourner la spécialisation
 
@@ -614,8 +637,12 @@ auto receivePackets(Socket& socket) -> void
 
 Si la compacité mémoire (1 bit par élément) est cruciale mais que la taille doit varier dynamiquement, la **bibliothèque tierce Boost** propose [``boost::dynamic_bitset``](https://www.boost.org/doc/libs/release/libs/dynamic_bitset/dynamic_bitset.html). C'est **l'équivalent dynamique de ``std::bitset<N>``**, propre et conçu spécifiquement pour cet usage, sans chercher à se faire passer pour un vecteur.
 
+Comme il compresse également les données au bit près, il utilise le même principe de **proxy** (via sa classe interne [``boost::dynamic_bitset::reference``](https://www.boost.org/doc/libs/latest/libs/dynamic_bitset/doc/html/dynamic_bitset/reference/boost/dynamic_bitset/reference.html)) pour son [``operator[]``](https://www.boost.org/doc/libs/latest/libs/dynamic_bitset/doc/html/dynamic_bitset/reference/boost/dynamic_bitset/operator_subs-0a.html) non-constant.
+
+> La différence avec ``std::vector<bool>`` est sémantique: l'appelant sait explicitement qu'il manipule un ensemble de bits dédié, et non un simple conteneur généraliste de type vecteur.
+
 > ⚠️ **Attention au coût de maintenance des dépendances**<br>
-> Introduire une bibliothèque externe comme **Boost** dans votre projet **uniquement** pour utiliser ``boost::dynamic_bitset`` est **généralement déconseillé**. Cela **complexifie** le système de build ([CMake](https://cmake.org), [Xmake](https://xmake.io), [meson build](https://mesonbuild.com), etc), augmente les **temps de compilation**, et introduit un **risque de rupture de compatibilité** ou d'**instabilités** de version. Ne franchissez ce pas **que si Boost est déjà présent dans vos dépendances** ou si la contrainte mémoire de bits dynamiques est un goulot d'extranglement majeur. Dans le cas contraire, **préférez une alternative standard** comme ``std::vector<std::byte>``.
+> Introduire une bibliothèque externe comme **Boost** dans votre projet **uniquement** pour utiliser ``boost::dynamic_bitset`` est **généralement déconseillé**. Cela **complexifie** le système de build ([CMake](https://cmake.org), [Xmake](https://xmake.io), [meson build](https://mesonbuild.com), etc), augmente les **temps de compilation**, et introduit un **risque de rupture de compatibilité** ou d'**instabilités** de version. Ne franchissez ce pas **que si Boost est déjà présent dans vos dépendances**. Dans le cas contraire, si **la compacité au bit près de manière dynamique** est indispensable, **préférez rester sur le standard ``std::vector<bool>``** plutôt que d'importer une dépendance externe **uniquement pour cet usage**.
 {: .block-warning }
 
 ## ``std::span<std::byte>`` (C++20)
@@ -687,7 +714,7 @@ Ainsi, on obtient une **généricité maximale** tout en permettant au compilate
 
 {% highlight cpp linenos %}
 // La fonction accepte n'importe quelle plage de données contiguës
-auto traiterBuffer(std::ranges::contiguous_range auto&& buffer) -> void
+auto processBuffer(std::ranges::contiguous_range auto&& buffer) -> void
 {
 	// On peut obtenir le pointeur sur la donnée et la taille à l'aide des customization points standards
 	auto* data = std::ranges::data(buffer);
@@ -703,9 +730,23 @@ auto traiterBuffer(std::ranges::contiguous_range auto&& buffer) -> void
 
 > Si cette idée vous intéresse, je vous invite à passer lire l'article sur **la [programmation générique](/articles/cpp/programmation_generique)** en C++.
 
+## Un type pérenne: Le comité vit avec son choix
+
+Malgré toutes les critiques à son encontre, ``std::vector<bool>`` n'a jamais été déprécié ou supprimé du langage C++. **Au contraire**, le comité de standardisation **continue de lui ajouter des adaptations spécifiques**, montrant qu'il a choisi de vivre avec cette spécialisation plutôt que de chercher à la bannir:
+
+- **C++23**: Ajout du support de [``std::formatter``](https://en.cppreference.com/cpp/utility/format/formatter) pour la classe interne ``std::vector<bool>::reference``, permettant d'afficher et de formater ses éléments directement de la même manière que de simples booléens.
+- **Propositions en cours**: Des travaux (comme l'introduction d'un trait [``std::is_vector_bool_reference``](https://wg21.link/P3719) dans la bibliothèque standard) visent à simplifier la détection et la prise en charge de ces proxies dans le code générique (templates).
+
+Cela montre que, même si elle pose des défis sémantiques, cette spécialisation fait partie intégrante du paysage C++ et reste maintenue au plus haut niveau.
+
 ## Conclusion et synthèse
 
-La spécialisation ``std::vector<bool>`` est aujourd'hui **universellement reconnue comme une erreur de conception historique du C++**. En tentant de réaliser une **optimisation de performance** prématurée (économiser la mémoire en compactant les bits), **le comité de standardisation a brisé les règles fondamentales du langage**: un conteneur standard **doit** pouvoir [retourner des références ``T&``](https://en.cppreference.com/cpp/container/vector/operator_at) sur ses éléments, ce qui est **matériellement impossible** à l'échelle du bit en C++.
+Au terme de cette exploration, une idée forte se dégage: **ce n'est pas le concept de tableau de bits dynamique qui pose problème**, mais son implémentation sous la forme d'une spécialisation automatique de ``std::vector<T>``.
+
+L'idée originale de compacter des booléens en mémoire (1 bit par valeur) est une **excellente technique d'optimisation**. Cependant, l'avoir intégrée en tant que spécialisation implicite pour servir de "**démo technique**" de la généricité de la STL (notamment l'usage des allocateurs et des proxys) [**a brisé l'uniformité sémantique des conteneurs standard**](#spécialisation-du-type-stdvectorbool). Si cette structure de données avait été introduite **sous son propre nom**, comme **un conteneur à part entière** (par exemple ``std::bit_vector`` ou `std::dynamic_bitset`), elle n'aurait jamais fait l'objet de controverses.<br>
+La spécialisation ``std::vector<bool>`` est aujourd'hui **universellement reconnue comme une erreur de conception historique du C++**.
+
+C'est d'ailleurs le constat partagé par les figures historiques du comité de standardisation. Howard Hinnant (auteur principal de la libc++ de LLVM) résume parfaitement cette opinion dans son célèbre article [**On vector&lt;bool&gt;**](https://isocpp.org/blog/2012/11/on-vectorbool): le conteneur lui-même est excellent, c'est simplement son intégration déguisée sous le nom de ``std::vector`` qui a été une erreur de conception.
 
 Lorsqu'on s'éloigne de ``std::vector<bool>`` pour **stocker des booléens** ou **manipuler des séquences d'octets**, le C++ moderne propose **plusieurs types et abstractions** selon que vous ayez besoin de **propriété** (ownership), de **performance**, ou de **généricité**.
 
@@ -713,12 +754,11 @@ Voici un **récapitulatif** pour vous aider à choisir l'outil **sémantiquement
 
 | Type | Propriétaire | Allocation | Taille | Usage cible |
 | :--- | :---: | :--- | :---: | :--- |
-| **``std::vector<bool>``** | Oui | Heap | Dynamique | [**A éviter**](#spécialisation-du-type-stdvectorbool) |
-| **``std::bitset<N>``** | Oui | Stack | Fixe | **Flags** binaires de **taille fixe** |
-| **``boost::dynamic_bitset``** | Oui | Heap | Dynamique | **Flags** binaires de taille dynamique (avec Boost) |
-| **``std::array<std::byte, N>``** | Oui | Stack | Fixe | **Buffer** de mémoire brute de **taille connue à la compilation** |
-| **``std::vector<std::byte>``** | Oui | Heap | Dynamique | **Buffer** de mémoire brute **dynamiquement alloué** |
-| **``std::span<std::byte>``** | Non | Stack | Vue | **Passage de buffers** en paramètre **sans copie** |
+| [**``std::bitset<N>``**](#stdbitsetn) | Oui | Stack | Fixe | **Flags** binaires de **taille fixe** |
+| [**``std::vector<bool>``**](#spécialisation-du-type-stdvectorbool) | Oui | Heap | Dynamique | **Flags** binaires de **taille dynamique**. [**A éviter**](#spécialisation-du-type-stdvectorbool) |
+| [**``std::array<std::byte, N>``**](#stdbyte-c17) | Oui | Stack | Fixe | **Buffer** de mémoire brute de **taille connue à la compilation** |
+| [**``std::vector<std::byte>``**](#stdbyte-c17) | Oui | Heap | Dynamique | **Buffer** de mémoire brute **dynamiquement alloué** |
+| [**``std::span<std::byte>``**](#stdspanstdbyte-c20) | Non | Stack | Vue | **Passage de buffers** en paramètre **sans copie** |
 
 ---
 
