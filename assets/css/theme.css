@@ -170,7 +170,7 @@ body {
 		grid-column: 1;
 
 		> header {
-			padding-top: calc(var(--navbar-height) + 1.5rem);
+			padding-top: calc(var(--navbar-height) + 1rem);
 			padding-bottom: 1rem;
 			margin-bottom: 1rem;
 
