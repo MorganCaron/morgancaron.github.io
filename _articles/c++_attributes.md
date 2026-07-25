@@ -260,7 +260,8 @@ struct Node
 	int value;
 	Node* next;
 };
-std::atomic<Node*> head = nullptr;
+
+auto head = std::atomic<Node*>{nullptr};
 
 // Thread A (Producteur)
 Node* node = new Node{42, nullptr};

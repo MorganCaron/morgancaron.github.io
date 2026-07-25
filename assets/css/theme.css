@@ -758,7 +758,7 @@ section.article-cards {
 	gap: 1.5rem 1.5rem;
 	margin-bottom: 1rem;
 
-	@media (min-width: 992px) {
+	@media (min-width: 1200px) {
 		grid-template-columns: 1fr 1fr;
 	}
 
@@ -770,7 +770,7 @@ section.article-cards {
 		color: var(--color);
 		box-shadow: 0 1rem 1.5rem -.5rem rgba(0, 0, 0, 0.75);
 		text-decoration: none;
-		transition: all 250ms ease-out;
+		transition: transform 250ms ease-out, box-shadow 250ms ease-out;
 
 		&:hover {
 			transform: scale(1.02);

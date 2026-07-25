@@ -1,7 +1,7 @@
 <div class="parallax">
 	<header class="text-center">
 	{% if page.logo %}
-		<img src="/assets/images/logos/{{page.logo}}" class="logo">
+		<img src="/assets/images/logos/{{page.logo}}" class="logo" alt="Logo {{ page.category | default: '' | upcase }}">
 	{% endif %}
 	</header>
 </div>
