@@ -339,7 +339,7 @@ Désormais, [``true`` et ``false``](https://en.cppreference.com/w/c/language/boo
 
 ### En C++
 
-En C++, ``bool`` est un **type fondamental** (distinct des entiers) et ``true``/``false`` sont des [**literals** de type ``bool``](https://en.cppreference.com/cpp/language/bool_literal.html).
+En C++, ``bool`` est un **type fondamental** (distinct des entiers) et ``true``/``false`` sont des [**literals** de type ``bool``](https://en.cppreference.com/cpp/language/bool_literal).
 
 Cette distinction est ce qui rend possible la **surcharge de fonctions** (overloading) en C++, fonctionnalité inexistante en C:
 {% highlight cpp %}
@@ -385,7 +385,7 @@ auto c4 = L'c'; // wchar_t (Wide character)
 
 > **Évolutions importantes** :
 > - **C++20** : ``u8'c'`` passe du type ``char`` au type [**``char8_t``**](/articles/cpp/fundamental_types#le-cas-de-char8_t-c20).
-> - **C++23** : Le standard définit désormais que les littéraux préfixés **``u8``**, **``u``** et **``U``** sont encodés respectivement en **UTF-8**, **UTF-16** et **UTF-32** ([**P2314R2**](https://wg21.link/p2314r2)). Cette clarification lève les ambiguïtés historiques sur leur encodage, tandis que l'[**execution character set**](https://en.cppreference.com/cpp/language/charset.html#Execution_character_set) reste distinct et peut dépendre de l'environnement.
+> - **C++23** : Le standard définit désormais que les littéraux préfixés **``u8``**, **``u``** et **``U``** sont encodés respectivement en **UTF-8**, **UTF-16** et **UTF-32** ([**P2314R2**](https://wg21.link/p2314r2)). Cette clarification lève les ambiguïtés historiques sur leur encodage, tandis que l'[**execution character set**](https://en.cppreference.com/cpp/language/charset#Execution_character_set) reste distinct et peut dépendre de l'environnement.
 
 ### Caractères d'échappement
 
@@ -588,7 +588,7 @@ Pour récapituler, un *string literal*:
 
 ## Raw string literal (C++11)
 
-Les [**raw string literals**](https://en.cppreference.com/cpp/language/string_literal.html#Raw_string_literals) permettent d'écrire des chaînes sans avoir à échapper les [**caractères spéciaux**](#caractères-déchappement) (comme ``\`` ou ``"``).
+Les [**raw string literals**](https://en.cppreference.com/cpp/language/string_literal#Raw_string_literals) permettent d'écrire des chaînes sans avoir à échapper les [**caractères spéciaux**](#caractères-déchappement) (comme ``\`` ou ``"``).
  Ils sont également le seul moyen naturel d'inclure des **retours à la ligne** directement dans le code source:
 
 {% highlight cpp %}

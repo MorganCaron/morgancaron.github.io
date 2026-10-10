@@ -505,6 +505,9 @@ Les *name-independent declarations* peuvent **être déclarées** plusieurs fois
 auto _ = foo();
 auto _ = bar(); // OK depuis C++26 (pas avant)
 {% endhighlight %}
+
+> **Avant C++26 (C++20 et C++23)** : Répéter `auto _ = ...` dans la même portée provoquait une erreur de compilation (`redefinition of '_'`). Pour ignorer plusieurs valeurs consécutives sans changer de nom, il fallait déclarer la variable une première fois (`auto _ = foo();`) puis simplement la réassigner (`_ = bar();`). C++26 libère le développeur de cette contrainte en permettant de redéclarer `auto _ =` à volonté.
+
 **être utilisées** dans des *structured bindings* pour ignorer une ou plusieurs composantes:
 {% highlight cpp %}
 auto [x, _] = pair();
@@ -821,7 +824,7 @@ auto divideByFour(int value) -> int
 > Sans l'attribut ``[[assume]]``, le compilateur est donc obligé de générer des instructions machines d'ajustement arithmétique supplémentaires pour corriger le signe et l'arrondi dans le cas où ``value`` serait négatif.<br>
 > En insérant ``[[assume(value >= 0)]];``, on garantit au compilateur que la valeur sera positive. Il supprime instantanément ce code correctif pour ne conserver qu'une unique instruction CPU de décalage binaire ([``sar`` (*Shift Arithmetic Right*)](https://www.felixcloutier.com/x86/sal:sar:shl:shr)), optimisant le code final.
 
-Avant C++23, pour forcer le compilateur à optimiser le code en fonction de ces [**invariants**](https://en.wikipedia.org/wiki/Invariant_(computer_science)), les développeurs devaient utiliser des fonctions intrinsèques non portables et propriétaires (comme [``__builtin_assume``](https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume) sur Clang, [``__builtin_unreachable``](https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#index-_005f_005fbuiltin_005funreachable) sur GCC ou [``__assume``](https://learn.microsoft.com/en-us/cpp/intrinsics/assume) sur MSVC).
+Avant C++23, pour forcer le compilateur à optimiser le code en fonction de ces [**invariants**](https://en.wikipedia.org/wiki/Invariant_(mathematics)#Invariants_in_computer_science), les développeurs devaient utiliser des fonctions intrinsèques non portables et propriétaires (comme [``__builtin_assume``](https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume) sur Clang, [``__builtin_unreachable``](https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html#index-_005f_005fbuiltin_005funreachable) sur GCC ou [``__assume``](https://learn.microsoft.com/en-us/cpp/intrinsics/assume) sur MSVC).
 
 L'attribut ``[[assume(expression)]]`` introduit un moyen **standard et portable** de fournir une vérité axiomatique à l'optimiseur. L'expression passée en argument est garantie d'être toujours vraie **sans jamais être évaluée au runtime**. Le compilateur peut alors s'appuyer sur cette hypothèse pour **supprimer agressivement des vérifications de sécurité redondantes** ou des calculs qu'il sait désormais impossibles.
 
@@ -845,7 +848,7 @@ L'optimiseur sait que value est positif. Il peut donc optimiser la division par 
 
 > Ces attributs ne sont **pas standards** et il n'existe **aucune proposition** pour ajouter un attribut standard ``[[lifetimebound]]`` à la norme C++. Il s'agit d'extensions majeures de sécurité mémoire fournies par les compilateurs Clang et MSVC pour détecter à la compilation les dangling references.
 
-L'attribut propriétaire [``[[clang::lifetimebound]]``](https://releases.llvm.org/16.0.0/tools/clang/docs/AttributeReference.html#lifetimebound) de Clang a été directement inspiré par la proposition [**P0936R0**](http://wg21.link/p0936r0) comme indiqué dans [ce commit de LLVM](https://gitlab.fi.muni.cz/xhoschek/llvm-project/-/commit/f4e248c23e05e374910a8becbb91f5d3d7a76a01) (*"This attribute provides an experimental implementation of the facility described in the C++ committee paper P0936R0."*).
+L'attribut propriétaire [``[[clang::lifetimebound]]``](https://releases.llvm.org/16.0.0/tools/clang/docs/AttributeReference.html#lifetimebound) de Clang a été directement inspiré par la proposition [**P0936R0**](http://wg21.link/p0936r0) comme indiqué dans [ce commit de LLVM](https://github.com/llvm/llvm-project/commit/f4e248c23e05e374910a8becbb91f5d3d7a76a01) (*"This attribute provides an experimental implementation of the facility described in the C++ committee paper P0936R0."*).
 
 Cette proposition ([**P0936R0**](http://wg21.link/p0936r0)) visait à apporter un nouveau mot clef ``lifetimebound`` dédié à la sécurité des lifetimes.
 
