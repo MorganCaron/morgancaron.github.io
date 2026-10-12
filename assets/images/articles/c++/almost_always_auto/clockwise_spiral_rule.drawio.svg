@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 270" width="100%" height="270" style="max-width: 620px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow markers -->
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ff9800"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2196f3"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ab47bc"/>
+    </marker>
+    <marker id="arrow-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#00e5ff"/>
+    </marker>
+
+    <!-- Filters for subtle glow/shadow -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Container background card -->
+  <rect x="2" y="2" width="616" height="266" rx="12" ry="12" fill="#0d1117" stroke="#30363d" stroke-width="1.5"/>
+
+  <!-- Spiral curved paths (Clockwise) -->
+  
+  <!-- Step 1 -> 2: getFunction (top) to () (top) -->
+  <path d="M 275 116 C 275 80, 370 80, 370 110" fill="none" stroke="#ff9800" stroke-width="2.5" stroke-dasharray="none" marker-end="url(#arrow-orange)"/>
+
+  <!-- Step 2 -> 3: () (bottom) to * (bottom) -->
+  <path d="M 370 156 C 370 200, 168 200, 168 162" fill="none" stroke="#2196f3" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+
+  <!-- Step 3 -> 4: * (top) to (float) (top) -->
+  <path d="M 168 116 C 168 40, 465 40, 465 110" fill="none" stroke="#ab47bc" stroke-width="2.5" marker-end="url(#arrow-purple)"/>
+
+  <!-- Step 4 -> 5: (float) (bottom) to int (bottom) -->
+  <path d="M 465 156 C 465 242, 92 242, 92 162" fill="none" stroke="#00e5ff" stroke-width="2.5" marker-end="url(#arrow-cyan)"/>
+
+  <!-- Code elements on the baseline (y = 136) -->
+
+  <!-- Token 5: int -->
+  <g filter="url(#shadow)">
+    <rect x="65" y="118" width="55" height="36" rx="6" ry="6" fill="#1f1d17" stroke="#00e5ff" stroke-width="2"/>
+    <text x="92.5" y="141" fill="#79c0ff" font-family="'JetBrains Mono', 'Fira Code', 'Courier New', monospace" font-size="15" font-weight="bold" text-anchor="middle">int</text>
+  </g>
+
+  <!-- Delimiter: ( -->
+  <text x="135" y="142" fill="#8b949e" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="18" font-weight="bold" text-anchor="middle">(</text>
+
+  <!-- Token 3: * -->
+  <g filter="url(#shadow)">
+    <rect x="150" y="118" width="36" height="36" rx="6" ry="6" fill="#241a2e" stroke="#ab47bc" stroke-width="2"/>
+    <text x="168" y="144" fill="#d2a8ff" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="19" font-weight="bold" text-anchor="middle">*</text>
+  </g>
+
+  <!-- Token 1: getFunction -->
+  <g filter="url(#shadow)">
+    <rect x="198" y="118" width="138" height="36" rx="6" ry="6" fill="#261b12" stroke="#ff9800" stroke-width="2.5"/>
+    <text x="267" y="141" fill="#ffa657" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="15" font-weight="bold" text-anchor="middle">getFunction</text>
+  </g>
+
+  <!-- Token 2: () -->
+  <g filter="url(#shadow)">
+    <rect x="348" y="118" width="44" height="36" rx="6" ry="6" fill="#122030" stroke="#2196f3" stroke-width="2"/>
+    <text x="370" y="141" fill="#58a6ff" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="15" font-weight="bold" text-anchor="middle">()</text>
+  </g>
+
+  <!-- Delimiter: ) -->
+  <text x="404" y="142" fill="#8b949e" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="18" font-weight="bold" text-anchor="middle">)</text>
+
+  <!-- Token 4: (float) -->
+  <g filter="url(#shadow)">
+    <rect x="420" y="118" width="90" height="36" rx="6" ry="6" fill="#132328" stroke="#ab47bc" stroke-width="2"/>
+    <text x="465" y="141" fill="#56d4dd" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="15" font-weight="bold" text-anchor="middle">(float)</text>
+  </g>
+
+  <!-- Delimiter: ; -->
+  <text x="522" y="142" fill="#8b949e" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="18" font-weight="bold" text-anchor="middle">;</text>
+
+  <!-- Step badges with numbers -->
+
+  <!-- Badge 1: Start -->
+  <g transform="translate(267, 100)">
+    <circle cx="0" cy="0" r="11" fill="#ff9800" stroke="#0d1117" stroke-width="2"/>
+    <text x="0" y="4" fill="#000000" font-size="12" font-weight="bold" text-anchor="middle">1</text>
+  </g>
+
+  <!-- Badge 2: Function () -->
+  <g transform="translate(370, 72)">
+    <circle cx="0" cy="0" r="11" fill="#2196f3" stroke="#0d1117" stroke-width="2"/>
+    <text x="0" y="4" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">2</text>
+  </g>
+
+  <!-- Badge 3: Pointer * -->
+  <g transform="translate(168, 206)">
+    <circle cx="0" cy="0" r="11" fill="#ab47bc" stroke="#0d1117" stroke-width="2"/>
+    <text x="0" y="4" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">3</text>
+  </g>
+
+  <!-- Badge 4: (float) -->
+  <g transform="translate(465, 36)">
+    <circle cx="0" cy="0" r="11" fill="#ab47bc" stroke="#0d1117" stroke-width="2"/>
+    <text x="0" y="4" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">4</text>
+  </g>
+
+  <!-- Badge 5: int -->
+  <g transform="translate(92, 246)">
+    <circle cx="0" cy="0" r="11" fill="#00e5ff" stroke="#0d1117" stroke-width="2"/>
+    <text x="0" y="4" fill="#000000" font-size="12" font-weight="bold" text-anchor="middle">5</text>
+  </g>
+
+  <!-- Legend labels -->
+  <g font-size="11" font-weight="500">
+    <text x="267" y="172" fill="#ffa657" text-anchor="middle">① Nom</text>
+    <text x="370" y="172" fill="#58a6ff" text-anchor="middle">② Fonction</text>
+    <text x="168" y="102" fill="#d2a8ff" text-anchor="middle">③ Pointeur</text>
+    <text x="465" y="172" fill="#56d4dd" text-anchor="middle">④ Prend (float)</text>
+    <text x="92" y="102" fill="#79c0ff" text-anchor="middle">⑤ Retourne int</text>
+  </g>
+</svg>

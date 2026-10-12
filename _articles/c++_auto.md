@@ -200,7 +200,7 @@ using Integer = int; // Depuis C++11: Ecriture plus intuitive (left-to-right)
 Les fonctions:
 {% highlight cpp %}
 int sum(int lhs, int rhs); // Avant C++11 (right-to-left)
-auto sum(int lhs, int rhs) -> auto; // Depuis C++11 (left-to-right)
+auto sum(int lhs, int rhs) -> int; // Depuis C++11 (left-to-right)
 {% endhighlight %}
 Si cela vous intéresse, nous en reparlons [plus tard](#trailing-return-type-depuis-c11).
 
@@ -752,28 +752,35 @@ int sum(int lhs, int rhs)
 }
 {% endhighlight %}
 
-Dans d'autres langages, le type est la plupart du temps spécifié à la fin de leur définition/déclaration:
+Dans la **grande majorité des langages modernes**, la signature d'une fonction ne commence pas par son type de retour, mais suit une convention **left-to-right** où les paramètres sont déclarés en amont et **le type de retour est relégué à la fin** de la signature:
 
-En Python:
+En [Python](https://docs.python.org/3/library/typing.html) (avec les [type hints](https://peps.python.org/pep-0484/)):
 {% highlight py %}
-def sum(lhs: int, rhs: int) -> int
+def sum(lhs: int, rhs: int) -> int:
 	return lhs + rhs
 {% endhighlight %}
 
-En Typescript:
+En [Rust](https://doc.rust-lang.org/book/ch03-03-how-functions-work.html):
+{% highlight rust %}
+fn sum(lhs: i32, rhs: i32) -> i32 {
+	lhs + rhs
+}
+{% endhighlight %}
+
+En [TypeScript](https://www.typescriptlang.org/docs/handbook/2/functions.html):
 {% highlight ts %}
-function sum(lhs: number, rhs: number) : number
-{
+function sum(lhs: number, rhs: number): number {
 	return lhs + rhs;
 }
 {% endhighlight %}
 
-On parle ici de déclaration **left-to-right**, en opposition à l'écriture **right-to-left** du C++ jusque là.
+On retrouve cette même philosophie dans de nombreux autres langages modernes comme [Kotlin](https://kotlinlang.org/docs/functions.html) (``fun``), [Swift](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/functions/) (``func``) ou [Go](https://go.dev/tour/basics/4) (``func``).
 
-Depuis C++11, [le langage se lance dans un changement d'écriture de ses déclarations vers une uniformisation en left-to-right](#left-to-right-declaration). Profitant de cette syntaxe pour apporter de nombreux autres avantages.
+On constate ainsi une **convergence générale de l'écosystème**: la signature commence systématiquement par un **mot-clé introductif** (``def``, ``fn``, ``fun``, ``func``, ``function``), suivi du nom de la fonction, de ses paramètres d'entrée, puis du type de retour produit en sortie.
 
-Pour les déclarations/définitions des fonctions, on parle de **trailing return type**.<br>
-Cela consiste à spécifier le type de retour des fonctions à la fin de leur définition/déclaration:
+Depuis C++11, [le langage s'inscrit dans cette modernisation en uniformisant ses déclarations en left-to-right](#left-to-right-declaration).
+
+Pour les déclarations et définitions de fonctions, cette syntaxe s'appelle le **trailing return type**:
 
 {% highlight cpp %}
 auto sum(int lhs, int rhs) -> int
@@ -782,18 +789,18 @@ auto sum(int lhs, int rhs) -> int
 }
 {% endhighlight %}
 
-> Le **left-to-right** rend la lecture beaucoup plus naturelle:<br>
-> Lorsqu'on décrit une fonction, on dit "Une fonction ``sum`` qui prend deux int et qui retourne un int".<br>
-> On ne dit pas "Un int retourné par une fonction ``sum`` qui prend deux int."
+Dans cette écriture, **``auto`` n'est pas un type**, mais joue très exactement le rôle de **mot-clé introductif de fonction**, à l'image de ``def`` en Python, ``fn`` en Rust ou ``function`` en TypeScript. Il signale au compilateur et au lecteur qu'une fonction est déclarée, tout en reportant la spécification du type de retour après les paramètres grâce à la flèche ``->``.
 
-> Certains pourraient trouver cette syntaxe absurde, car elle semble préciser **deux types au lieu d'un** (``auto`` et ``int``).
-> Mais ici, **``auto`` n'est pas un type**.<br>
-> ``auto main() -> int`` semble ridicule de premier abord, mais c'est uniquement parce que **nous n'y sommes pas habitués**.
-> Il n'y a rien d'intrinsèquement ridicule dans cette syntaxe.<br>
-> Le seul défaut qu'on pourrait y voir est que ça ne se distingue pas vraiment des autres utilisations de ``auto``. Un mot clef ``func``, ``function`` (Typescript) ou [``fn`` (Rust)](https://doc.rust-lang.org/book/ch03-03-how-functions-work.html) serait plus approprié.
+> Le **left-to-right** rend la lecture de la signature beaucoup plus naturelle:<br>
+> Lorsqu'on décrit une fonction, on dit "Une fonction ``sum`` qui prend deux entiers et qui retourne un entier".<br>
+> On ne dit pas "Un entier retourné par une fonction ``sum`` qui prend deux entiers."
+
+> Certains développeurs habitués à la syntaxe préfixe historique du C trouvent parfois cette écriture redondante au premier abord, pensant qu'elle déclare "deux types au lieu d'un" (``auto`` et ``int``).<br>
+> Mais ``auto main() -> int`` n'a rien d'absurde : ``auto`` n'y est qu'un introducteur de déclaration, et cette structure aligne le C++ avec les meilleures pratiques ergonomiques de l'écosystème contemporain.
+> Le seul défaut qu'on pourrait y voir est que ``auto`` ne se distingue pas vraiment des autres utilisations de ce mot clef. Un nom comme ``func``, ``fn`` ou ``function`` serait plus explicite.
 {: .block-warning }
 
-Cette nouvelle écriture offre plusieurs autres avantages:
+Cette nouvelle écriture apporte plusieurs autres avantages:
 
 ### Type de retour dépendant des paramètres
 
@@ -825,9 +832,39 @@ decltype(lhs + rhs) sum(Lhs lhs, Rhs rhs)
 
 Le compilateur comprend les déclarations dans l'ordre dans lequel il les lit. Et comme il lit les fichiers de haut en bas et de gauche à droite, il ne connait pas encore ``lhs`` et ``rhs`` à l'instant où on les utilise dans ``decltype(lhs + rhs)``.
 
-### Fonctions retournant un pointeur de fonction
+#### Le contournement historique via ``std::declval``
 
-Lorsqu'on souhaite créer une fonction qui retourne un pointeur de fonction, parvenir à écrire sa déclaration est un défi en soi, et la comprendre l'est encore plus.
+Comment faisait-on alors à l'époque sans le *trailing return type* pour **déduire le type de retour** d'une fonction générique ?
+
+Comme les paramètres formels ``lhs`` et ``rhs`` ne sont **pas encore déclarés** au moment d'écrire le type de retour (en préfixe de la fonction), il était impossible de faire référence à leurs noms. La seule parade historique consistait à simuler des valeurs fictives de ces types au sein d'une expression non évaluée via [``std::declval``](https://en.cppreference.com/w/cpp/utility/declval):
+
+{% highlight cpp %}
+template<class Lhs, class Rhs>
+decltype(std::declval<Lhs>() + std::declval<Rhs>()) sum(Lhs lhs, Rhs rhs)
+{
+	return lhs + rhs;
+}
+{% endhighlight %}
+
+L'extrême lourdeur et la verbosité de cette syntaxe sautent aux yeux: invoquer artificiellement ``std::declval`` pour chaque paramètre simplement pour exprimer l'addition de deux types complique considérablement la signature et la rend difficile à lire.
+
+C'est précisément cette lourdeur qui a justifié l'introduction de la syntaxe avec [*trailing return type* en C++11](https://wg21.link/N2541) (dont la motivation est détaillée dans le proposal [N1978](https://wg21.link/N1978)):
+
+{% highlight cpp %}
+template<class Lhs, class Rhs>
+auto sum(Lhs lhs, Rhs rhs) -> decltype(lhs + rhs)
+{
+	return lhs + rhs;
+}
+{% endhighlight %}
+
+Les paramètres ``lhs`` et ``rhs`` étant déjà déclarés au moment où le compilateur atteint la flèche ``->``, ils peuvent être directement utilisés dans ``decltype(lhs + rhs)``, reléguant la gymnastique de ``std::declval`` au passé.
+
+> Depuis C++14, la **déduction automatique du type de retour** ([auto return type](#auto-as-a-return-type-depuis-c14)) permet même de **s'affranchir complètement de ``decltype``** dans ce cas simple en écrivant directement ``template<class Lhs, class Rhs> auto sum(Lhs lhs, Rhs rhs) { return lhs + rhs; }``.
+
+### Pointeurs de fonctions et alias en syntaxe trailing
+
+Lorsqu'on souhaite créer une fonction qui retourne un pointeur de fonction, parvenir à écrire sa déclaration en syntaxe classique est un défi en soi, et la relire l'est encore plus:
 
 {% highlight cpp %}
 int (*getFunction())(int); // Retourne un pointeur de fonction prenant un int et retournant un int
@@ -837,6 +874,64 @@ Il devient facile de l'écrire et de la comprendre en utilisant la syntaxe du *t
 {% highlight cpp %}
 auto getFunction() -> int (*)(int);
 {% endhighlight %}
+
+#### Alias de pointeur de fonction avec trailing return type
+
+Le *trailing return type* ne s'applique pas uniquement aux fonctions elles-mêmes: il peut également être employé **directement dans la déclaration d'un alias de pointeur de fonction**.
+
+Pour rappel, la formulation d'un alias de pointeur de fonction ressemble à ceci:
+{% highlight cpp %}
+// Avant C++11 (typedef, right-to-left):
+typedef int (*LegacyFuncPtr)(float);
+
+// Depuis C++11 (using, left-to-right):
+using FuncPtr = int (*)(float);
+{% endhighlight %}
+
+Grâce au trailing return type, on peut formuler la déclaration de l'alias de pointeur de fonction lui-même avec la syntaxe fléchée:
+{% highlight cpp %}
+// Alias de pointeur de fonction avec trailing return type:
+using FuncPtr = auto (*)(float) -> int;
+{% endhighlight %}
+
+Cette écriture offre une excellente lisibilité:
+- A gauche, la signature du pointeur et ses arguments: ``auto (*)(float)``
+- A droite, le type de retour produit : ``-> int``
+
+On peut même combiner les deux syntaxes pour déclarer une fonction retournant un pointeur de fonction de façon totalement symétrique, sans avoir à subir la lecture en spirale du C:
+{% highlight cpp %}
+// Sans trailing return type (syntaxe historique):
+int (*getFunction())(float);
+
+// Avec trailing return type:
+auto getFunction() -> auto (*)(float) -> int;
+{% endhighlight %}
+
+L'équivalent en syntaxe historique (``int (*getFunction())(float);``) est beaucoup moins clair, et impose une charge mentale importante pour simplement comprendre la ligne.
+
+La technique consiste à lire la ligne, non pas de gauche à droite, mais en spirale 🐌 (Si si, c'est pas une blague: [*Clockwise/Spiral Rule*](https://c-faq.com/decl/spiral.anderson.html)).
+
+On part de l'identifiant au milieu, puis on tourne dans le sens horaire:
+
+{:refdef: class="text-center"}
+![Clockwise Spiral Rule](/assets/images/articles/c++/almost_always_auto/clockwise_spiral_rule.drawio.svg)
+{: refdef}
+
+1. On part de l'identifiant au milieu : ``getFunction``
+2. On regarde à droite : ``()`` &rarr; c'est une fonction
+3. On regarde à gauche : ``*`` &rarr; ...qui retourne un pointeur
+4. On repart à droite : ``(float)`` &rarr; ...vers une fonction prenant un ``float``
+5. On revient tout à gauche : ``int`` &rarr; ...et retournant un ``int``.
+
+Cette gymnastique d'aller-retour devient vite intenable sur des signatures plus complexes (par exemple si ``getFunction`` prend elle-même des arguments: ``int (*getFunction(char))(float);``).
+
+> A noter que c'est aussi de cette façon que doivent procéder **les compilateurs** pour comprendre cette ligne.
+
+Avec le *trailing return type*, cette charge mentale s'évanouit: la lecture redevient strictement linéaire de gauche à droite (**left-to-right**):
+{% highlight cpp %}
+auto getFunction() -> auto (*)(float) -> int;
+{% endhighlight %}
+``auto getFunction()`` &rarr; une fonction qui produit (``->``) un pointeur de fonction ``auto (*)(float)`` qui produit (``->``) un ``int``.
 
 ### Simplifie la résolution des scopes
 
@@ -908,7 +1003,25 @@ auto sum = [](int lhs, int rhs) -> int {
 A noter qu'ici, ``auto`` n'est pas le type de la valeur de retour de la lambda, mais le type de la lambda elle-même.<br>
 Cela a été abordé dans la [section précédente](#placeholder-type-specifiers-depuis-c11).
 
-> En résumé, utiliser ``auto`` avec le *trailing return type* permet de **simplifier et clarifier** les types retournés par les fonctions, **lever des ambiguïtés** du compilateur, **uniformiser** la manière dont les types de retour sont déclarés et permet aux fonctions de **retourner des types dépendant des paramètres**.<br>
+### Cohérence avec les Deduction Guides (C++17)
+
+Cette harmonisation visuelle et conceptuelle franchit une étape supplémentaire avec l'introduction de [**CTAD (Class Template Argument Deduction)**](https://en.cppreference.com/w/cpp/language/class_template_argument_deduction) en C++17.
+
+Lorsqu'on définit des [**guides de déduction explicites** (*user-defined deduction guides*)](https://en.cppreference.com/w/cpp/language/class_template_argument_deduction#User-defined_deduction_guides) pour enseigner au compilateur comment déduire les paramètres de template d'une classe lors de son instanciation, la syntaxe retenue s'aligne visuellement de façon parfaite avec le *trailing return type*:
+
+{% highlight cpp %}
+template<class T>
+Data(const T&) -> Data<T>;
+{% endhighlight %}
+
+Ce choix met en avant la **cohérence conceptuelle du symbole ``->``**, qui se lit uniformément à travers tout le C++ moderne comme **"produit / yields"**:
+- **Fonctions**: ``auto f(Args...) -> Ret`` &rarr; la fonction appelée avec ces arguments *produit* un type de retour ``Ret``.
+- **Lambdas**: ``[](Args...) -> Ret { ... }`` &rarr; la lambda appelée avec ces arguments *produit* un type de retour ``Ret``.
+- **Deduction Guides**: ``Class(Args...) -> Class<T>`` &rarr; la construction à partir de ces arguments *produit / déduit* l'instanciation ``Class<T>``.
+
+Loin d'être un artifice isolé, la syntaxe fléchée devient ainsi un connecteur sémantique universel dans le système de types: il exprime à chaque fois la transition logique entre une signature d'entrée (paramètres ou arguments de constructeur) et le type résultant en sortie.
+
+> En résumé, utiliser ``auto`` avec le *trailing return type* permet de **simplifier et clarifier** les types retournés par les fonctions, **lever des ambiguïtés** du compilateur, **uniformiser** la manière dont les types de retour sont déclarés (en parfaite cohérence avec les lambdas et les deduction guides) et permet aux fonctions de **retourner des types dépendant des paramètres**.<br>
 > Cette pratique est **recommandée en C++ moderne**.
 
 ## AAA (Almost Always Auto) (depuis C++11)
@@ -1754,6 +1867,8 @@ auto sum(auto lhs, auto rhs) -> auto
 {% endhighlight %}
 
 Cette syntaxe rend l'écriture **concise** et **lisible**, notamment lorsqu'on adopte une [**programmation générique sans types explicites**](/articles/cpp/programmation_generique).
+
+> Couplée aux **concepts** (par exemple ``auto process(std::ranges::input_range auto&& range)``), cette syntaxe permet une **programmation par contrat** où **les types de l'appelant se propagent naturellement sans créer de dépendance rigide à un conteneur** concret. Pour comprendre l'intérêt fondamental de cette approche lors des refactorisations et des montées de version de dépendances, consultez le [**Guide de refactorisation, migration et modernisation d'une codebase C++**](/articles/cpp/refactoring_and_modernization#4-templates-auto-et-programmation-par-contrat).
 
 > Attention, derrière ses airs de [placeholder type specifiers](#placeholder-type-specifiers-depuis-c11), il s'agit ici bien de **types templatés**.<br>
 > Une template n'est **pas toujours souhaitable**. Dans cette situation il faut n'utiliser ``auto`` que si une template est souhaitée.
