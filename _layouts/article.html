@@ -8,10 +8,19 @@ layout: default
 <div class="blur-background">
 	<div class="page">
 		<aside class="text-center">
-			<span class="rounded-card sticky-top">
-				<a href="/articles/{{page.category}}" class="back-button button nier highlight-hover bullet triangle-left">Back</a>
-				<a href="#" class="button nier highlight-hover bullet triangle-up top-button">Top</a>
-			</span>
+			<div class="sidebar-container sticky-top">
+				<span class="rounded-card parent-link-card">
+					<a href="/articles/{{page.category}}" class="button nier highlight-hover bullet triangle-left">Autres articles</a>
+					<a href="#" class="button nier highlight-hover bullet triangle-up top-button">Top</a>
+				</span>
+				<span class="rounded-card nav-card hidden">
+					<div class="sidebar-buttons">
+						<a href="#" class="back-button button nier highlight-hover bullet triangle-left">Back</a>
+						<a href="#" class="clear-button button nier highlight-hover bullet">Clear</a>
+					</div>
+					<ul class="history-list"></ul>
+				</span>
+			</div>
 		</aside>
 		<section class="gutters">
 			<article>

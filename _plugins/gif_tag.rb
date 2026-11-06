@@ -6,7 +6,9 @@ module Jekyll
 		end
   
 		def render(context)
-			"<div class='text-center'><img src='#{@url}' width='500'></div>"
+			filename = File.basename(@url, ".*")
+			alt_text = filename.gsub("-", " ").capitalize
+			"<div class='text-center'><img src='#{@url}' alt='#{alt_text}' width='500'></div>"
 		end
 	end
 end
