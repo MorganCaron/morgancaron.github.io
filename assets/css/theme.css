@@ -493,17 +493,18 @@ body:not(:hover) .mouse-oriented {
 		position: absolute;
 		top: 0;
 		left: 0;
-		right: 0;
-		bottom: 0;
+		width: 10%;
+		height: 10%;
 		background-image: var(--background-image);
 		background-position: center;
 		background-size: 1000%;
-		filter: blur(100px);
-		will-change: transform, filter;
-		transform: translate3d(0, 0, 0);
+		filter: blur(10px);
+		transform: scale(10);
+		transform-origin: top left;
+		pointer-events: none;
 
 		@media (max-width: 768px) {
-			filter: blur(40px);
+			filter: blur(4px);
 		}
 	}
 
