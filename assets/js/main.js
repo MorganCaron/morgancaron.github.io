@@ -46,11 +46,14 @@ const updateHistoryStack = () => {
 
 	const currentUrl = window.location.pathname + window.location.hash;
 
-	const index = stack.findIndex(p => p.url === currentUrl);
-	if (index !== -1)
-		stack = stack.slice(0, index + 1);
-	else
+	const lastItem = stack[stack.length - 1];
+	if (!lastItem || lastItem.url !== currentUrl) {
 		stack.push({ url: currentUrl, title: getPageTitleWithSection() });
+		if (stack.length > 50)
+			stack.shift();
+	}
+	else
+		lastItem.title = getPageTitleWithSection();
 
 	try {
 		sessionStorage.setItem('site_history', JSON.stringify(stack));
@@ -64,6 +67,11 @@ const updateHistoryStack = () => {
 		backButton.href = prevPage.url;
 		backButton.onclick = (event) => {
 			event.preventDefault();
+			stack.pop();
+			try {
+				sessionStorage.setItem('site_history', JSON.stringify(stack));
+			}
+			catch (err) {}
 			window.location.href = prevPage.url;
 		};
 
@@ -198,7 +206,7 @@ const updateParallax = () => {
 };
 
 const initExternalLinks = () => {
-	document.querySelectorAll('article a').forEach(link => {
+	document.querySelectorAll('article a:not(.button)').forEach(link => {
 		const href = link.getAttribute('href');
 		if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
 			if (!href.startsWith(window.location.origin)) {

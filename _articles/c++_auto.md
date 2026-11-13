@@ -358,7 +358,30 @@ L'utilisation du mot clef ``auto`` **est le seul moyen de typer une variable con
 auto sum = [](int lhs, int rhs) -> int { return lhs + rhs; };
 {% endhighlight %}
 
-Attention, le mot clef ``auto`` est **différent pour les paramètres de fonctions**. On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20).
+#### Lambdas génériques (depuis C++14) {#lambdas-generiques-depuis-c14}
+
+Depuis C++14, l'utilisation de ``auto`` dans la liste des paramètres d'une lambda permet de définir une **lambda générique** ([N3649](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3649.html)):
+
+{% highlight cpp %}
+auto print = [](auto value) { /* ... */ };
+{% endhighlight %}
+
+Sous le capot, le compilateur génère une [*closure*](/articles/cpp/lambdas#concept-closure) dont l'opérateur d'appel est une fonction templatée:
+
+{% highlight cpp %}
+struct Closure
+{
+	template<typename T>
+	auto operator()(T value) const { /* ... */ }
+};
+{% endhighlight %}
+
+Il s'agissait historiquement de la **toute première apparition** du mot-clé ``auto`` en guise de paramètre en C++, avant [leur support dans les fonctions (C++20)](#abbreviated-function-template-depuis-c20).<br>
+Le [comité WG21](/articles/cpp/history_and_philosophy#comite-iso-wg21) l'a d'abord autorisé pour les lambdas lors du meeting de Bristol en avril 2013 ([compte-rendu officiel du comité ISO N3681](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3681.html), [rapport d'Herb Sutter](https://herbsutter.com/2013/04/20/trip-report-iso-c-spring-2013-meeting/)[²](https://isocpp.org/blog/2013/04/trip-report-iso-c-spring-2013-meeting)) car l'impact était [strictement restreint à la classe closure locale générée](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3649.html) (via une dérogation ciblée dans la section de la norme [[temp.mem]](https://eel.is/c++draft/temp.mem) autorisant les templates membres uniquement pour les types closure).<br>
+En revanche, [il faudra attendre 6 ans de plus](#pourquoi-6-ans-apres-les-lambdas-generiques) et le C++20 ([P1141R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1141r2.html)) pour que cette syntaxe soit étendue aux fonctions ordinaires sous le nom d'[**abbreviated function templates**](#abbreviated-function-template-depuis-c20).
+
+> Attention, le mot clef ``auto`` est bien [**différent pour les paramètres de fonctions et de lambdas**](#comparaison-lambda-generique-abbreviated-template) (où il introduit un **paramètre template** et un **type dépendant**). On aborde ce point [plus bas](#abbreviated-function-template-depuis-c20) ainsi que le [piège des types dépendants et la syntaxe ``variable.template function<T>()``](#piege-types-dependants-auto-template).
+{: .block-warning }
 
 ### Common type deduction
 
@@ -1857,7 +1880,7 @@ auto sum(Lhs lhs, Rhs rhs) -> auto
 }
 {% endhighlight %}
 
-Depuis C++20, il est possible d'utiliser ``auto`` comme syntaxe alternative aux templates, améliorant grandement leur lisibilité:
+Depuis C++20 ([P1141R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1141r2.html)), il est possible d'utiliser ``auto`` comme syntaxe alternative aux templates, améliorant grandement leur lisibilité:
 
 {% highlight cpp %}
 auto sum(auto lhs, auto rhs) -> auto
@@ -1868,7 +1891,30 @@ auto sum(auto lhs, auto rhs) -> auto
 
 Cette syntaxe rend l'écriture **concise** et **lisible**, notamment lorsqu'on adopte une [**programmation générique sans types explicites**](/articles/cpp/programmation_generique).
 
-> Couplée aux **concepts** (par exemple ``auto process(std::ranges::input_range auto&& range)``), cette syntaxe permet une **programmation par contrat** où **les types de l'appelant se propagent naturellement sans créer de dépendance rigide à un conteneur** concret. Pour comprendre l'intérêt fondamental de cette approche lors des refactorisations et des montées de version de dépendances, consultez le [**Guide de refactorisation, migration et modernisation d'une codebase C++**](/articles/cpp/refactoring_and_modernization#4-templates-auto-et-programmation-par-contrat).
+### Pourquoi 6 ans après les lambdas génériques ? {#pourquoi-6-ans-apres-les-lambdas-generiques}
+
+L'utilisation d'``auto`` en paramètre est apparue pour la toute première fois en **C++14**, mais **exclusivement pour les [lambdas génériques](#lambdas-generiques-depuis-c14)** ([N3649](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3649.html)). L'objectif était de **simplifier l'utilisation des algorithmes de la STL** ([N3559](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3559.pdf), [N3418](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3418.pdf)) (comme ``std::for_each`` ou ``std::transform``) sans devoir coder manuellement des **foncteurs templatés**. Cette évolution était facile à intégrer pour le comité car l'opérateur templaté restait [**strictement confiné à la classe closure locale et anonyme** de la lambda](#lambdas-generiques-depuis-c14).
+
+Dès la spécification technique des concepts ([Concepts TS N4377](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4377.pdf)), le comité a proposé d'étendre ce mécanisme aux **fonctions ordinaires** sous le nom d'**abbreviated function templates** ([N4377](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4377.pdf) introduit ce terme) pour uniformiser le langage avec les lambdas C++14 ([P0873R1 §3.1](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0873r1.html)). Cependant, cette syntaxe a fait l'objet d'un [**manque de consensus**](https://herbsutter.com/2017/07/15/trip-report-summer-iso-c-standards-meeting-toronto/) au sein du [comité WG21](/articles/cpp/history_and_philosophy#comite-iso-wg21), retardant son intégration dans le standard officiel. Le débat sur cette syntaxe concise (*terse syntax*), documenté notamment par [Bjarne Stroustrup dans P0694R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0694r0.pdf) et dans [P0873R1 §3.1](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0873r1.html), opposait deux visions :
+- **L'opposition :** Plusieurs membres refusaient catégoriquement qu'une fonction ordinaire **ressemble visuellement à une fonction classique non-template** alors qu'elle crée silencieusement un template. Cela masque le fait que la fonction doit généralement être **définie dans un header** (pas de séparation `.hpp` / `.cpp`), altère les règles de **linkage et d'instanciation**, et peut générer du **code bloat** insidieux si le développeur croit appeler une fonction unique.
+- **Les partisans :** Ils défendaient une **uniformisation du langage** entre lambdas et fonctions classiques, ainsi qu'une porte d'entrée naturelle et lisible pour les **Concepts** (par exemple écrire ``void sort(Sortable auto& c)`` plutôt que la syntaxe verbeuse ``template<Sortable T> void sort(T& c)``).
+
+Le consensus n'a été trouvé qu'à la réunion de San Diego en novembre 2018 avec l'adoption du papier standard [P1141R2: Yet another approach for constrained declarations](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1141r2.html), intégrant officiellement les **Abbreviated Function Templates** dans **C++20**.
+
+### Lambda générique vs Abbreviated function template : est-ce la même chose ? {#comparaison-lambda-generique-abbreviated-template}
+
+Bien que reposant sur la même syntaxe concise, ces deux mécanismes fonctionnent très différemment :
+
+| Caractéristique | [Lambda générique](#lambdas-generiques-depuis-c14) (C++14) | [Abbreviated Function Template](#abbreviated-function-template-depuis-c20) (C++20) |
+|---|---|---|
+| **Standard d'introduction** | C++14 ([N3649](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3649.html)) | C++20 ([P1141R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1141r2.html)) |
+| **Cible** | L'opérateur ``operator()`` d'une closure anonyme | Une fonction libre ou une fonction membre |
+| **Désucrage compilateur** | ``struct Closure { template<typename T> auto operator()(T); };`` | ``template<typename T> auto f(T);`` |
+| **Spécification explicite des types à l'appel** | Impossible en C++14/17 (il a fallu attendre C++20 et la syntaxe ``[]<typename T>(T x)`` via [P0428R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0428r2.pdf)) | Immédiatement possible : ``sum<int, double>(1, 2.5)`` |
+| **Surcharge et ADL** | Ne participe pas à la surcharge de fonctions classiques (est un objet stocké dans une variable) | Participe à la résolution de surcharge (*overload resolution*) et à l'ADL |
+| **Point commun** | **Dans les deux cas**, le paramètre est un **type dépendant (*dependent type*)**, imposant par exemple [la syntaxe ``var.template f<T>()``](#piege-types-dependants-auto-template) |
+
+> Couplée aux **concepts** (par exemple ``auto process(std::ranges::input_range auto&& range)``), cette syntaxe permet une **programmation par contrat** où **les types de l'appelant se propagent naturellement sans créer de dépendance rigide à un conteneur** concret. Pour comprendre l'intérêt de cette approche lors des refactorisations et des montées de version de dépendances, consultez le [**Guide de refactorisation, migration et modernisation d'une codebase C++**](/articles/cpp/refactoring_and_modernization#4-templates-auto-et-programmation-par-contrat).
 
 > Attention, derrière ses airs de [placeholder type specifiers](#placeholder-type-specifiers-depuis-c11), il s'agit ici bien de **types templatés**.<br>
 > Une template n'est **pas toujours souhaitable**. Dans cette situation il faut n'utiliser ``auto`` que si une template est souhaitée.
@@ -1919,6 +1965,99 @@ auto sum(auto... types) -> auto
 {
 	return (types + ...);
 }
+{% endhighlight %}
+
+### Piège des types dépendants : quand ``auto`` force la syntaxe ``variable.template function<T>()`` {#piege-types-dependants-auto-template}
+
+L'utilisation de ``auto`` en [paramètre d'une fonction (C++20)](#abbreviated-function-template-depuis-c20) ou d'une [lambda générique (C++14)](#lambdas-generiques-depuis-c14) cache une conséquence importante : **le paramètre ainsi déclaré a un type template dépendant (*dependent type*)**.
+
+Sous le capot, lorsqu'une lambda reçoit un paramètre ``auto`` (que ce soit par valeur ``auto``, référence ``auto&``, référence constante ``const auto&`` ou *forwarding reference* ``auto&&``) :
+{% highlight cpp %}
+auto maLambda = [](auto var) {
+	// ...
+};
+{% endhighlight %}
+
+le compilateur génère une [classe closure](/articles/cpp/lambdas#sucre-syntaxique-closure-class) dont l'``operator()`` est templaté :
+{% highlight cpp %}
+struct Closure
+{
+	template<typename T>
+	auto operator()(T var) const
+	{
+		// 'var' est de type T, un type dépendant du template
+	}
+};
+{% endhighlight %}
+
+> De même, pour une fonction ordinaire utilisant la syntaxe concise ([abbreviated function template](#abbreviated-function-template-depuis-c20)) comme ``void f(auto var)``, le compilateur génère une fonction templatée ``template<typename T> void f(T var)``. Dans les deux cas, le paramètre ``var`` est d'un [type dépendant](https://en.cppreference.com/cpp/language/dependent_name#Type-dependent_expressions).
+
+#### Le problème de la résolution en deux phases ([*Two-Phase Name Lookup*](https://en.cppreference.com/w/cpp/language/dependent_name#Lookup_rules))
+
+Prenons une structure disposant d'une fonction membre template :
+
+{% highlight cpp %}
+struct Object
+{
+	template<typename T>
+	T function() const;
+};
+{% endhighlight %}
+
+En C++, le compilateur analyse le code template en deux étapes distinctes :
+1. **Première phase (avant instanciation) :** Le compilateur vérifie la syntaxe du code sans connaître les types concrets qui seront substitués.
+2. **Deuxième phase (à l'instanciation) :** Le code spécialisé est compilé avec le type concret effectif.
+
+Lors de la première phase, si vous manipulez cet objet à travers un paramètre ``auto`` et tentez d'appeler sa méthode template avec des arguments explicites entre chevrons :
+
+{% highlight cpp %}
+auto lambda = [](auto& object) {
+	int result = object.function<int>(); // Erreur de compilation !
+};
+{% endhighlight %}
+
+Pendant la première phase, le compilateur ne connaît pas encore la définition de ``object`` (son type dépend du paramètre template). Face au chevron ``<``, la grammaire C++ tranche par défaut en considérant ``<`` comme l'opérateur de comparaison **"inférieur à"** :
+``(object.function < int) > ()``
+
+Le compilateur émet alors l'erreur :
+``error: use 'template' keyword to treat 'function' as a dependent template name``
+
+#### La désambiguïsation obligatoire : [``object.template function<T>()``](https://en.cppreference.com/w/cpp/language/dependent_name#The_template_disambiguator_for_dependent_names)
+
+Pour certifier au compilateur que le nom qui suit le point ou la flèche (``.`` ou ``->``) est bel et bien un template et non une variable membre comparée avec ``<``, la norme C++ ([[temp.names]](https://eel.is/c++draft/temp.names)) **impose** d'insérer le mot-clé ``template`` :
+
+{% highlight cpp %}
+auto lambda = [](auto& object) {
+	int result = object.template function<int>(); // Pas très beau, mais nécessaire
+};
+{% endhighlight %}
+
+#### Comment s'affranchir de ce fardeau syntaxique ?
+
+Puisque manipuler un objet via ``auto`` impose cette syntaxe verbeuse dès qu'une fonction membre template prend des types explicites entre chevrons, plusieurs approches permettent de concevoir ou d'utiliser ces APIs plus confortablement :
+
+1. **Typer explicitement le paramètre :**
+   En écrivant ``[](Object& object)`` au lieu de ``[](auto& object)``, le paramètre n'a **plus de type dépendant**. Le compilateur **connaît sa classe dès la première phase d'analyse**, et ``object.function<int>()`` compile naturellement sans aucun mot-clé ``template``.
+2. **Privilégier une fonction libre template :**
+   En appelant une fonction libre template comme ``function<int>(object)`` au lieu d'une fonction membre ``object.template function<int>()``, la syntaxe avec chevrons ne nécessite aucun mot-clé ``template`` désambiguïsateur, car le nom de fonction libre est résolu par recherche ordinaire ou *ADL*.
+3. **Déduire le type par étiquette (*Type Tag*) :**
+   Plutôt que de spécifier le type entre chevrons sur l'appel membre, l'API peut accepter un [``std::type_identity<T>``](https://en.cppreference.com/w/cpp/types/type_identity) (C++20) en paramètre. Le type est alors déduit par le compilateur, éliminant tout chevron sur l'appel :
+
+{% highlight cpp %}
+struct Object
+{
+	template<typename T>
+	auto function(std::type_identity<T>) const -> auto
+	{
+		// 'T' est déduit depuis le tag et s'utilise exactement comme un paramètre template classique:
+		return T{};
+	}
+};
+
+auto lambda = [](auto& object) {
+	// T est déduit à partir de l'argument: aucun chevron sur l'appel et aucun mot-clé 'template'
+	auto result = object.function(std::type_identity<int>{});
+};
 {% endhighlight %}
 
 ## auto cast (depuis C++23)

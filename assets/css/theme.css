@@ -8,6 +8,7 @@
 	--alpha-background-color: var(--alpha-black);
 	--color: #eee;
 	--link-color: #55ccff;
+	--link-visited-color: #6897db;
 	--scrollbar-width: .5rem;
 	--scrollbar-color: grey;
 	--scrollbar-background-color: var(--background-color);
@@ -193,7 +194,7 @@ body {
 		}
 	}
 
-	&:has(article) {
+	&:has(.page article) {
 		> .parallax {
 			height: 100dvh;
 		}
@@ -245,9 +246,21 @@ h6 {
 	font-weight: 300;
 }
 
+a:visited {
+	color: var(--link-visited-color);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+blockquote,
 p,
 li,
-td {
+td,
+th {
 	& a:not(.anchorjs-link):not(:has(img)) {
 		position: relative;
 		text-decoration: none;
@@ -255,6 +268,10 @@ td {
 		background-size: 0 100%;
 		transition: background-size .3s, color .3s;
 		color: var(--link-color);
+
+		&:visited {
+			color: var(--link-visited-color);
+		}
 
 		&.underlined,
 		&:hover {
@@ -806,6 +823,7 @@ section.article-cards {
 			background-size: 100%;
 			background-position: center;
 			transition: background-size 250ms ease-out;
+			overflow: hidden;
 
 			h2 {
 				position: relative;
@@ -1190,7 +1208,7 @@ a.dead-link {
 	}
 }
 
-article a.external-link {
+article a.external-link:not(.button) {
 	&::after {
 		content: "";
 		display: inline-block;

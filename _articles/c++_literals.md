@@ -134,6 +134,10 @@ Le C++23 a introduit des suffixes spécifiques pour faciliter la manipulation de
 
 Pour ``std::size_t``, n'importe quelle combinaison de **``z``** (ou ``Z``) et de **``u``** (ou ``U``) est valide : ``zu``, ``zU``, ``Zu``, ``ZU``, ``uz``, ``uZ``, ``Uz`` ou ``UZ``.
 
+> **Pourquoi `uz` et pas `us` ("unsigned size") ?**  
+> Parce que le suffixe littéral `us` est déjà pris depuis C++14 par la bibliothèque temporelle [`<chrono>`](https://en.cppreference.com/cpp/chrono/operator%22%22us) pour désigner les microsecondes (`10us`).
+> Pour éviter cette collision de noms, le comité C++ ([P0330R8](https://wg21.link/p0330r8)) a repris la lettre `z` issue de la spécification C99 du format `printf` (`%zu` pour `size_t`, `%zd` pour `ssize_t`), où le `z` symbolise la taille (*siZe*). Combiné à `u` pour non-signé (*unsigned*), le suffixe `uz` (ou `zu`) désigne ainsi `std::size_t` sans ambiguïté.
+
 Le type signé produit par **``z``** est l'[**équivalent standard**](/articles/cpp/size#les-alternatives-signées--ptrdiff_t-et-stdssize) du type [**``ssize_t`` (POSIX)**](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html). Il est très utile pour les boucles décrémentales afin d'éviter les débordements (underflow) des types non signés.
 
 En revanche, il n'existe toujours pas de literal pour les types à **largeur fixe** stricte (comme ``std::int64_t`` ou ``std::int32_t``). On continue d'utiliser les literals des types fondamentaux correspondants:

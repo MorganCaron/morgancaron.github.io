@@ -1,9 +1,9 @@
 ---
 layout: article
 title: XMake
-permalink: articles/c++/xmake
-category: c++
-logo: c++.svg
+permalink: articles/cpp/xmake
+category: cpp
+logo: cpp.svg
 background: cavern0.webp
 published: false
 ---
